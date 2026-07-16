@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+coverage/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Local/internal documentation
+docs/
+ROOT_*.md
+AGENTS.md
+
+# Local files
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor/system
+.idea/
+.vscode/
+
