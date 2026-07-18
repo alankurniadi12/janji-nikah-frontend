@@ -100,17 +100,17 @@ export async function getAuditLogs() {
   return response.data.data.auditLogs;
 }
 
-export async function getRevenueReport() {
-  const response = await api.get("/admin/reports/revenue");
+export async function getRevenueReport(params = {}) {
+  const response = await api.get("/admin/reports/revenue", { params });
   return response.data.data.report;
 }
 
-export async function getCreditReport() {
-  const response = await api.get("/admin/reports/credits");
+export async function getCreditReport(params = {}) {
+  const response = await api.get("/admin/reports/credits", { params });
   return response.data.data.report;
 }
 
-export async function getThemeReport() {
-  const response = await api.get("/admin/reports/themes");
+export async function getThemeReport(params = {}) {
+  const response = await api.get("/admin/reports/themes", { params });
   return response.data.data.report;
 }

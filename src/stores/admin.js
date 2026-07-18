@@ -124,9 +124,13 @@ export const useAdminStore = defineStore("admin", {
     async loadAuditLogs() {
       this.auditLogs = await this.run(() => adminService.getAuditLogs(), "Audit log belum bisa dimuat.");
     },
-    async loadReports() {
+    async loadReports(params = {}) {
       const [revenue, credits, themes] = await this.run(
-        () => Promise.all([adminService.getRevenueReport(), adminService.getCreditReport(), adminService.getThemeReport()]),
+        () => Promise.all([
+          adminService.getRevenueReport(params),
+          adminService.getCreditReport(params),
+          adminService.getThemeReport(params)
+        ]),
         "Laporan belum bisa dimuat."
       );
       this.reports = { revenue, credits, themes };
