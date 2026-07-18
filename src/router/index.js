@@ -103,6 +103,46 @@ const routes = [
         path: "dashboard",
         name: "admin-dashboard",
         component: () => import("@/views/admin/AdminDashboardView.vue")
+      },
+      {
+        path: "payments",
+        name: "admin-payments",
+        component: () => import("@/views/admin/AdminPaymentsView.vue")
+      },
+      {
+        path: "members",
+        name: "admin-members",
+        component: () => import("@/views/admin/AdminMembersView.vue")
+      },
+      {
+        path: "invitations",
+        name: "admin-invitations",
+        component: () => import("@/views/admin/AdminInvitationsView.vue")
+      },
+      {
+        path: "credit-packages",
+        name: "admin-credit-packages",
+        component: () => import("@/views/admin/AdminCreditPackagesView.vue")
+      },
+      {
+        path: "themes",
+        name: "admin-themes",
+        component: () => import("@/views/admin/AdminThemesView.vue")
+      },
+      {
+        path: "music",
+        name: "admin-music",
+        component: () => import("@/views/admin/AdminMusicView.vue")
+      },
+      {
+        path: "reports",
+        name: "admin-reports",
+        component: () => import("@/views/admin/AdminReportsView.vue")
+      },
+      {
+        path: "audit-logs",
+        name: "admin-audit-logs",
+        component: () => import("@/views/admin/AdminAuditLogsView.vue")
       }
     ]
   },
