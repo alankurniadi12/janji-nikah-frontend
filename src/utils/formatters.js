@@ -86,3 +86,16 @@ export function photoIdFromUrl(url) {
   const fileName = url.split("/").pop() || "";
   return fileName.replace(/\.[^.]+$/, "");
 }
+
+export function formatEventDate(value) {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  }).format(new Date(value));
+}

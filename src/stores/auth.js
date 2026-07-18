@@ -20,8 +20,8 @@ export const useAuthStore = defineStore("auth", {
       this.user = payload?.user || null;
       setAccessToken(payload?.accessToken || "");
     },
-    async hydrate() {
-      if (this.ready || this.loading) {
+    async hydrate(force = false) {
+      if (!force && (this.ready || this.loading)) {
         return this.user;
       }
 

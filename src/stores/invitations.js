@@ -8,6 +8,7 @@ import {
   getInvitation,
   getInvitations,
   previewInvitation,
+  publishInvitation,
   updateInvitation,
   uploadGalleryPhoto,
   uploadMainPhoto
@@ -105,6 +106,22 @@ export const useInvitationStore = defineStore("invitations", {
         return this.preview;
       } catch (error) {
         this.error = getApiErrorMessage(error, "Preview belum bisa dibuat.");
+        throw error;
+      } finally {
+        this.saving = false;
+      }
+    },
+    async publish(id) {
+      this.saving = true;
+      this.error = "";
+
+      try {
+        const invitation = await publishInvitation(id);
+        this.current = invitation;
+        this.invitations = this.invitations.map((item) => (item.id === id ? invitation : item));
+        return invitation;
+      } catch (error) {
+        this.error = getApiErrorMessage(error, "Undangan belum bisa dipublish.");
         throw error;
       } finally {
         this.saving = false;

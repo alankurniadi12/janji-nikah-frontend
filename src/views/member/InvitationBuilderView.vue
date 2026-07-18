@@ -6,17 +6,21 @@ import { ImagePlus, Loader2, Plus, Trash2 } from "@lucide/vue";
 import AppButton from "@/components/AppButton.vue";
 import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
 import { getApiErrorMessage } from "@/lib/api";
+import { useAuthStore } from "@/stores/auth";
 import { useCatalogStore } from "@/stores/catalog";
 import { useInvitationStore } from "@/stores/invitations";
 import { formatDate, photoIdFromUrl } from "@/utils/formatters";
 
 const route = useRoute();
 const router = useRouter();
+const auth = useAuthStore();
 const invitationStore = useInvitationStore();
 const catalogStore = useCatalogStore();
 const activeStep = ref("couple");
 const error = ref("");
 const success = ref("");
+const showPublishConfirm = ref(false);
+const showCreditEmpty = ref(false);
 
 const steps = [
   { key: "couple", label: "Pengantin" },
@@ -64,6 +68,13 @@ const isMainDataEditable = computed(() =>
   ["draft", "active"].includes(invitation.value?.status)
 );
 const canAddGallery = computed(() => (invitation.value?.galleryPhotoUrls?.length || 0) < 5);
+const publicPath = computed(() => {
+  if (!auth.user?.username || !invitation.value?.slug) {
+    return "";
+  }
+
+  return `/${auth.user.username}/${invitation.value.slug}`;
+});
 
 function syncForm(source) {
   form.title = source.title || "";
@@ -215,6 +226,41 @@ async function openPreview() {
     router.push({ name: "member-invitation-preview", params: { id: route.params.id } });
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Preview belum bisa dibuka.");
+  }
+}
+
+function requestPublish() {
+  error.value = "";
+  success.value = "";
+
+  if ((auth.user?.creditBalance || 0) <= 0) {
+    showCreditEmpty.value = true;
+    return;
+  }
+
+  showPublishConfirm.value = true;
+}
+
+async function publishDraft() {
+  error.value = "";
+  success.value = "";
+
+  try {
+    const published = await invitationStore.publish(route.params.id);
+    await auth.hydrate(true);
+    syncForm(published);
+    showPublishConfirm.value = false;
+    router.push(`/${auth.user.username}/${published.slug}`);
+  } catch (requestError) {
+    const status = requestError.response?.status;
+
+    if (status === 402) {
+      showPublishConfirm.value = false;
+      showCreditEmpty.value = true;
+      return;
+    }
+
+    error.value = getApiErrorMessage(requestError, "Undangan belum bisa dipublish.");
   }
 }
 </script>
@@ -637,6 +683,19 @@ async function openPreview() {
             <Loader2 v-if="invitationStore.saving" class="h-4 w-4 animate-spin" />
             Buka Preview
           </AppButton>
+          <div class="rounded-md border border-ink/10 bg-linen p-4">
+            <p class="text-sm font-bold text-ink">Publish undangan</p>
+            <p class="mt-2 text-sm leading-6 text-ink/60">
+              Publish memakai 1 kredit. Setelah publish, data utama masih bisa diedit 24 jam.
+            </p>
+            <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+              <AppButton v-if="invitation.status === 'draft'" type="button" :disabled="invitationStore.saving" @click="requestPublish">
+                <Loader2 v-if="invitationStore.saving" class="h-4 w-4 animate-spin" />
+                Publish Undangan
+              </AppButton>
+              <AppButton v-else-if="publicPath" :to="publicPath" variant="secondary">Buka Undangan Publik</AppButton>
+            </div>
+          </div>
         </section>
 
         <div v-if="activeStep !== 'preview'" class="mt-6 flex justify-end">
@@ -647,5 +706,40 @@ async function openPreview() {
         </div>
       </form>
     </template>
+
+    <div v-if="showPublishConfirm" class="fixed inset-0 z-50 flex items-center justify-center bg-ink/45 px-4">
+      <section class="w-full max-w-md rounded-lg bg-white p-6 shadow-soft">
+        <h2 class="text-xl font-bold text-ink">Publish undangan?</h2>
+        <p class="mt-3 text-sm leading-6 text-ink/65">
+          Sistem akan memakai 1 kredit dari saldo kamu. Draft dan preview tetap gratis, tetapi publish membuat link undangan aktif.
+        </p>
+        <div class="mt-5 rounded-md bg-linen p-4 text-sm">
+          <div class="flex justify-between gap-4">
+            <span class="text-ink/55">Sisa kredit</span>
+            <span class="font-bold text-ink">{{ auth.user?.creditBalance || 0 }}</span>
+          </div>
+        </div>
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <AppButton type="button" variant="secondary" @click="showPublishConfirm = false">Batal</AppButton>
+          <AppButton type="button" :disabled="invitationStore.saving" @click="publishDraft">
+            <Loader2 v-if="invitationStore.saving" class="h-4 w-4 animate-spin" />
+            Ya, Publish
+          </AppButton>
+        </div>
+      </section>
+    </div>
+
+    <div v-if="showCreditEmpty" class="fixed inset-0 z-50 flex items-center justify-center bg-ink/45 px-4">
+      <section class="w-full max-w-md rounded-lg bg-white p-6 shadow-soft">
+        <h2 class="text-xl font-bold text-ink">Kredit belum cukup</h2>
+        <p class="mt-3 text-sm leading-6 text-ink/65">
+          Publish undangan membutuhkan 1 kredit. Beli kredit dulu, lalu kembali ke draft ini untuk publish.
+        </p>
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <AppButton type="button" variant="secondary" @click="showCreditEmpty = false">Tutup</AppButton>
+          <AppButton to="/app/credits/buy">Beli Kredit</AppButton>
+        </div>
+      </section>
+    </div>
   </section>
 </template>

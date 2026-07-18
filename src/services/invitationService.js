@@ -29,6 +29,11 @@ export async function previewInvitation(id) {
   return response.data.data;
 }
 
+export async function publishInvitation(id) {
+  const response = await api.post(`/member/invitations/${id}/publish`);
+  return response.data.data.invitation;
+}
+
 export async function uploadMainPhoto(id, file) {
   const formData = new FormData();
   formData.append("photo", file);

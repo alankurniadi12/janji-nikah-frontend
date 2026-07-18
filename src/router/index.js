@@ -102,6 +102,18 @@ const routes = [
     ]
   },
   {
+    path: "/:username/:slug",
+    name: "public-invitation",
+    component: () => import("@/views/public/PublicInvitationView.vue"),
+    meta: { public: true }
+  },
+  {
+    path: "/:username/:slug/t/:token",
+    name: "public-guest-invitation",
+    component: () => import("@/views/public/PublicInvitationView.vue"),
+    meta: { public: true }
+  },
+  {
     path: "/:pathMatch(.*)*",
     redirect: "/"
   }
