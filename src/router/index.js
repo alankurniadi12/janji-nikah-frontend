@@ -40,12 +40,27 @@ const routes = [
       {
         path: "invitations",
         name: "member-invitations",
-        component: () => import("@/views/member/ComingSoonView.vue")
+        component: () => import("@/views/member/InvitationsView.vue")
       },
       {
         path: "invitations/new",
         name: "member-invitation-new",
-        component: () => import("@/views/member/ComingSoonView.vue")
+        component: () => import("@/views/member/NewInvitationView.vue")
+      },
+      {
+        path: "invitations/:id",
+        name: "member-invitation-detail",
+        component: () => import("@/views/member/InvitationBuilderView.vue")
+      },
+      {
+        path: "invitations/:id/edit",
+        name: "member-invitation-edit",
+        component: () => import("@/views/member/InvitationBuilderView.vue")
+      },
+      {
+        path: "invitations/:id/preview",
+        name: "member-invitation-preview",
+        component: () => import("@/views/member/InvitationPreviewView.vue")
       },
       {
         path: "credits/buy",

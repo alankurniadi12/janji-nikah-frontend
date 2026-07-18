@@ -55,3 +55,34 @@ export function transactionStatusTone(status) {
 
   return tones[status] || "bg-ink/10 text-ink/70 border-ink/15";
 }
+
+export function invitationStatusLabel(status) {
+  const labels = {
+    draft: "Draft",
+    active: "Aktif",
+    locked: "Terkunci",
+    expired: "Expired"
+  };
+
+  return labels[status] || status || "-";
+}
+
+export function invitationStatusTone(status) {
+  const tones = {
+    draft: "bg-gold/10 text-gold border-gold/20",
+    active: "bg-leaf/10 text-leaf border-leaf/20",
+    locked: "bg-ink/10 text-ink/70 border-ink/15",
+    expired: "bg-rose/10 text-rose border-rose/20"
+  };
+
+  return tones[status] || "bg-ink/10 text-ink/70 border-ink/15";
+}
+
+export function photoIdFromUrl(url) {
+  if (!url) {
+    return "";
+  }
+
+  const fileName = url.split("/").pop() || "";
+  return fileName.replace(/\.[^.]+$/, "");
+}
