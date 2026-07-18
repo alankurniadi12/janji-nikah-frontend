@@ -50,12 +50,17 @@ const routes = [
       {
         path: "credits/buy",
         name: "member-buy-credits",
-        component: () => import("@/views/member/ComingSoonView.vue")
+        component: () => import("@/views/member/BuyCreditsView.vue")
       },
       {
         path: "transactions",
         name: "member-transactions",
-        component: () => import("@/views/member/ComingSoonView.vue")
+        component: () => import("@/views/member/TransactionsView.vue")
+      },
+      {
+        path: "transactions/:id",
+        name: "member-transaction-detail",
+        component: () => import("@/views/member/TransactionDetailView.vue")
       },
       {
         path: "branding",
