@@ -1,10 +1,16 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { CalendarDays, Gift, Loader2, MapPin, Music2 } from "@lucide/vue";
 
 import { getApiErrorMessage } from "@/lib/api";
 import { getMusic } from "@/services/catalogService";
+import {
+  getPublicGuestInvitation,
+  markPublicGuestOpened,
+  submitPublicRsvp,
+  submitPublicWish
+} from "@/services/publicGuestService";
 import { getPublicInvitation } from "@/services/publicInvitationService";
 import { formatEventDate } from "@/utils/formatters";
 
@@ -17,11 +23,22 @@ const music = ref([]);
 const opened = ref(false);
 const audioRef = ref(null);
 const audioPlaying = ref(false);
+const submitting = ref(false);
+const guestMessage = ref("");
+const guestError = ref("");
+const wishForm = reactive({
+  displayName: "",
+  message: ""
+});
 
 onMounted(loadInvitation);
 
 const invitation = computed(() => publicData.value?.invitation);
 const isActive = computed(() => Boolean(publicData.value?.isActive));
+const guest = computed(() => publicData.value?.guest || null);
+const rsvp = computed(() => publicData.value?.rsvp || null);
+const wishes = computed(() => publicData.value?.wishes || []);
+const hasGuestToken = computed(() => Boolean(route.params.token));
 const musicItem = computed(() => music.value.find((item) => item.id === invitation.value?.musicId));
 const coupleNames = computed(() => {
   const groom = invitation.value?.groom?.fullName || invitation.value?.summary?.groomName || "Pengantin";
@@ -34,13 +51,17 @@ async function loadInvitation() {
   error.value = "";
 
   try {
+    const detailRequest = hasGuestToken.value
+      ? getPublicGuestInvitation(route.params.username, route.params.slug, route.params.token)
+      : getPublicInvitation(route.params.username, route.params.slug);
     const [detail, activeMusic] = await Promise.all([
-      getPublicInvitation(route.params.username, route.params.slug),
+      detailRequest,
       getMusic().catch(() => [])
     ]);
 
     publicData.value = detail;
     music.value = activeMusic;
+    wishForm.displayName = detail.guest?.name || "";
 
     if (detail.redirectUsername) {
       router.replace({
@@ -61,6 +82,15 @@ async function loadInvitation() {
 
 async function openInvitation() {
   opened.value = true;
+
+  if (hasGuestToken.value) {
+    try {
+      publicData.value = await markPublicGuestOpened(route.params.username, route.params.slug, route.params.token);
+      wishForm.displayName = publicData.value.guest?.name || "";
+    } catch {
+      // Opening should not block guests from reading the invitation.
+    }
+  }
 
   if (!audioRef.value) {
     return;
@@ -87,6 +117,48 @@ async function toggleMusic() {
 
   audioRef.value.pause();
   audioPlaying.value = false;
+}
+
+async function submitRsvp(status) {
+  guestError.value = "";
+  guestMessage.value = "";
+  submitting.value = true;
+
+  try {
+    const nextRsvp = await submitPublicRsvp(route.params.username, route.params.slug, route.params.token, status);
+    publicData.value = {
+      ...publicData.value,
+      rsvp: nextRsvp
+    };
+    guestMessage.value = "RSVP berhasil disimpan.";
+  } catch (requestError) {
+    guestError.value = getApiErrorMessage(requestError, "RSVP belum bisa disimpan.");
+  } finally {
+    submitting.value = false;
+  }
+}
+
+async function submitWish() {
+  guestError.value = "";
+  guestMessage.value = "";
+  submitting.value = true;
+
+  try {
+    const wish = await submitPublicWish(route.params.username, route.params.slug, route.params.token, {
+      displayName: wishForm.displayName,
+      message: wishForm.message
+    });
+    publicData.value = {
+      ...publicData.value,
+      wishes: [wish, ...wishes.value]
+    };
+    wishForm.message = "";
+    guestMessage.value = "Ucapan berhasil dikirim.";
+  } catch (requestError) {
+    guestError.value = getApiErrorMessage(requestError, "Ucapan belum bisa dikirim.");
+  } finally {
+    submitting.value = false;
+  }
 }
 </script>
 
@@ -139,6 +211,7 @@ async function toggleMusic() {
         <div class="absolute inset-0 bg-ink/55" />
         <div class="relative z-10 mx-auto max-w-2xl text-center text-white">
           <p class="text-sm font-bold uppercase tracking-widest text-white/75">Undangan pernikahan</p>
+          <p v-if="guest" class="mt-4 text-sm font-semibold text-white/80">Kepada {{ guest.name }}</p>
           <h1 class="mt-5 text-5xl font-bold leading-tight sm:text-6xl">{{ coupleNames }}</h1>
           <p v-if="invitation.events?.[0]" class="mt-5 text-lg text-white/80">
             {{ formatEventDate(invitation.events[0].date) }}
@@ -255,9 +328,79 @@ async function toggleMusic() {
 
         <section class="mx-auto max-w-3xl px-4 py-12 text-center">
           <h2 class="text-2xl font-bold text-ink">RSVP dan ucapan</h2>
-          <p class="mt-3 text-sm leading-6 text-ink/60">
-            Form RSVP dan ucapan tamu akan aktif pada fase tamu berikutnya.
+          <p v-if="!guest" class="mt-3 text-sm leading-6 text-ink/60">
+            RSVP dan ucapan tersedia melalui link personal tamu.
           </p>
+          <div v-else class="mt-6 space-y-6 text-left">
+            <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+              <p class="text-sm font-bold uppercase tracking-widest text-gold">RSVP</p>
+              <h3 class="mt-3 text-xl font-bold text-ink">Konfirmasi kehadiran</h3>
+              <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                <button
+                  class="focus-ring rounded-md border px-4 py-3 text-sm font-bold transition"
+                  :class="rsvp?.status === 'attending' ? 'border-leaf bg-leaf text-white' : 'border-ink/15 bg-white text-ink hover:border-leaf'"
+                  type="button"
+                  :disabled="submitting"
+                  @click="submitRsvp('attending')"
+                >
+                  Hadir
+                </button>
+                <button
+                  class="focus-ring rounded-md border px-4 py-3 text-sm font-bold transition"
+                  :class="rsvp?.status === 'not_attending' ? 'border-rose bg-rose text-white' : 'border-ink/15 bg-white text-ink hover:border-rose'"
+                  type="button"
+                  :disabled="submitting"
+                  @click="submitRsvp('not_attending')"
+                >
+                  Tidak Hadir
+                </button>
+              </div>
+            </section>
+
+            <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+              <p class="text-sm font-bold uppercase tracking-widest text-gold">Ucapan</p>
+              <form class="mt-4 space-y-4" @submit.prevent="submitWish">
+                <label class="block text-sm font-semibold text-ink">
+                  Nama
+                  <input
+                    v-model.trim="wishForm.displayName"
+                    class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                  />
+                </label>
+                <label class="block text-sm font-semibold text-ink">
+                  Ucapan
+                  <textarea
+                    v-model.trim="wishForm.message"
+                    class="focus-ring mt-2 min-h-28 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
+                    placeholder="Tulis doa dan ucapan"
+                  />
+                </label>
+                <button
+                  class="focus-ring inline-flex min-h-11 items-center justify-center rounded-md bg-leaf px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink disabled:opacity-60"
+                  type="submit"
+                  :disabled="submitting"
+                >
+                  <Loader2 v-if="submitting" class="mr-2 h-4 w-4 animate-spin" />
+                  Kirim Ucapan
+                </button>
+              </form>
+            </section>
+
+            <p v-if="guestError" class="rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ guestError }}</p>
+            <p v-if="guestMessage" class="rounded-md bg-leaf/10 px-4 py-3 text-sm font-semibold text-leaf">{{ guestMessage }}</p>
+          </div>
+        </section>
+
+        <section v-if="wishes.length" class="bg-white px-4 py-12">
+          <div class="mx-auto max-w-3xl">
+            <p class="text-center text-sm font-bold uppercase tracking-widest text-gold">Ucapan tamu</p>
+            <div class="mt-8 grid gap-3">
+              <article v-for="wish in wishes" :key="wish.id" class="rounded-lg border border-ink/10 bg-linen p-5 shadow-soft">
+                <p class="font-bold text-ink">{{ wish.displayName }}</p>
+                <p class="mt-2 text-sm leading-6 text-ink/65">{{ wish.message }}</p>
+              </article>
+            </div>
+          </div>
         </section>
 
         <footer class="border-t border-ink/10 bg-white px-4 py-6 text-center text-sm text-ink/55">

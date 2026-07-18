@@ -279,6 +279,13 @@ async function publishDraft() {
       </div>
       <div class="flex flex-col gap-3 sm:flex-row">
         <AppButton to="/app/invitations" variant="secondary">Daftar Undangan</AppButton>
+        <AppButton
+          v-if="invitation"
+          :to="{ name: 'member-invitation-guests', params: { id: invitation.id } }"
+          variant="secondary"
+        >
+          Daftar Tamu
+        </AppButton>
         <AppButton :disabled="invitationStore.saving || !isMainDataEditable" @click="saveInvitation">
           <Loader2 v-if="invitationStore.saving" class="h-4 w-4 animate-spin" />
           Simpan Draft

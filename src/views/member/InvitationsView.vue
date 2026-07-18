@@ -60,7 +60,7 @@ async function deleteDraft(invitation) {
         <div
           v-for="invitation in invitationStore.invitations"
           :key="invitation.id"
-          class="grid gap-4 px-5 py-4 md:grid-cols-[1fr_120px_150px_80px] md:items-center"
+          class="grid gap-4 px-5 py-4 md:grid-cols-[1fr_120px_150px_150px] md:items-center"
         >
           <RouterLink
             :to="{ name: 'member-invitation-detail', params: { id: invitation.id } }"
@@ -78,6 +78,12 @@ async function deleteDraft(invitation) {
             {{ invitation.events?.length || 0 }} acara
           </div>
           <div class="flex items-center justify-end gap-2">
+            <RouterLink
+              class="focus-ring rounded-md px-3 py-2 text-sm font-semibold text-leaf hover:bg-mint"
+              :to="{ name: 'member-invitation-guests', params: { id: invitation.id } }"
+            >
+              Tamu
+            </RouterLink>
             <button
               v-if="invitation.status === 'draft'"
               class="focus-ring rounded-md p-2 text-rose hover:bg-rose/10"

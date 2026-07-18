@@ -63,6 +63,11 @@ const routes = [
         component: () => import("@/views/member/InvitationPreviewView.vue")
       },
       {
+        path: "invitations/:id/guests",
+        name: "member-invitation-guests",
+        component: () => import("@/views/member/InvitationGuestsView.vue")
+      },
+      {
         path: "credits/buy",
         name: "member-buy-credits",
         component: () => import("@/views/member/BuyCreditsView.vue")
@@ -110,6 +115,12 @@ const routes = [
   {
     path: "/:username/:slug/t/:token",
     name: "public-guest-invitation",
+    component: () => import("@/views/public/PublicInvitationView.vue"),
+    meta: { public: true }
+  },
+  {
+    path: "/:username/:slug/guest/:token",
+    name: "public-guest-invitation-legacy",
     component: () => import("@/views/public/PublicInvitationView.vue"),
     meta: { public: true }
   },
