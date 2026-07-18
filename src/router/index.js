@@ -1,0 +1,136 @@
+import { createRouter, createWebHistory } from "vue-router";
+
+import { useAuthStore } from "@/stores/auth";
+
+const routes = [
+  {
+    path: "/",
+    name: "landing",
+    component: () => import("@/views/public/LandingView.vue"),
+    meta: { public: true }
+  },
+  {
+    path: "/login",
+    name: "login",
+    component: () => import("@/views/public/LoginView.vue"),
+    meta: { public: true }
+  },
+  {
+    path: "/demo-tema",
+    name: "theme-demo",
+    component: () => import("@/views/public/ThemeDemoView.vue"),
+    meta: { public: true }
+  },
+  {
+    path: "/app",
+    component: () => import("@/layouts/MemberLayout.vue"),
+    meta: { requiresAuth: true, role: "member" },
+    children: [
+      {
+        path: "onboarding",
+        name: "member-onboarding",
+        component: () => import("@/views/member/OnboardingView.vue"),
+        meta: { allowsIncompleteOnboarding: true }
+      },
+      {
+        path: "dashboard",
+        name: "member-dashboard",
+        component: () => import("@/views/member/DashboardView.vue")
+      },
+      {
+        path: "invitations",
+        name: "member-invitations",
+        component: () => import("@/views/member/ComingSoonView.vue")
+      },
+      {
+        path: "invitations/new",
+        name: "member-invitation-new",
+        component: () => import("@/views/member/ComingSoonView.vue")
+      },
+      {
+        path: "credits/buy",
+        name: "member-buy-credits",
+        component: () => import("@/views/member/ComingSoonView.vue")
+      },
+      {
+        path: "transactions",
+        name: "member-transactions",
+        component: () => import("@/views/member/ComingSoonView.vue")
+      },
+      {
+        path: "branding",
+        name: "member-branding",
+        component: () => import("@/views/member/ComingSoonView.vue")
+      },
+      {
+        path: "settings",
+        name: "member-settings",
+        component: () => import("@/views/member/ComingSoonView.vue")
+      }
+    ]
+  },
+  {
+    path: "/admin",
+    component: () => import("@/layouts/AdminLayout.vue"),
+    meta: { requiresAuth: true, role: "admin" },
+    children: [
+      {
+        path: "dashboard",
+        name: "admin-dashboard",
+        component: () => import("@/views/admin/AdminDashboardView.vue")
+      }
+    ]
+  },
+  {
+    path: "/:pathMatch(.*)*",
+    redirect: "/"
+  }
+];
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+  scrollBehavior() {
+    return { top: 0 };
+  }
+});
+
+router.beforeEach(async (to) => {
+  const auth = useAuthStore();
+
+  if (!auth.ready) {
+    await auth.hydrate();
+  }
+
+  if (to.name === "login" && auth.isAuthenticated) {
+    return auth.isAdmin ? { name: "admin-dashboard" } : routeForMember(auth);
+  }
+
+  if (!to.meta.requiresAuth) {
+    return true;
+  }
+
+  if (!auth.isAuthenticated) {
+    return { name: "login", query: { redirect: to.fullPath } };
+  }
+
+  if (to.meta.role && auth.user.role !== to.meta.role) {
+    return auth.isAdmin ? { name: "admin-dashboard" } : routeForMember(auth);
+  }
+
+  if (auth.isMember && auth.needsOnboarding && !to.meta.allowsIncompleteOnboarding) {
+    return { name: "member-onboarding" };
+  }
+
+  if (auth.isMember && !auth.needsOnboarding && to.name === "member-onboarding") {
+    return { name: "member-dashboard" };
+  }
+
+  return true;
+});
+
+function routeForMember(auth) {
+  return auth.needsOnboarding ? { name: "member-onboarding" } : { name: "member-dashboard" };
+}
+
+export default router;
