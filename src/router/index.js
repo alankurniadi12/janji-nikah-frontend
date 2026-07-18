@@ -85,7 +85,7 @@ const routes = [
       {
         path: "branding",
         name: "member-branding",
-        component: () => import("@/views/member/ComingSoonView.vue")
+        component: () => import("@/views/member/BrandingView.vue")
       },
       {
         path: "settings",
