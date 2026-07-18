@@ -262,7 +262,7 @@ async function deleteWish(wish) {
             <p class="mt-2 text-xs text-ink/45">{{ formatDate(wish.createdAt) }}</p>
           </div>
           <div class="flex gap-2 md:justify-end">
-            <AppButton type="button" variant="secondary" @click="hideWish(wish)">Hide</AppButton>
+            <AppButton type="button" variant="secondary" @click="hideWish(wish)">Sembunyikan</AppButton>
             <AppButton type="button" variant="ghost" @click="deleteWish(wish)">Hapus</AppButton>
           </div>
         </article>
