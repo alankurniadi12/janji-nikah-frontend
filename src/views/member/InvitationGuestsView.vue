@@ -4,6 +4,7 @@ import { useRoute } from "vue-router";
 import { Check, Copy, Loader2, MessageCircle, Trash2 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useGuestStore } from "@/stores/guests";
 import { useInvitationStore } from "@/stores/invitations";
@@ -15,6 +16,7 @@ const guestStore = useGuestStore();
 const invitationStore = useInvitationStore();
 const toastStore = useToastStore();
 const error = ref("");
+const pendingDelete = ref(null);
 const form = reactive({
   name: "",
   bulkNames: ""
@@ -96,12 +98,24 @@ async function markSent(guest) {
   }
 }
 
+function requestRemoveGuest(guest) {
+  pendingDelete.value = {
+    type: "guest",
+    item: guest,
+    title: "Hapus tamu?",
+    message: "Apakah kamu yakin ingin menghapus tamu ini? Link personal tamu ini tidak bisa dipakai lagi setelah dihapus.",
+    detail: guest.name,
+    confirmLabel: "Ya, Hapus Tamu"
+  };
+}
+
 async function removeGuest(guest) {
   error.value = "";
 
   try {
     await guestStore.remove(route.params.id, guest.id);
     toastStore.show("Tamu berhasil dihapus.");
+    pendingDelete.value = null;
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Tamu belum bisa dihapus.");
   }
@@ -118,14 +132,41 @@ async function hideWish(wish) {
   }
 }
 
+function requestDeleteWish(wish) {
+  pendingDelete.value = {
+    type: "wish",
+    item: wish,
+    title: "Hapus ucapan?",
+    message: "Apakah kamu yakin ingin menghapus ucapan ini? Ucapan yang dihapus tidak bisa dikembalikan.",
+    detail: `${wish.displayName}: ${wish.message}`,
+    confirmLabel: "Ya, Hapus Ucapan"
+  };
+}
+
 async function deleteWish(wish) {
   error.value = "";
 
   try {
     await guestStore.deleteWish(route.params.id, wish.id);
     toastStore.show("Ucapan berhasil dihapus.");
+    pendingDelete.value = null;
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Ucapan belum bisa dihapus.");
+  }
+}
+
+async function confirmDelete() {
+  if (!pendingDelete.value) {
+    return;
+  }
+
+  if (pendingDelete.value.type === "guest") {
+    await removeGuest(pendingDelete.value.item);
+    return;
+  }
+
+  if (pendingDelete.value.type === "wish") {
+    await deleteWish(pendingDelete.value.item);
   }
 }
 </script>
@@ -258,7 +299,7 @@ async function deleteWish(wish) {
                 class="focus-ring rounded-md p-2 text-rose hover:bg-rose/10"
                 type="button"
                 title="Hapus tamu"
-                @click="removeGuest(guest)"
+                @click="requestRemoveGuest(guest)"
               >
                 <Trash2 class="h-4 w-4" />
               </button>
@@ -286,11 +327,22 @@ async function deleteWish(wish) {
           </div>
           <div class="flex gap-2 md:justify-end">
             <AppButton type="button" variant="secondary" @click="hideWish(wish)">Sembunyikan</AppButton>
-            <AppButton type="button" variant="ghost" @click="deleteWish(wish)">Hapus</AppButton>
+            <AppButton type="button" variant="ghost" @click="requestDeleteWish(wish)">Hapus</AppButton>
           </div>
         </article>
       </div>
       <p v-else class="p-8 text-center text-sm font-semibold text-ink/55">Belum ada ucapan.</p>
     </section>
+
+    <ConfirmDialog
+      :open="Boolean(pendingDelete)"
+      :title="pendingDelete?.title || ''"
+      :message="pendingDelete?.message || ''"
+      :detail="pendingDelete?.detail || ''"
+      :confirm-label="pendingDelete?.confirmLabel || 'Ya, Hapus'"
+      :loading="guestStore.saving"
+      @cancel="pendingDelete = null"
+      @confirm="confirmDelete"
+    />
   </section>
 </template>

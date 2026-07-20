@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { ImagePlus, Loader2, Plus, Trash2 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth";
@@ -23,6 +24,7 @@ const error = ref("");
 const showPublishConfirm = ref(false);
 const showCreditEmpty = ref(false);
 const savedSnapshot = ref("");
+const pendingDelete = ref(null);
 const validationErrors = reactive({});
 
 const steps = [
@@ -148,6 +150,17 @@ function removeEvent(index) {
   form.events.splice(index, 1);
 }
 
+function requestRemoveEvent(index) {
+  pendingDelete.value = {
+    type: "event",
+    index,
+    title: "Hapus acara?",
+    message: "Apakah kamu yakin ingin menghapus data acara ini? Data acara akan hilang dari draft setelah undangan disimpan.",
+    detail: `Acara ${index + 1}`,
+    confirmLabel: "Ya, Hapus Acara"
+  };
+}
+
 function addEnvelopeMethod() {
   form.envelope.methods.push({
     type: "bank",
@@ -159,6 +172,17 @@ function addEnvelopeMethod() {
 
 function removeEnvelopeMethod(index) {
   form.envelope.methods.splice(index, 1);
+}
+
+function requestRemoveEnvelopeMethod(index) {
+  pendingDelete.value = {
+    type: "envelope",
+    index,
+    title: "Hapus metode amplop?",
+    message: "Apakah kamu yakin ingin menghapus metode amplop digital ini?",
+    detail: form.envelope.methods[index]?.providerName || `Metode ${index + 1}`,
+    confirmLabel: "Ya, Hapus Metode"
+  };
 }
 
 function buildPayload() {
@@ -246,8 +270,42 @@ async function removeGallery(url) {
   try {
     await invitationStore.removeGalleryPhoto(route.params.id, photoIdFromUrl(url));
     toastStore.show("Foto galeri berhasil dihapus.");
+    pendingDelete.value = null;
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Foto galeri belum bisa dihapus.");
+  }
+}
+
+function requestRemoveGallery(url) {
+  pendingDelete.value = {
+    type: "gallery",
+    url,
+    title: "Hapus foto galeri?",
+    message: "Apakah kamu yakin ingin menghapus foto ini? Foto yang dihapus tidak bisa dikembalikan.",
+    detail: "Foto galeri undangan",
+    confirmLabel: "Ya, Hapus Foto"
+  };
+}
+
+async function confirmDelete() {
+  if (!pendingDelete.value) {
+    return;
+  }
+
+  if (pendingDelete.value.type === "gallery") {
+    await removeGallery(pendingDelete.value.url);
+    return;
+  }
+
+  if (pendingDelete.value.type === "event") {
+    removeEvent(pendingDelete.value.index);
+    pendingDelete.value = null;
+    return;
+  }
+
+  if (pendingDelete.value.type === "envelope") {
+    removeEnvelopeMethod(pendingDelete.value.index);
+    pendingDelete.value = null;
   }
 }
 
@@ -624,7 +682,7 @@ function fieldError(key) {
                   class="focus-ring rounded-md p-2 text-rose hover:bg-rose/10"
                   type="button"
                   :disabled="!isMainDataEditable"
-                  @click="removeEvent(index)"
+                  @click="requestRemoveEvent(index)"
                 >
                   <Trash2 class="h-4 w-4" />
                 </button>
@@ -752,7 +810,7 @@ function fieldError(key) {
                   class="focus-ring flex w-full items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-rose hover:bg-rose/10"
                   type="button"
                   :disabled="!isMainDataEditable || invitationStore.uploading"
-                  @click="removeGallery(url)"
+                  @click="requestRemoveGallery(url)"
                 >
                   <Trash2 class="h-4 w-4" />
                   Hapus
@@ -859,7 +917,7 @@ function fieldError(key) {
                   class="focus-ring rounded-md p-2 text-rose hover:bg-rose/10"
                   type="button"
                   :disabled="!isMainDataEditable"
-                  @click="removeEnvelopeMethod(index)"
+                  @click="requestRemoveEnvelopeMethod(index)"
                 >
                   <Trash2 class="h-4 w-4" />
                 </button>
@@ -992,5 +1050,16 @@ function fieldError(key) {
         </div>
       </section>
     </div>
+
+    <ConfirmDialog
+      :open="Boolean(pendingDelete)"
+      :title="pendingDelete?.title || ''"
+      :message="pendingDelete?.message || ''"
+      :detail="pendingDelete?.detail || ''"
+      :confirm-label="pendingDelete?.confirmLabel || 'Ya, Hapus'"
+      :loading="invitationStore.uploading"
+      @cancel="pendingDelete = null"
+      @confirm="confirmDelete"
+    />
   </section>
 </template>
