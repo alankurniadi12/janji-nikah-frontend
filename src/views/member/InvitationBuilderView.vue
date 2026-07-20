@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ImagePlus, Loader2, Plus, Trash2 } from "@lucide/vue";
 
@@ -21,6 +21,9 @@ const error = ref("");
 const success = ref("");
 const showPublishConfirm = ref(false);
 const showCreditEmpty = ref(false);
+const savedSnapshot = ref("");
+const validationErrors = reactive({});
+let successTimeout = null;
 
 const steps = [
   { key: "couple", label: "Pengantin" },
@@ -37,11 +40,13 @@ const form = reactive({
   slug: "",
   groom: {
     fullName: "",
-    parentsName: ""
+    fatherName: "",
+    motherName: ""
   },
   bride: {
     fullName: "",
-    parentsName: ""
+    fatherName: "",
+    motherName: ""
   },
   events: [],
   themeId: "",
@@ -63,6 +68,10 @@ onMounted(async () => {
   }
 });
 
+onBeforeUnmount(() => {
+  clearSuccessTimeout();
+});
+
 const invitation = computed(() => invitationStore.current);
 const isMainDataEditable = computed(() =>
   ["draft", "active"].includes(invitation.value?.status)
@@ -75,14 +84,36 @@ const publicPath = computed(() => {
 
   return `/${auth.user.username}/${invitation.value.slug}`;
 });
+const displayTitle = computed(() => createInvitationTitle(form.groom.fullName, form.bride.fullName));
+const currentSnapshot = computed(() => JSON.stringify(buildPayload()));
+const hasUnsavedChanges = computed(() => currentSnapshot.value !== savedSnapshot.value);
+const saveButtonText = computed(() => {
+  if (invitationStore.saving) {
+    return "Menyimpan...";
+  }
+
+  return hasUnsavedChanges.value ? "Simpan" : "Sudah Tersimpan";
+});
+
+watch(currentSnapshot, () => {
+  if (success.value && hasUnsavedChanges.value) {
+    success.value = "";
+    clearSuccessTimeout();
+  }
+
+  if (Object.keys(validationErrors).length > 0) {
+    clearValidationErrors();
+    error.value = "";
+  }
+});
 
 function syncForm(source) {
   form.title = source.title || "";
   form.slug = source.slug || "";
   form.groom.fullName = source.groom?.fullName || "";
-  form.groom.parentsName = source.groom?.parentsName || "";
+  Object.assign(form.groom, splitParentsName(source.groom?.parentsName));
   form.bride.fullName = source.bride?.fullName || "";
-  form.bride.parentsName = source.bride?.parentsName || "";
+  Object.assign(form.bride, splitParentsName(source.bride?.parentsName));
   form.events = (source.events || []).map((event) => ({
     type: event.type || "akad",
     date: toDateInput(event.date),
@@ -100,6 +131,7 @@ function syncForm(source) {
     accountNumber: method.accountNumber || "",
     accountHolder: method.accountHolder || ""
   }));
+  savedSnapshot.value = currentSnapshot.value;
 }
 
 function toDateInput(value) {
@@ -139,11 +171,19 @@ function removeEnvelopeMethod(index) {
 }
 
 function buildPayload() {
+  const title = createInvitationTitle(form.groom.fullName, form.bride.fullName);
+
   return {
-    title: form.title,
+    title,
     slug: form.slug,
-    groom: { ...form.groom },
-    bride: { ...form.bride },
+    groom: {
+      fullName: form.groom.fullName,
+      parentsName: joinParentsName(form.groom.fatherName, form.groom.motherName)
+    },
+    bride: {
+      fullName: form.bride.fullName,
+      parentsName: joinParentsName(form.bride.fatherName, form.bride.motherName)
+    },
     events: form.events.map((event) => ({ ...event })),
     themeId: form.themeId || null,
     musicId: form.musicId || null,
@@ -158,10 +198,18 @@ async function saveInvitation() {
   error.value = "";
   success.value = "";
 
+  if (!validateStep(activeStep.value)) {
+    return false;
+  }
+
+  if (!hasUnsavedChanges.value) {
+    return true;
+  }
+
   try {
     const updated = await invitationStore.saveInvitation(route.params.id, buildPayload());
     syncForm(updated);
-    success.value = "Undangan berhasil disimpan.";
+    showTemporarySuccess("Undangan berhasil disimpan.");
     return true;
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Undangan belum bisa disimpan.");
@@ -187,16 +235,17 @@ async function uploadPhoto(event, type) {
 
   error.value = "";
   success.value = "";
+  clearValidationErrors();
 
   try {
     if (type === "main") {
       await invitationStore.replaceMainPhoto(route.params.id, file);
-      success.value = "Foto utama berhasil diunggah.";
+      showTemporarySuccess("Foto utama berhasil diunggah.");
       return;
     }
 
     await invitationStore.addGalleryPhoto(route.params.id, file);
-    success.value = "Foto galeri berhasil diunggah.";
+    showTemporarySuccess("Foto galeri berhasil diunggah.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Foto belum bisa diunggah.");
   }
@@ -208,7 +257,7 @@ async function removeGallery(url) {
 
   try {
     await invitationStore.removeGalleryPhoto(route.params.id, photoIdFromUrl(url));
-    success.value = "Foto galeri berhasil dihapus.";
+    showTemporarySuccess("Foto galeri berhasil dihapus.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Foto galeri belum bisa dihapus.");
   }
@@ -217,6 +266,10 @@ async function removeGallery(url) {
 async function openPreview() {
   error.value = "";
   success.value = "";
+
+  if (!validateAllRequired()) {
+    return;
+  }
 
   try {
     const saved = await saveInvitation();
@@ -232,6 +285,10 @@ async function openPreview() {
 function requestPublish() {
   error.value = "";
   success.value = "";
+
+  if (!validateAllRequired()) {
+    return;
+  }
 
   if ((auth.user?.creditBalance || 0) <= 0) {
     showCreditEmpty.value = true;
@@ -263,6 +320,160 @@ async function publishDraft() {
     error.value = getApiErrorMessage(requestError, "Undangan belum bisa dipublish.");
   }
 }
+
+function createInvitationTitle(groomName, brideName) {
+  const groom = groomName?.trim();
+  const bride = brideName?.trim();
+
+  if (groom && bride) {
+    return `${groom} & ${bride}`;
+  }
+
+  return groom || bride || "Draft undangan";
+}
+
+function splitParentsName(parentsName = "") {
+  const result = { fatherName: "", motherName: "" };
+
+  if (!parentsName) {
+    return result;
+  }
+
+  const fatherMatch = parentsName.match(/Ayah:\s*([^\n]+)/i);
+  const motherMatch = parentsName.match(/Ibu:\s*([^\n]+)/i);
+
+  if (fatherMatch || motherMatch) {
+    result.fatherName = fatherMatch?.[1]?.trim() || "";
+    result.motherName = motherMatch?.[1]?.trim() || "";
+    return result;
+  }
+
+  result.fatherName = parentsName;
+  return result;
+}
+
+function joinParentsName(fatherName, motherName) {
+  return [`Ayah: ${fatherName?.trim() || ""}`, `Ibu: ${motherName?.trim() || ""}`].join("\n");
+}
+
+function clearValidationErrors() {
+  Object.keys(validationErrors).forEach((key) => {
+    delete validationErrors[key];
+  });
+}
+
+function addValidationError(key, message, step) {
+  validationErrors[key] = { message, step };
+}
+
+function validateStep(step) {
+  clearValidationErrors();
+  const missing = collectValidationErrors({ onlyStep: step });
+
+  if (missing.length > 0) {
+    showValidationSummary(missing);
+    return false;
+  }
+
+  return true;
+}
+
+function validateAllRequired() {
+  clearValidationErrors();
+  const missing = collectValidationErrors();
+
+  if (missing.length > 0) {
+    showValidationSummary(missing);
+    return false;
+  }
+
+  return true;
+}
+
+function collectValidationErrors({ onlyStep = "" } = {}) {
+  const missing = [];
+  const add = (key, label, step) => {
+    if (onlyStep && onlyStep !== step) {
+      return;
+    }
+
+    missing.push(label);
+    addValidationError(key, "Wajib diisi.", step);
+  };
+
+  if (!form.groom.fullName?.trim()) add("groom.fullName", "Nama lengkap pengantin pria", "couple");
+  if (!form.groom.fatherName?.trim()) add("groom.fatherName", "Nama ayah pengantin pria", "couple");
+  if (!form.groom.motherName?.trim()) add("groom.motherName", "Nama ibu pengantin pria", "couple");
+  if (!form.bride.fullName?.trim()) add("bride.fullName", "Nama lengkap pengantin wanita", "couple");
+  if (!form.bride.fatherName?.trim()) add("bride.fatherName", "Nama ayah pengantin wanita", "couple");
+  if (!form.bride.motherName?.trim()) add("bride.motherName", "Nama ibu pengantin wanita", "couple");
+
+  if (!form.events.length) {
+    add("events", "Minimal satu acara", "events");
+  }
+
+  form.events.forEach((eventItem, index) => {
+    const number = index + 1;
+    if (!eventItem.type) add(`events.${index}.type`, `Jenis acara ${number}`, "events");
+    if (!eventItem.date) add(`events.${index}.date`, `Tanggal acara ${number}`, "events");
+    if (!eventItem.startTime) add(`events.${index}.startTime`, `Jam mulai acara ${number}`, "events");
+    if (!eventItem.address?.trim()) add(`events.${index}.address`, `Alamat acara ${number}`, "events");
+  });
+
+  if (!invitation.value?.mainPhotoUrl) {
+    add("mainPhotoUrl", "Foto utama", "photos");
+  }
+
+  if (form.envelope.isEnabled && form.envelope.methods.length === 0) {
+    add("envelope.methods", "Minimal satu metode amplop digital", "envelope");
+  }
+
+  form.envelope.methods.forEach((method, index) => {
+    const number = index + 1;
+    if (!method.providerName?.trim()) add(`envelope.methods.${index}.providerName`, `Provider amplop ${number}`, "envelope");
+    if (!method.accountNumber?.trim()) add(`envelope.methods.${index}.accountNumber`, `Nomor rekening/e-wallet ${number}`, "envelope");
+    if (!method.accountHolder?.trim()) add(`envelope.methods.${index}.accountHolder`, `Nama pemilik amplop ${number}`, "envelope");
+  });
+
+  return missing;
+}
+
+function showValidationSummary(missing) {
+  const firstError = Object.values(validationErrors)[0];
+  if (firstError?.step) {
+    activeStep.value = firstError.step;
+  }
+
+  error.value = `Lengkapi data wajib berikut: ${missing.join(", ")}.`;
+
+  nextTick(() => {
+    document.querySelector("[data-invalid='true']")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+}
+
+function fieldClass(key) {
+  return validationErrors[key] ? "border-rose bg-rose/5" : "border-ink/15";
+}
+
+function fieldError(key) {
+  return validationErrors[key]?.message || "";
+}
+
+function clearSuccessTimeout() {
+  if (successTimeout) {
+    clearTimeout(successTimeout);
+    successTimeout = null;
+  }
+}
+
+function showTemporarySuccess(message) {
+  success.value = message;
+  clearSuccessTimeout();
+  successTimeout = setTimeout(() => {
+    success.value = "";
+    successTimeout = null;
+  }, 3500);
+}
 </script>
 
 <template>
@@ -271,7 +482,7 @@ async function publishDraft() {
       <div>
         <p class="text-sm font-bold uppercase tracking-widest text-gold">Builder undangan</p>
         <h1 class="mt-2 text-3xl font-bold text-ink">
-          {{ form.title || "Draft undangan" }}
+          {{ displayTitle }}
         </h1>
         <p class="mt-2 max-w-2xl leading-7 text-ink/65">
           Isi data secara bertahap. Simpan draft tidak memakai kredit.
@@ -286,9 +497,13 @@ async function publishDraft() {
         >
           Daftar Tamu
         </AppButton>
-        <AppButton :disabled="invitationStore.saving || !isMainDataEditable" @click="saveInvitation">
+        <AppButton
+          :disabled="invitationStore.saving || !isMainDataEditable || !hasUnsavedChanges"
+          :variant="hasUnsavedChanges ? 'primary' : 'secondary'"
+          @click="saveInvitation"
+        >
           <Loader2 v-if="invitationStore.saving" class="h-4 w-4 animate-spin" />
-          Simpan Draft
+          {{ saveButtonText }}
         </AppButton>
       </div>
     </div>
@@ -331,15 +546,9 @@ async function publishDraft() {
 
       <form class="mt-6 rounded-lg border border-ink/10 bg-white p-5 shadow-soft" @submit.prevent="saveInvitation">
         <section v-if="activeStep === 'couple'" class="space-y-5">
-          <div>
-            <label class="block text-sm font-semibold text-ink" for="title">Judul undangan</label>
-            <input
-              id="title"
-              v-model.trim="form.title"
-              class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
-              :disabled="!isMainDataEditable"
-            />
-          </div>
+          <p class="rounded-md bg-linen px-4 py-3 text-sm font-semibold text-ink/70">
+            Judul undangan otomatis mengikuti nama pengantin: {{ displayTitle }}.
+          </p>
           <div>
             <label class="block text-sm font-semibold text-ink" for="slug">Slug undangan</label>
             <input
@@ -357,16 +566,32 @@ async function publishDraft() {
               <input
                 id="groomName"
                 v-model.trim="form.groom.fullName"
-                class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                :class="fieldClass('groom.fullName')"
+                :data-invalid="Boolean(fieldError('groom.fullName'))"
                 :disabled="!isMainDataEditable"
               />
-              <label class="mt-4 block text-sm font-semibold text-ink" for="groomParents">Nama orang tua</label>
+              <p v-if="fieldError('groom.fullName')" class="mt-1 text-xs font-semibold text-rose">{{ fieldError("groom.fullName") }}</p>
+              <label class="mt-4 block text-sm font-semibold text-ink" for="groomFather">Nama ayah</label>
               <input
-                id="groomParents"
-                v-model.trim="form.groom.parentsName"
-                class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                id="groomFather"
+                v-model.trim="form.groom.fatherName"
+                class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                :class="fieldClass('groom.fatherName')"
+                :data-invalid="Boolean(fieldError('groom.fatherName'))"
                 :disabled="!isMainDataEditable"
               />
+              <p v-if="fieldError('groom.fatherName')" class="mt-1 text-xs font-semibold text-rose">{{ fieldError("groom.fatherName") }}</p>
+              <label class="mt-4 block text-sm font-semibold text-ink" for="groomMother">Nama ibu</label>
+              <input
+                id="groomMother"
+                v-model.trim="form.groom.motherName"
+                class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                :class="fieldClass('groom.motherName')"
+                :data-invalid="Boolean(fieldError('groom.motherName'))"
+                :disabled="!isMainDataEditable"
+              />
+              <p v-if="fieldError('groom.motherName')" class="mt-1 text-xs font-semibold text-rose">{{ fieldError("groom.motherName") }}</p>
             </div>
             <div class="rounded-md border border-ink/10 p-4">
               <h2 class="font-bold text-ink">Pengantin wanita</h2>
@@ -374,16 +599,32 @@ async function publishDraft() {
               <input
                 id="brideName"
                 v-model.trim="form.bride.fullName"
-                class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                :class="fieldClass('bride.fullName')"
+                :data-invalid="Boolean(fieldError('bride.fullName'))"
                 :disabled="!isMainDataEditable"
               />
-              <label class="mt-4 block text-sm font-semibold text-ink" for="brideParents">Nama orang tua</label>
+              <p v-if="fieldError('bride.fullName')" class="mt-1 text-xs font-semibold text-rose">{{ fieldError("bride.fullName") }}</p>
+              <label class="mt-4 block text-sm font-semibold text-ink" for="brideFather">Nama ayah</label>
               <input
-                id="brideParents"
-                v-model.trim="form.bride.parentsName"
-                class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                id="brideFather"
+                v-model.trim="form.bride.fatherName"
+                class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                :class="fieldClass('bride.fatherName')"
+                :data-invalid="Boolean(fieldError('bride.fatherName'))"
                 :disabled="!isMainDataEditable"
               />
+              <p v-if="fieldError('bride.fatherName')" class="mt-1 text-xs font-semibold text-rose">{{ fieldError("bride.fatherName") }}</p>
+              <label class="mt-4 block text-sm font-semibold text-ink" for="brideMother">Nama ibu</label>
+              <input
+                id="brideMother"
+                v-model.trim="form.bride.motherName"
+                class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                :class="fieldClass('bride.motherName')"
+                :data-invalid="Boolean(fieldError('bride.motherName'))"
+                :disabled="!isMainDataEditable"
+              />
+              <p v-if="fieldError('bride.motherName')" class="mt-1 text-xs font-semibold text-rose">{{ fieldError("bride.motherName") }}</p>
             </div>
           </div>
         </section>
@@ -436,7 +677,9 @@ async function publishDraft() {
                   <input
                     v-model="eventItem.date"
                     type="date"
-                    class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                    class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                    :class="fieldClass(`events.${index}.date`)"
+                    :data-invalid="Boolean(fieldError(`events.${index}.date`))"
                     :disabled="!isMainDataEditable"
                   />
                 </label>
@@ -445,7 +688,9 @@ async function publishDraft() {
                   <input
                     v-model="eventItem.startTime"
                     type="time"
-                    class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                    class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                    :class="fieldClass(`events.${index}.startTime`)"
+                    :data-invalid="Boolean(fieldError(`events.${index}.startTime`))"
                     :disabled="!isMainDataEditable"
                   />
                 </label>
@@ -463,7 +708,9 @@ async function publishDraft() {
                 Alamat
                 <textarea
                   v-model.trim="eventItem.address"
-                  class="focus-ring mt-2 min-h-24 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
+                  class="focus-ring mt-2 min-h-24 w-full rounded-md border px-3 py-2 text-sm"
+                  :class="fieldClass(`events.${index}.address`)"
+                  :data-invalid="Boolean(fieldError(`events.${index}.address`))"
                   :disabled="!isMainDataEditable"
                 />
               </label>
@@ -477,7 +724,12 @@ async function publishDraft() {
               </label>
             </article>
           </div>
-          <p v-else class="rounded-md border border-dashed border-ink/20 p-5 text-sm font-semibold text-ink/60">
+          <p
+            v-else
+            class="rounded-md border border-dashed p-5 text-sm font-semibold text-ink/60"
+            :class="validationErrors.events ? 'border-rose bg-rose/5' : 'border-ink/20'"
+            :data-invalid="Boolean(validationErrors.events)"
+          >
             Belum ada acara. Tambahkan akad atau resepsi.
           </p>
         </section>
@@ -487,7 +739,11 @@ async function publishDraft() {
             <h2 class="text-lg font-bold text-ink">Foto utama</h2>
             <p class="mt-1 text-sm text-ink/55">Foto utama wajib sebelum publish.</p>
             <div class="mt-4 grid gap-4 md:grid-cols-[220px_1fr] md:items-start">
-              <div class="aspect-[4/3] overflow-hidden rounded-md border border-ink/10 bg-linen">
+              <div
+                class="aspect-[4/3] overflow-hidden rounded-md border bg-linen"
+                :class="validationErrors.mainPhotoUrl ? 'border-rose bg-rose/5' : 'border-ink/10'"
+                :data-invalid="Boolean(validationErrors.mainPhotoUrl)"
+              >
                 <img
                   v-if="invitation.mainPhotoUrl"
                   :src="invitation.mainPhotoUrl"
@@ -507,6 +763,8 @@ async function publishDraft() {
                   :disabled="!isMainDataEditable || invitationStore.uploading"
                   @change="uploadMain"
                 />
+                <p v-if="invitationStore.uploading" class="mt-2 text-sm font-semibold text-leaf">Mengunggah foto...</p>
+                <p v-else-if="fieldError('mainPhotoUrl')" class="mt-2 text-sm font-semibold text-rose">{{ fieldError("mainPhotoUrl") }}</p>
               </label>
             </div>
           </div>
@@ -611,13 +869,20 @@ async function publishDraft() {
             </span>
           </label>
 
-          <div v-if="form.envelope.isEnabled" class="space-y-4">
+          <div
+            v-if="form.envelope.isEnabled"
+            class="space-y-4"
+            :data-invalid="Boolean(validationErrors['envelope.methods'])"
+          >
             <div class="flex justify-end">
               <AppButton type="button" variant="secondary" :disabled="!isMainDataEditable" @click="addEnvelopeMethod">
                 <Plus class="h-4 w-4" />
                 Tambah Metode
               </AppButton>
             </div>
+            <p v-if="fieldError('envelope.methods')" class="rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">
+              {{ fieldError("envelope.methods") }}
+            </p>
             <article v-for="(method, index) in form.envelope.methods" :key="index" class="rounded-md border border-ink/10 p-4">
               <div class="flex justify-between gap-3">
                 <h3 class="font-bold text-ink">Metode {{ index + 1 }}</h3>
@@ -646,7 +911,9 @@ async function publishDraft() {
                   Provider
                   <input
                     v-model.trim="method.providerName"
-                    class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                    class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                    :class="fieldClass(`envelope.methods.${index}.providerName`)"
+                    :data-invalid="Boolean(fieldError(`envelope.methods.${index}.providerName`))"
                     placeholder="BCA / DANA"
                     :disabled="!isMainDataEditable"
                   />
@@ -655,7 +922,9 @@ async function publishDraft() {
                   Nomor rekening/e-wallet
                   <input
                     v-model.trim="method.accountNumber"
-                    class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                    class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                    :class="fieldClass(`envelope.methods.${index}.accountNumber`)"
+                    :data-invalid="Boolean(fieldError(`envelope.methods.${index}.accountNumber`))"
                     :disabled="!isMainDataEditable"
                   />
                 </label>
@@ -663,7 +932,9 @@ async function publishDraft() {
                   Nama pemilik
                   <input
                     v-model.trim="method.accountHolder"
-                    class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                    class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                    :class="fieldClass(`envelope.methods.${index}.accountHolder`)"
+                    :data-invalid="Boolean(fieldError(`envelope.methods.${index}.accountHolder`))"
                     :disabled="!isMainDataEditable"
                   />
                 </label>
@@ -706,9 +977,13 @@ async function publishDraft() {
         </section>
 
         <div v-if="activeStep !== 'preview'" class="mt-6 flex justify-end">
-          <AppButton type="submit" :disabled="invitationStore.saving || !isMainDataEditable">
+          <AppButton
+            type="submit"
+            :disabled="invitationStore.saving || !isMainDataEditable || !hasUnsavedChanges"
+            :variant="hasUnsavedChanges ? 'primary' : 'secondary'"
+          >
             <Loader2 v-if="invitationStore.saving" class="h-4 w-4 animate-spin" />
-            Simpan
+            {{ saveButtonText }}
           </AppButton>
         </div>
       </form>

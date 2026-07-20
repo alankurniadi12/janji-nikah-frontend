@@ -10,18 +10,32 @@ import { useInvitationStore } from "@/stores/invitations";
 const router = useRouter();
 const invitationStore = useInvitationStore();
 const error = ref("");
+const missingFields = ref([]);
 const form = reactive({
-  title: "",
   groomName: "",
   brideName: ""
 });
 
 async function createDraft() {
   error.value = "";
+  missingFields.value = [];
+
+  if (!form.groomName.trim()) {
+    missingFields.value.push("groomName");
+  }
+
+  if (!form.brideName.trim()) {
+    missingFields.value.push("brideName");
+  }
+
+  if (missingFields.value.length) {
+    error.value = "Lengkapi nama pengantin pria dan wanita sebelum membuat draft.";
+    return;
+  }
 
   try {
     const invitation = await invitationStore.createDraft({
-      title: form.title,
+      title: createInvitationTitle(form.groomName, form.brideName),
       groom: {
         fullName: form.groomName
       },
@@ -34,6 +48,26 @@ async function createDraft() {
     error.value = getApiErrorMessage(requestError, "Draft undangan belum bisa dibuat.");
   }
 }
+
+function createInvitationTitle(groomName, brideName) {
+  const groom = groomName?.trim();
+  const bride = brideName?.trim();
+
+  if (groom && bride) {
+    return `${groom} & ${bride}`;
+  }
+
+  return groom || bride || "Draft undangan";
+}
+
+function isMissing(field) {
+  return missingFields.value.includes(field);
+}
+
+function clearMissing() {
+  missingFields.value = [];
+  error.value = "";
+}
 </script>
 
 <template>
@@ -42,37 +76,34 @@ async function createDraft() {
       <p class="text-sm font-bold uppercase tracking-widest text-gold">Draft baru</p>
       <h1 class="mt-3 text-3xl font-bold text-ink">Buat undangan</h1>
       <p class="mt-3 leading-7 text-ink/65">
-        Isi nama awal agar slug otomatis lebih rapi. Detail lengkap bisa dilanjutkan di builder step-by-step.
+        Isi nama pengantin agar judul dan slug undangan otomatis rapi. Detail lengkap bisa dilanjutkan di builder step-by-step.
       </p>
 
       <form class="mt-8 space-y-5" @submit.prevent="createDraft">
-        <div>
-          <label class="block text-sm font-semibold text-ink" for="title">Judul undangan</label>
-          <input
-            id="title"
-            v-model.trim="form.title"
-            class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
-            placeholder="Contoh: Undangan Alya dan Rama"
-          />
-        </div>
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label class="block text-sm font-semibold text-ink" for="groomName">Nama pengantin pria</label>
             <input
               id="groomName"
               v-model.trim="form.groomName"
-              class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+              class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+              :class="isMissing('groomName') ? 'border-rose bg-rose/5' : 'border-ink/15'"
               placeholder="Rama"
+              @input="clearMissing"
             />
+            <p v-if="isMissing('groomName')" class="mt-1 text-xs font-semibold text-rose">Wajib diisi.</p>
           </div>
           <div>
             <label class="block text-sm font-semibold text-ink" for="brideName">Nama pengantin wanita</label>
             <input
               id="brideName"
               v-model.trim="form.brideName"
-              class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+              class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+              :class="isMissing('brideName') ? 'border-rose bg-rose/5' : 'border-ink/15'"
               placeholder="Alya"
+              @input="clearMissing"
             />
+            <p v-if="isMissing('brideName')" class="mt-1 text-xs font-semibold text-rose">Wajib diisi.</p>
           </div>
         </div>
 

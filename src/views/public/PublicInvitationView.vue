@@ -254,12 +254,12 @@ async function submitWish() {
             <article class="rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
               <p class="text-sm font-bold uppercase tracking-widest text-gold">Pengantin pria</p>
               <h2 class="mt-3 text-3xl font-bold text-ink">{{ invitation.groom.fullName }}</h2>
-              <p class="mt-3 text-sm leading-6 text-ink/60">{{ invitation.groom.parentsName }}</p>
+              <p class="mt-3 whitespace-pre-line text-sm leading-6 text-ink/60">{{ invitation.groom.parentsName }}</p>
             </article>
             <article class="rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
               <p class="text-sm font-bold uppercase tracking-widest text-gold">Pengantin wanita</p>
               <h2 class="mt-3 text-3xl font-bold text-ink">{{ invitation.bride.fullName }}</h2>
-              <p class="mt-3 text-sm leading-6 text-ink/60">{{ invitation.bride.parentsName }}</p>
+              <p class="mt-3 whitespace-pre-line text-sm leading-6 text-ink/60">{{ invitation.bride.parentsName }}</p>
             </article>
           </div>
         </section>

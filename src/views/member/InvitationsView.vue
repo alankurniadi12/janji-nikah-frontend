@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { ArrowRight, FilePlus2, Loader2, Trash2 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
@@ -8,6 +8,7 @@ import { useInvitationStore } from "@/stores/invitations";
 import { formatDate } from "@/utils/formatters";
 
 const invitationStore = useInvitationStore();
+const draftToDelete = ref(null);
 
 onMounted(() => {
   invitationStore.loadInvitations();
@@ -17,12 +18,22 @@ const draftCount = computed(() =>
   invitationStore.invitations.filter((invitation) => invitation.status === "draft").length
 );
 
-async function deleteDraft(invitation) {
+function requestDeleteDraft(invitation) {
   if (invitation.status !== "draft") {
     return;
   }
 
-  await invitationStore.removeDraft(invitation.id);
+  draftToDelete.value = invitation;
+}
+
+async function confirmDeleteDraft() {
+  if (!draftToDelete.value) {
+    return;
+  }
+
+  const invitationId = draftToDelete.value.id;
+  await invitationStore.removeDraft(invitationId);
+  draftToDelete.value = null;
 }
 </script>
 
@@ -89,7 +100,7 @@ async function deleteDraft(invitation) {
               class="focus-ring rounded-md p-2 text-rose hover:bg-rose/10"
               type="button"
               aria-label="Hapus draft"
-              @click="deleteDraft(invitation)"
+              @click="requestDeleteDraft(invitation)"
             >
               <Trash2 class="h-4 w-4" />
             </button>
@@ -115,5 +126,27 @@ async function deleteDraft(invitation) {
         <AppButton to="/app/invitations/new" class="mt-5">Buat Undangan</AppButton>
       </div>
     </section>
+
+    <div v-if="draftToDelete" class="fixed inset-0 z-50 flex items-center justify-center bg-ink/45 px-4">
+      <section class="w-full max-w-md rounded-lg bg-white p-6 shadow-soft">
+        <h2 class="text-xl font-bold text-ink">Hapus undangan?</h2>
+        <p class="mt-3 text-sm leading-6 text-ink/65">
+          Apakah kamu yakin ingin menghapus undangan ini? Draft yang sudah dihapus tidak bisa dikembalikan.
+        </p>
+        <div class="mt-4 rounded-md bg-linen p-4">
+          <p class="text-sm font-bold text-ink">
+            {{ draftToDelete.title || `${draftToDelete.groom?.fullName || "Pengantin pria"} & ${draftToDelete.bride?.fullName || "Pengantin wanita"}` }}
+          </p>
+          <p class="mt-1 text-sm text-ink/55">/{{ draftToDelete.slug }}</p>
+        </div>
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <AppButton type="button" variant="secondary" :disabled="invitationStore.saving" @click="draftToDelete = null">Batal</AppButton>
+          <AppButton type="button" :disabled="invitationStore.saving" @click="confirmDeleteDraft">
+            <Loader2 v-if="invitationStore.saving" class="h-4 w-4 animate-spin" />
+            Ya, Hapus
+          </AppButton>
+        </div>
+      </section>
+    </div>
   </section>
 </template>
