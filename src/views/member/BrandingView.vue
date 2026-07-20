@@ -5,11 +5,12 @@ import { Check, Copy, Download, Image, Loader2, MessageCircle, Sparkles } from "
 import AppButton from "@/components/AppButton.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useBrandingStore } from "@/stores/branding";
+import { useToastStore } from "@/stores/toasts";
 import { formatDate } from "@/utils/formatters";
 
 const brandingStore = useBrandingStore();
+const toastStore = useToastStore();
 const error = ref("");
-const success = ref("");
 
 const profileForm = reactive({
   businessName: "",
@@ -84,12 +85,11 @@ function assetUrl(url) {
 
 async function saveProfile() {
   error.value = "";
-  success.value = "";
 
   try {
     const profile = await brandingStore.saveProfile(profileForm);
     syncForm(profile);
-    success.value = "Profil branding berhasil disimpan.";
+    toastStore.show("Profil branding berhasil disimpan.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Profil branding belum bisa disimpan.");
   }
@@ -97,13 +97,12 @@ async function saveProfile() {
 
 async function generateAssets() {
   error.value = "";
-  success.value = "";
 
   try {
     const profile = await brandingStore.saveProfile(profileForm);
     syncForm(profile);
     await brandingStore.generate(generatorForm);
-    success.value = "Materi promosi berhasil dibuat.";
+    toastStore.show("Materi promosi berhasil dibuat.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Materi branding belum bisa dibuat.");
   }
@@ -111,11 +110,10 @@ async function generateAssets() {
 
 async function copyCaption() {
   error.value = "";
-  success.value = "";
 
   try {
     await navigator.clipboard.writeText(assets.value?.caption || "");
-    success.value = "Caption berhasil disalin.";
+    toastStore.show("Caption berhasil disalin.");
   } catch {
     error.value = "Browser belum mengizinkan copy otomatis. Salin caption secara manual.";
   }
@@ -144,7 +142,6 @@ async function copyCaption() {
       <p v-if="error || brandingStore.error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">
         {{ error || brandingStore.error }}
       </p>
-      <p v-if="success" class="mt-5 rounded-md bg-leaf/10 px-4 py-3 text-sm font-semibold text-leaf">{{ success }}</p>
       <p
         v-for="warning in warnings"
         :key="warning.code"

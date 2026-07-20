@@ -7,13 +7,14 @@ import AppButton from "@/components/AppButton.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useGuestStore } from "@/stores/guests";
 import { useInvitationStore } from "@/stores/invitations";
+import { useToastStore } from "@/stores/toasts";
 import { formatDate } from "@/utils/formatters";
 
 const route = useRoute();
 const guestStore = useGuestStore();
 const invitationStore = useInvitationStore();
+const toastStore = useToastStore();
 const error = ref("");
-const success = ref("");
 const form = reactive({
   name: "",
   bulkNames: ""
@@ -39,9 +40,11 @@ function absoluteLink(link) {
 }
 
 async function copyText(text, message = "Berhasil disalin.") {
+  error.value = "";
+
   try {
     await navigator.clipboard.writeText(text);
-    success.value = message;
+    toastStore.show(message);
   } catch {
     error.value = "Browser belum mengizinkan copy otomatis. Salin teks secara manual dari link yang tampil.";
   }
@@ -49,12 +52,11 @@ async function copyText(text, message = "Berhasil disalin.") {
 
 async function addGuest() {
   error.value = "";
-  success.value = "";
 
   try {
     await guestStore.create(route.params.id, form.name);
     form.name = "";
-    success.value = "Tamu berhasil ditambahkan.";
+    toastStore.show("Tamu berhasil ditambahkan.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Tamu belum bisa ditambahkan.");
   }
@@ -62,12 +64,11 @@ async function addGuest() {
 
 async function addBulkGuests() {
   error.value = "";
-  success.value = "";
 
   try {
     const guests = await guestStore.bulkCreate(route.params.id, form.bulkNames);
     form.bulkNames = "";
-    success.value = `${guests.length} tamu berhasil ditambahkan.`;
+    toastStore.show(`${guests.length} tamu berhasil ditambahkan.`);
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Daftar tamu belum bisa ditambahkan.");
   }
@@ -75,7 +76,6 @@ async function addBulkGuests() {
 
 async function copyWhatsapp(guest) {
   error.value = "";
-  success.value = "";
 
   try {
     const data = await guestStore.loadWhatsappMessage(route.params.id, guest.id);
@@ -86,23 +86,47 @@ async function copyWhatsapp(guest) {
 }
 
 async function markSent(guest) {
-  await guestStore.markSent(route.params.id, guest.id);
-  success.value = "Tamu ditandai sudah dikirim.";
+  error.value = "";
+
+  try {
+    await guestStore.markSent(route.params.id, guest.id);
+    toastStore.show("Tamu ditandai sudah dikirim.");
+  } catch (requestError) {
+    error.value = getApiErrorMessage(requestError, "Tamu belum bisa ditandai sudah dikirim.");
+  }
 }
 
 async function removeGuest(guest) {
-  await guestStore.remove(route.params.id, guest.id);
-  success.value = "Tamu berhasil dihapus.";
+  error.value = "";
+
+  try {
+    await guestStore.remove(route.params.id, guest.id);
+    toastStore.show("Tamu berhasil dihapus.");
+  } catch (requestError) {
+    error.value = getApiErrorMessage(requestError, "Tamu belum bisa dihapus.");
+  }
 }
 
 async function hideWish(wish) {
-  await guestStore.hideWish(route.params.id, wish.id);
-  success.value = "Ucapan berhasil disembunyikan.";
+  error.value = "";
+
+  try {
+    await guestStore.hideWish(route.params.id, wish.id);
+    toastStore.show("Ucapan berhasil disembunyikan.");
+  } catch (requestError) {
+    error.value = getApiErrorMessage(requestError, "Ucapan belum bisa disembunyikan.");
+  }
 }
 
 async function deleteWish(wish) {
-  await guestStore.deleteWish(route.params.id, wish.id);
-  success.value = "Ucapan berhasil dihapus.";
+  error.value = "";
+
+  try {
+    await guestStore.deleteWish(route.params.id, wish.id);
+    toastStore.show("Ucapan berhasil dihapus.");
+  } catch (requestError) {
+    error.value = getApiErrorMessage(requestError, "Ucapan belum bisa dihapus.");
+  }
 }
 </script>
 
@@ -145,7 +169,6 @@ async function deleteWish(wish) {
     <p v-if="error || guestStore.error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">
       {{ error || guestStore.error }}
     </p>
-    <p v-if="success" class="mt-5 rounded-md bg-leaf/10 px-4 py-3 text-sm font-semibold text-leaf">{{ success }}</p>
 
     <div class="mt-6 grid gap-6 xl:grid-cols-[360px_1fr]">
       <aside class="space-y-6">

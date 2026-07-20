@@ -6,14 +6,15 @@ import { Loader2, ReceiptText, UploadCloud } from "@lucide/vue";
 import AppButton from "@/components/AppButton.vue";
 import TransactionStatusBadge from "@/components/TransactionStatusBadge.vue";
 import { getApiErrorMessage } from "@/lib/api";
+import { useToastStore } from "@/stores/toasts";
 import { useTransactionStore } from "@/stores/transactions";
 import { formatCurrency, formatDate, formatDateTime } from "@/utils/formatters";
 
 const route = useRoute();
 const transactionStore = useTransactionStore();
+const toastStore = useToastStore();
 const selectedFile = ref(null);
 const uploadError = ref("");
-const uploadSuccess = ref("");
 
 onMounted(() => {
   transactionStore.loadTransaction(route.params.id);
@@ -25,7 +26,6 @@ const canUploadProof = computed(() => transaction.value?.status === "waiting_pay
 function chooseFile(event) {
   selectedFile.value = event.target.files?.[0] || null;
   uploadError.value = "";
-  uploadSuccess.value = "";
 }
 
 async function submitProof() {
@@ -35,12 +35,11 @@ async function submitProof() {
   }
 
   uploadError.value = "";
-  uploadSuccess.value = "";
 
   try {
     await transactionStore.uploadProof(transaction.value.id, selectedFile.value);
     selectedFile.value = null;
-    uploadSuccess.value = "Bukti pembayaran berhasil diunggah dan menunggu verifikasi admin.";
+    toastStore.show("Bukti pembayaran berhasil diunggah dan menunggu verifikasi admin.");
   } catch (requestError) {
     uploadError.value = getApiErrorMessage(requestError, "Bukti pembayaran belum bisa diunggah.");
   }
@@ -141,7 +140,6 @@ async function submitProof() {
             {{ selectedFile.name }}
           </p>
           <p v-if="uploadError" class="rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">{{ uploadError }}</p>
-          <p v-if="uploadSuccess" class="rounded-md bg-leaf/10 px-3 py-2 text-sm font-semibold text-leaf">{{ uploadSuccess }}</p>
 
           <AppButton class="w-full" type="submit" :disabled="transactionStore.uploading">
             <Loader2 v-if="transactionStore.uploading" class="h-4 w-4 animate-spin" />

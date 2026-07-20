@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ImagePlus, Loader2, Plus, Trash2 } from "@lucide/vue";
 
@@ -9,6 +9,7 @@ import { getApiErrorMessage } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth";
 import { useCatalogStore } from "@/stores/catalog";
 import { useInvitationStore } from "@/stores/invitations";
+import { useToastStore } from "@/stores/toasts";
 import { formatDate, photoIdFromUrl } from "@/utils/formatters";
 
 const route = useRoute();
@@ -16,14 +17,13 @@ const router = useRouter();
 const auth = useAuthStore();
 const invitationStore = useInvitationStore();
 const catalogStore = useCatalogStore();
+const toastStore = useToastStore();
 const activeStep = ref("couple");
 const error = ref("");
-const success = ref("");
 const showPublishConfirm = ref(false);
 const showCreditEmpty = ref(false);
 const savedSnapshot = ref("");
 const validationErrors = reactive({});
-let successTimeout = null;
 
 const steps = [
   { key: "couple", label: "Pengantin" },
@@ -68,10 +68,6 @@ onMounted(async () => {
   }
 });
 
-onBeforeUnmount(() => {
-  clearSuccessTimeout();
-});
-
 const invitation = computed(() => invitationStore.current);
 const isMainDataEditable = computed(() =>
   ["draft", "active"].includes(invitation.value?.status)
@@ -96,11 +92,6 @@ const saveButtonText = computed(() => {
 });
 
 watch(currentSnapshot, () => {
-  if (success.value && hasUnsavedChanges.value) {
-    success.value = "";
-    clearSuccessTimeout();
-  }
-
   if (Object.keys(validationErrors).length > 0) {
     clearValidationErrors();
     error.value = "";
@@ -196,7 +187,6 @@ function buildPayload() {
 
 async function saveInvitation() {
   error.value = "";
-  success.value = "";
 
   if (!validateStep(activeStep.value)) {
     return false;
@@ -209,7 +199,7 @@ async function saveInvitation() {
   try {
     const updated = await invitationStore.saveInvitation(route.params.id, buildPayload());
     syncForm(updated);
-    showTemporarySuccess("Undangan berhasil disimpan.");
+    toastStore.show("Undangan berhasil disimpan.");
     return true;
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Undangan belum bisa disimpan.");
@@ -234,18 +224,17 @@ async function uploadPhoto(event, type) {
   }
 
   error.value = "";
-  success.value = "";
   clearValidationErrors();
 
   try {
     if (type === "main") {
       await invitationStore.replaceMainPhoto(route.params.id, file);
-      showTemporarySuccess("Foto utama berhasil diunggah.");
+      toastStore.show("Foto utama berhasil diunggah.");
       return;
     }
 
     await invitationStore.addGalleryPhoto(route.params.id, file);
-    showTemporarySuccess("Foto galeri berhasil diunggah.");
+    toastStore.show("Foto galeri berhasil diunggah.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Foto belum bisa diunggah.");
   }
@@ -253,11 +242,10 @@ async function uploadPhoto(event, type) {
 
 async function removeGallery(url) {
   error.value = "";
-  success.value = "";
 
   try {
     await invitationStore.removeGalleryPhoto(route.params.id, photoIdFromUrl(url));
-    showTemporarySuccess("Foto galeri berhasil dihapus.");
+    toastStore.show("Foto galeri berhasil dihapus.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Foto galeri belum bisa dihapus.");
   }
@@ -265,7 +253,6 @@ async function removeGallery(url) {
 
 async function openPreview() {
   error.value = "";
-  success.value = "";
 
   if (!validateAllRequired()) {
     return;
@@ -284,7 +271,6 @@ async function openPreview() {
 
 function requestPublish() {
   error.value = "";
-  success.value = "";
 
   if (!validateAllRequired()) {
     return;
@@ -300,7 +286,6 @@ function requestPublish() {
 
 async function publishDraft() {
   error.value = "";
-  success.value = "";
 
   try {
     const published = await invitationStore.publish(route.params.id);
@@ -459,21 +444,6 @@ function fieldError(key) {
   return validationErrors[key]?.message || "";
 }
 
-function clearSuccessTimeout() {
-  if (successTimeout) {
-    clearTimeout(successTimeout);
-    successTimeout = null;
-  }
-}
-
-function showTemporarySuccess(message) {
-  success.value = message;
-  clearSuccessTimeout();
-  successTimeout = setTimeout(() => {
-    success.value = "";
-    successTimeout = null;
-  }, 3500);
-}
 </script>
 
 <template>
@@ -542,7 +512,6 @@ function showTemporarySuccess(message) {
       </nav>
 
       <p v-if="error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ error }}</p>
-      <p v-if="success" class="mt-5 rounded-md bg-leaf/10 px-4 py-3 text-sm font-semibold text-leaf">{{ success }}</p>
 
       <form class="mt-6 rounded-lg border border-ink/10 bg-white p-5 shadow-soft" @submit.prevent="saveInvitation">
         <section v-if="activeStep === 'couple'" class="space-y-5">
