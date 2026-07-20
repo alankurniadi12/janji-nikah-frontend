@@ -7,6 +7,7 @@ import StatusPill from "@/components/StatusPill.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useAdminStore } from "@/stores/admin";
 import { useToastStore } from "@/stores/toasts";
+import { assetUrl } from "@/utils/assets";
 
 const adminStore = useAdminStore();
 const toastStore = useToastStore();
@@ -55,7 +56,7 @@ async function setMusicStatus(music) {
           <p class="font-bold text-ink">{{ music.title }}</p>
           <p class="mt-1 text-sm text-ink/55">{{ music.category || "Tanpa kategori" }} · {{ music.duration || "-" }}</p>
         </div>
-        <a :href="music.fileUrl" target="_blank" class="text-sm font-semibold text-leaf">Buka file</a>
+        <a :href="assetUrl(music.fileUrl)" target="_blank" class="text-sm font-semibold text-leaf">Buka file</a>
         <StatusPill :active="music.isActive" :label="music.isActive ? 'Aktif' : 'Nonaktif'" />
         <AppButton type="button" variant="secondary" @click="setMusicStatus(music)">
           {{ music.isActive ? "Nonaktifkan" : "Aktifkan" }}

@@ -12,6 +12,7 @@ import {
   submitPublicWish
 } from "@/services/publicGuestService";
 import { getPublicInvitation } from "@/services/publicInvitationService";
+import { assetUrl } from "@/utils/assets";
 import { formatEventDate } from "@/utils/formatters";
 
 const route = useRoute();
@@ -195,7 +196,7 @@ async function submitWish() {
       <audio
         v-if="musicItem?.fileUrl"
         ref="audioRef"
-        :src="musicItem.fileUrl"
+        :src="assetUrl(musicItem.fileUrl)"
         loop
         @play="audioPlaying = true"
         @pause="audioPlaying = false"
@@ -204,7 +205,7 @@ async function submitWish() {
       <section v-if="!opened" class="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
         <img
           v-if="invitation.mainPhotoUrl"
-          :src="invitation.mainPhotoUrl"
+          :src="assetUrl(invitation.mainPhotoUrl)"
           alt="Cover undangan"
           class="absolute inset-0 h-full w-full object-cover"
         />
@@ -230,7 +231,7 @@ async function submitWish() {
         <header class="relative overflow-hidden bg-ink px-4 py-20 text-center text-white">
           <img
             v-if="invitation.mainPhotoUrl"
-            :src="invitation.mainPhotoUrl"
+            :src="assetUrl(invitation.mainPhotoUrl)"
             alt="Foto utama"
             class="absolute inset-0 h-full w-full object-cover opacity-35"
           />
@@ -301,7 +302,7 @@ async function submitWish() {
             <img
               v-for="url in invitation.galleryPhotoUrls"
               :key="url"
-              :src="url"
+              :src="assetUrl(url)"
               alt="Galeri undangan"
               class="aspect-[4/3] w-full rounded-lg object-cover shadow-soft"
             />

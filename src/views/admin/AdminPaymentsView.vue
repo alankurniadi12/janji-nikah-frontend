@@ -8,6 +8,7 @@ import TransactionStatusBadge from "@/components/TransactionStatusBadge.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useAdminStore } from "@/stores/admin";
 import { useToastStore } from "@/stores/toasts";
+import { assetUrl } from "@/utils/assets";
 import { formatCurrency, formatDate } from "@/utils/formatters";
 
 const adminStore = useAdminStore();
@@ -74,7 +75,7 @@ async function reject(transaction) {
           <div>
             <p class="font-bold text-ink">{{ transaction.creditAmount }} kredit</p>
             <p class="mt-1 text-sm text-ink/55">{{ formatDate(transaction.createdAt) }}</p>
-            <a v-if="transaction.paymentProofUrl" :href="transaction.paymentProofUrl" target="_blank" class="mt-2 inline-flex text-sm font-semibold text-leaf">Buka bukti transfer</a>
+            <a v-if="transaction.paymentProofUrl" :href="assetUrl(transaction.paymentProofUrl)" target="_blank" class="mt-2 inline-flex text-sm font-semibold text-leaf">Buka bukti transfer</a>
           </div>
           <p class="font-bold text-ink">{{ formatCurrency(transaction.totalAmount) }}</p>
           <TransactionStatusBadge :status="transaction.status" />

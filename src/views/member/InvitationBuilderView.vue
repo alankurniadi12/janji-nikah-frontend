@@ -11,6 +11,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useCatalogStore } from "@/stores/catalog";
 import { useInvitationStore } from "@/stores/invitations";
 import { useToastStore } from "@/stores/toasts";
+import { assetUrl } from "@/utils/assets";
 import { formatDate, photoIdFromUrl } from "@/utils/formatters";
 
 const route = useRoute();
@@ -773,7 +774,7 @@ function fieldError(key) {
               >
                 <img
                   v-if="invitation.mainPhotoUrl"
-                  :src="invitation.mainPhotoUrl"
+                  :src="assetUrl(invitation.mainPhotoUrl)"
                   alt="Foto utama undangan"
                   class="h-full w-full object-cover"
                 />
@@ -805,7 +806,7 @@ function fieldError(key) {
                 :key="url"
                 class="overflow-hidden rounded-md border border-ink/10 bg-white"
               >
-                <img :src="url" alt="Foto galeri undangan" class="aspect-[4/3] w-full object-cover" />
+                <img :src="assetUrl(url)" alt="Foto galeri undangan" class="aspect-[4/3] w-full object-cover" />
                 <button
                   class="focus-ring flex w-full items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-rose hover:bg-rose/10"
                   type="button"
@@ -866,7 +867,7 @@ function fieldError(key) {
               <div class="aspect-[4/3] rounded-md bg-linen">
                 <img
                   v-if="theme.thumbnailUrl"
-                  :src="theme.thumbnailUrl"
+                  :src="assetUrl(theme.thumbnailUrl)"
                   :alt="theme.name"
                   class="h-full w-full rounded-md object-cover"
                 />

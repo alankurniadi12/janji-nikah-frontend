@@ -6,6 +6,7 @@ import { ExternalLink, Loader2 } from "@lucide/vue";
 import AppButton from "@/components/AppButton.vue";
 import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
 import { useInvitationStore } from "@/stores/invitations";
+import { assetUrl } from "@/utils/assets";
 
 const invitationStore = useInvitationStore();
 const route = useRoute();
@@ -62,7 +63,7 @@ const previewUrl = computed(() => preview.value?.previewUrl || "");
         <div class="mt-6 overflow-hidden rounded-md border border-ink/10 bg-linen">
           <img
             v-if="invitation.mainPhotoUrl"
-            :src="invitation.mainPhotoUrl"
+            :src="assetUrl(invitation.mainPhotoUrl)"
             alt="Preview foto utama"
             class="aspect-[16/9] w-full object-cover"
           />
