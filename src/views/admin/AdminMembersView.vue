@@ -6,12 +6,13 @@ import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import AppButton from "@/components/AppButton.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useAdminStore } from "@/stores/admin";
+import { useToastStore } from "@/stores/toasts";
 
 const adminStore = useAdminStore();
+const toastStore = useToastStore();
 const filters = reactive({ q: "", status: "" });
 const adjustment = reactive({ memberId: "", amount: 0, reason: "" });
 const error = ref("");
-const success = ref("");
 
 onMounted(load);
 
@@ -21,10 +22,9 @@ function load() {
 
 async function setStatus(member, status) {
   error.value = "";
-  success.value = "";
   try {
     await adminStore.updateMemberStatus(member.id, status);
-    success.value = "Status member berhasil diubah.";
+    toastStore.show("Status member berhasil diubah.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Status member belum bisa diubah.");
   }
@@ -32,7 +32,6 @@ async function setStatus(member, status) {
 
 async function adjustCredits() {
   error.value = "";
-  success.value = "";
   try {
     await adminStore.adjustMemberCredits(adjustment.memberId, {
       amount: Number(adjustment.amount),
@@ -41,7 +40,7 @@ async function adjustCredits() {
     adjustment.memberId = "";
     adjustment.amount = 0;
     adjustment.reason = "";
-    success.value = "Kredit member berhasil diadjust.";
+    toastStore.show("Kredit member berhasil diadjust.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Kredit member belum bisa diadjust.");
   }
@@ -77,7 +76,6 @@ async function adjustCredits() {
     </section>
 
     <p v-if="error || adminStore.error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ error || adminStore.error }}</p>
-    <p v-if="success" class="mt-5 rounded-md bg-leaf/10 px-4 py-3 text-sm font-semibold text-leaf">{{ success }}</p>
 
     <div v-if="adminStore.loading" class="mt-8 flex items-center gap-3 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
       <Loader2 class="h-5 w-5 animate-spin text-leaf" />

@@ -6,23 +6,34 @@ import AppButton from "@/components/AppButton.vue";
 import StatusPill from "@/components/StatusPill.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useAdminStore } from "@/stores/admin";
+import { useToastStore } from "@/stores/toasts";
 
 const adminStore = useAdminStore();
+const toastStore = useToastStore();
 const form = reactive({ name: "", key: "", thumbnailUrl: "", isPublicDemo: true });
 const error = ref("");
-const success = ref("");
 
 onMounted(() => adminStore.loadThemes());
 
 async function create() {
   error.value = "";
-  success.value = "";
   try {
     await adminStore.createTheme({ ...form });
     Object.assign(form, { name: "", key: "", thumbnailUrl: "", isPublicDemo: true });
-    success.value = "Tema berhasil dibuat.";
+    toastStore.show("Tema berhasil dibuat.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Tema belum bisa dibuat.");
+  }
+}
+
+async function setThemeStatus(theme) {
+  error.value = "";
+
+  try {
+    await adminStore.setThemeStatus(theme.id, !theme.isActive);
+    toastStore.show(theme.isActive ? "Tema dinonaktifkan." : "Tema diaktifkan.");
+  } catch (requestError) {
+    error.value = getApiErrorMessage(requestError, "Status tema belum bisa diubah.");
   }
 }
 </script>
@@ -37,7 +48,6 @@ async function create() {
       <AppButton type="submit" :disabled="adminStore.saving">Buat Tema</AppButton>
     </form>
     <p v-if="error || adminStore.error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ error || adminStore.error }}</p>
-    <p v-if="success" class="mt-5 rounded-md bg-leaf/10 px-4 py-3 text-sm font-semibold text-leaf">{{ success }}</p>
     <section class="mt-6 overflow-hidden rounded-lg border border-ink/10 bg-white shadow-soft">
       <article v-for="theme in adminStore.themes" :key="theme.id" class="grid gap-4 border-b border-ink/10 p-5 last:border-b-0 md:grid-cols-[1fr_140px_110px_150px] md:items-center">
         <div>
@@ -46,7 +56,7 @@ async function create() {
         </div>
         <StatusPill :active="theme.isPublicDemo" :label="theme.isPublicDemo ? 'Public demo' : 'Internal'" />
         <StatusPill :active="theme.isActive" :label="theme.isActive ? 'Aktif' : 'Nonaktif'" />
-        <AppButton type="button" variant="secondary" @click="adminStore.setThemeStatus(theme.id, !theme.isActive)">
+        <AppButton type="button" variant="secondary" @click="setThemeStatus(theme)">
           {{ theme.isActive ? "Nonaktifkan" : "Aktifkan" }}
         </AppButton>
       </article>

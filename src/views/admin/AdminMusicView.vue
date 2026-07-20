@@ -6,23 +6,34 @@ import AppButton from "@/components/AppButton.vue";
 import StatusPill from "@/components/StatusPill.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useAdminStore } from "@/stores/admin";
+import { useToastStore } from "@/stores/toasts";
 
 const adminStore = useAdminStore();
+const toastStore = useToastStore();
 const form = reactive({ title: "", category: "", duration: "", fileUrl: "" });
 const error = ref("");
-const success = ref("");
 
 onMounted(() => adminStore.loadMusic());
 
 async function create() {
   error.value = "";
-  success.value = "";
   try {
     await adminStore.createMusic({ ...form });
     Object.assign(form, { title: "", category: "", duration: "", fileUrl: "" });
-    success.value = "Musik berhasil dibuat.";
+    toastStore.show("Musik berhasil dibuat.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Musik belum bisa dibuat.");
+  }
+}
+
+async function setMusicStatus(music) {
+  error.value = "";
+
+  try {
+    await adminStore.setMusicStatus(music.id, !music.isActive);
+    toastStore.show(music.isActive ? "Musik dinonaktifkan." : "Musik diaktifkan.");
+  } catch (requestError) {
+    error.value = getApiErrorMessage(requestError, "Status musik belum bisa diubah.");
   }
 }
 </script>
@@ -38,7 +49,6 @@ async function create() {
       <AppButton type="submit" :disabled="adminStore.saving">Buat Musik</AppButton>
     </form>
     <p v-if="error || adminStore.error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ error || adminStore.error }}</p>
-    <p v-if="success" class="mt-5 rounded-md bg-leaf/10 px-4 py-3 text-sm font-semibold text-leaf">{{ success }}</p>
     <section class="mt-6 overflow-hidden rounded-lg border border-ink/10 bg-white shadow-soft">
       <article v-for="music in adminStore.music" :key="music.id" class="grid gap-4 border-b border-ink/10 p-5 last:border-b-0 md:grid-cols-[1fr_140px_110px_150px] md:items-center">
         <div>
@@ -47,7 +57,7 @@ async function create() {
         </div>
         <a :href="music.fileUrl" target="_blank" class="text-sm font-semibold text-leaf">Buka file</a>
         <StatusPill :active="music.isActive" :label="music.isActive ? 'Aktif' : 'Nonaktif'" />
-        <AppButton type="button" variant="secondary" @click="adminStore.setMusicStatus(music.id, !music.isActive)">
+        <AppButton type="button" variant="secondary" @click="setMusicStatus(music)">
           {{ music.isActive ? "Nonaktifkan" : "Aktifkan" }}
         </AppButton>
       </article>

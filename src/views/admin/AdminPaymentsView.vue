@@ -7,13 +7,14 @@ import AppButton from "@/components/AppButton.vue";
 import TransactionStatusBadge from "@/components/TransactionStatusBadge.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useAdminStore } from "@/stores/admin";
+import { useToastStore } from "@/stores/toasts";
 import { formatCurrency, formatDate } from "@/utils/formatters";
 
 const adminStore = useAdminStore();
+const toastStore = useToastStore();
 const status = ref("waiting_verification");
 const note = ref("");
 const error = ref("");
-const success = ref("");
 
 onMounted(load);
 
@@ -23,10 +24,9 @@ function load() {
 
 async function approve(transaction) {
   error.value = "";
-  success.value = "";
   try {
     await adminStore.approveTransaction(transaction.id, note.value);
-    success.value = "Transaksi berhasil diapprove.";
+    toastStore.show("Transaksi berhasil diapprove.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Transaksi belum bisa diapprove.");
   }
@@ -34,10 +34,9 @@ async function approve(transaction) {
 
 async function reject(transaction) {
   error.value = "";
-  success.value = "";
   try {
     await adminStore.rejectTransaction(transaction.id, note.value);
-    success.value = "Transaksi berhasil ditolak.";
+    toastStore.show("Transaksi berhasil ditolak.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Transaksi belum bisa ditolak.");
   }
@@ -63,7 +62,6 @@ async function reject(transaction) {
     </div>
 
     <p v-if="error || adminStore.error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ error || adminStore.error }}</p>
-    <p v-if="success" class="mt-5 rounded-md bg-leaf/10 px-4 py-3 text-sm font-semibold text-leaf">{{ success }}</p>
 
     <div v-if="adminStore.loading" class="mt-8 flex items-center gap-3 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
       <Loader2 class="h-5 w-5 animate-spin text-leaf" />

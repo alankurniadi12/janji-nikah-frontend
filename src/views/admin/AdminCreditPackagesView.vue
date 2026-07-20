@@ -7,12 +7,13 @@ import AppButton from "@/components/AppButton.vue";
 import StatusPill from "@/components/StatusPill.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useAdminStore } from "@/stores/admin";
+import { useToastStore } from "@/stores/toasts";
 import { formatCurrency } from "@/utils/formatters";
 
 const adminStore = useAdminStore();
+const toastStore = useToastStore();
 const form = reactive({ id: "", name: "", creditAmount: 1, price: 0, isActive: true });
 const error = ref("");
-const success = ref("");
 
 onMounted(() => adminStore.loadCreditPackages());
 
@@ -26,13 +27,23 @@ function resetForm() {
 
 async function savePackage() {
   error.value = "";
-  success.value = "";
   try {
     await adminStore.saveCreditPackage({ ...form, creditAmount: Number(form.creditAmount), price: Number(form.price) });
     resetForm();
-    success.value = "Paket kredit berhasil disimpan.";
+    toastStore.show("Paket kredit berhasil disimpan.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Paket kredit belum bisa disimpan.");
+  }
+}
+
+async function setPackageStatus(item) {
+  error.value = "";
+
+  try {
+    await adminStore.setCreditPackageStatus(item.id, !item.isActive);
+    toastStore.show(item.isActive ? "Paket kredit dinonaktifkan." : "Paket kredit diaktifkan.");
+  } catch (requestError) {
+    error.value = getApiErrorMessage(requestError, "Status paket kredit belum bisa diubah.");
   }
 }
 </script>
@@ -50,7 +61,6 @@ async function savePackage() {
     </form>
 
     <p v-if="error || adminStore.error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ error || adminStore.error }}</p>
-    <p v-if="success" class="mt-5 rounded-md bg-leaf/10 px-4 py-3 text-sm font-semibold text-leaf">{{ success }}</p>
 
     <div v-if="adminStore.loading" class="mt-8 flex items-center gap-3 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
       <Loader2 class="h-5 w-5 animate-spin text-leaf" />
@@ -65,7 +75,7 @@ async function savePackage() {
         <StatusPill :active="item.isActive" :label="item.isActive ? 'Aktif' : 'Nonaktif'" />
         <div class="flex gap-2 md:justify-end">
           <AppButton type="button" variant="secondary" @click="editPackage(item)">Edit</AppButton>
-          <AppButton type="button" variant="ghost" @click="adminStore.setCreditPackageStatus(item.id, !item.isActive)">
+          <AppButton type="button" variant="ghost" @click="setPackageStatus(item)">
             {{ item.isActive ? "Nonaktifkan" : "Aktifkan" }}
           </AppButton>
         </div>
