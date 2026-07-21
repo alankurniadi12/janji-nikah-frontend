@@ -35,7 +35,7 @@ const previewUrl = computed(() => preview.value?.previewUrl || "");
         :to="{ name: 'member-invitation-detail', params: { id: invitation.id } }"
         variant="secondary"
       >
-        Kembali ke Builder
+        Kembali ke Edit Undangan
       </AppButton>
     </div>
 

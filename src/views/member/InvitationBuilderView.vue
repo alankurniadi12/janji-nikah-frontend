@@ -511,7 +511,7 @@ function fieldError(key) {
   <section>
     <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
       <div>
-        <p class="text-sm font-bold uppercase tracking-widest text-gold">Builder undangan</p>
+        <p class="text-sm font-bold uppercase tracking-widest text-gold">Edit undangan</p>
         <h1 class="mt-2 text-3xl font-bold text-ink">
           {{ displayTitle }}
         </h1>
@@ -524,7 +524,7 @@ function fieldError(key) {
           v-if="invitation"
           :to="{ name: 'member-invitation-guests', params: { id: invitation.id } }"
         >
-          Daftar Tamu
+          Kelola Tamu
         </AppButton>
         <AppButton
           :disabled="invitationStore.saving || !isMainDataEditable || !hasUnsavedChanges"
@@ -539,7 +539,7 @@ function fieldError(key) {
 
     <div v-if="invitationStore.loading" class="mt-8 flex items-center gap-3 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
       <Loader2 class="h-5 w-5 animate-spin text-leaf" />
-      <p class="text-sm font-semibold text-ink/70">Memuat builder...</p>
+      <p class="text-sm font-semibold text-ink/70">Memuat data undangan...</p>
     </div>
 
     <p v-else-if="invitationStore.error && !invitation" class="mt-8 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">

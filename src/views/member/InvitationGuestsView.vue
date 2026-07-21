@@ -188,7 +188,7 @@ async function confirmDelete() {
         :to="{ name: 'member-invitation-detail', params: { id: invitation.id } }"
         variant="secondary"
       >
-        Builder
+        Edit Undangan
       </AppButton>
     </div>
 
@@ -262,7 +262,7 @@ async function confirmDelete() {
 
       <section class="rounded-lg border border-ink/10 bg-white shadow-soft">
         <div class="border-b border-ink/10 p-5">
-          <h2 class="text-lg font-bold text-ink">Tamu</h2>
+          <h2 class="text-lg font-bold text-ink">Daftar Tamu</h2>
         </div>
 
         <div v-if="guestStore.loading" class="flex items-center gap-3 p-5">

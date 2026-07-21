@@ -76,7 +76,7 @@ function clearMissing() {
       <p class="text-sm font-bold uppercase tracking-widest text-gold">Draft baru</p>
       <h1 class="mt-3 text-3xl font-bold text-ink">Buat undangan</h1>
       <p class="mt-3 leading-7 text-ink/65">
-        Isi nama pengantin agar judul dan slug undangan otomatis rapi. Detail lengkap bisa dilanjutkan di builder step-by-step.
+        Isi nama pengantin agar judul dan slug undangan otomatis rapi. Detail lengkap bisa dilanjutkan di halaman edit undangan.
       </p>
 
       <form class="mt-8 space-y-5" @submit.prevent="createDraft">

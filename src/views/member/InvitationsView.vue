@@ -206,7 +206,7 @@ function toMonthInput(value) {
               class="focus-ring rounded-md px-3 py-2 text-sm font-semibold text-leaf hover:bg-mint"
               :to="{ name: 'member-invitation-guests', params: { id: invitation.id } }"
             >
-              Tamu
+              Kelola Tamu
             </RouterLink>
             <button
               v-if="invitation.status === 'draft'"

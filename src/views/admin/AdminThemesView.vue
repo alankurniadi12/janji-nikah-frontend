@@ -40,7 +40,7 @@ async function setThemeStatus(theme) {
 
 <template>
   <section>
-    <AdminPageHeader eyebrow="Tema" title="Kelola tema" description="Admin hanya mengaktifkan/nonaktifkan tema developer. Tidak ada theme builder di MVP." />
+    <AdminPageHeader eyebrow="Tema" title="Kelola tema" description="Admin hanya mengaktifkan/nonaktifkan tema developer. Tidak ada fitur pembuat tema di MVP." />
     <form class="mt-6 grid gap-3 rounded-lg border border-ink/10 bg-white p-5 shadow-soft lg:grid-cols-[1fr_160px_1fr_140px]" @submit.prevent="create">
       <input v-model.trim="form.name" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm" placeholder="Nama tema" required />
       <input v-model.trim="form.key" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm" placeholder="Key tema" required />
