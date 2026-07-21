@@ -214,35 +214,47 @@ async function confirmDelete() {
     <div class="mt-6 grid gap-6 xl:grid-cols-[360px_1fr]">
       <aside class="space-y-6">
         <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <h2 class="text-lg font-bold text-ink">Tambah tamu</h2>
+          <h2 class="text-lg font-bold text-ink">Tambah satu tamu</h2>
+          <p class="mt-2 text-sm leading-6 text-ink/60">
+            Gunakan form ini kalau ingin menambahkan tamu satu per satu, misalnya setelah menerima nama tambahan dari klien.
+          </p>
           <form class="mt-4 space-y-3" @submit.prevent="addGuest">
             <label class="block text-sm font-semibold text-ink" for="guestName">Nama tamu</label>
             <input
               id="guestName"
               v-model.trim="form.name"
               class="focus-ring h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
-              placeholder="Bapak/Ibu Andi"
+              placeholder="Contoh: Bapak/Ibu Andi"
             />
+            <p class="text-xs leading-5 text-ink/50">
+              Setelah ditambahkan, sistem otomatis membuat link personal untuk tamu ini.
+            </p>
             <AppButton class="w-full" type="submit" :disabled="guestStore.saving">
               <Loader2 v-if="guestStore.saving" class="h-4 w-4 animate-spin" />
-              Tambah
+              Tambah Tamu
             </AppButton>
           </form>
         </section>
 
         <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <h2 class="text-lg font-bold text-ink">Tambah bulk</h2>
+          <h2 class="text-lg font-bold text-ink">Tambah banyak tamu</h2>
+          <p class="mt-2 text-sm leading-6 text-ink/60">
+            Gunakan form ini kalau sudah punya daftar nama dari WhatsApp, spreadsheet, atau catatan. Tempel semua nama sekaligus.
+          </p>
           <form class="mt-4 space-y-3" @submit.prevent="addBulkGuests">
-            <label class="block text-sm font-semibold text-ink" for="bulkNames">Satu nama per baris</label>
+            <label class="block text-sm font-semibold text-ink" for="bulkNames">Daftar nama tamu</label>
             <textarea
               id="bulkNames"
               v-model="form.bulkNames"
               class="focus-ring min-h-36 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
-              placeholder="Bapak Andi&#10;Ibu Sari"
+              placeholder="Contoh:&#10;Bapak Andi&#10;Ibu Sari&#10;Keluarga Pak Budi"
             />
+            <p class="text-xs leading-5 text-ink/50">
+              Tulis satu nama per baris. Setiap nama akan dibuatkan link undangan personal.
+            </p>
             <AppButton class="w-full" type="submit" :disabled="guestStore.saving">
               <Loader2 v-if="guestStore.saving" class="h-4 w-4 animate-spin" />
-              Tambah Bulk
+              Tambah Semua Tamu
             </AppButton>
           </form>
         </section>
