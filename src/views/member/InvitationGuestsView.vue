@@ -1,8 +1,9 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
 import { useRoute } from "vue-router";
-import { Check, Copy, Loader2, MessageCircle, Trash2 } from "@lucide/vue";
+import { Check, Copy, Loader2, Trash2 } from "@lucide/vue";
 
+import whatsappIconUrl from "@/assets/ic-whatsapp.png";
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import { getApiErrorMessage } from "@/lib/api";
@@ -292,12 +293,13 @@ async function confirmDelete() {
                 <Copy class="h-4 w-4" />
               </button>
               <button
-                class="focus-ring rounded-md p-2 text-ink/60 hover:bg-mint hover:text-leaf"
+                class="focus-ring rounded-md p-1.5 text-ink/60 hover:bg-mint hover:text-leaf"
                 type="button"
                 title="Copy WhatsApp"
+                aria-label="Copy WhatsApp"
                 @click="copyWhatsapp(guest)"
               >
-                <MessageCircle class="h-4 w-4" />
+                <img :src="whatsappIconUrl" alt="" class="h-5 w-5" />
               </button>
               <button
                 class="focus-ring rounded-md p-2 text-ink/60 hover:bg-mint hover:text-leaf"
