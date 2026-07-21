@@ -10,6 +10,12 @@ import { formatDate } from "@/utils/formatters";
 
 const invitationStore = useInvitationStore();
 const draftToDelete = ref(null);
+const filters = ref({
+  query: "",
+  dateMode: "all",
+  date: "",
+  month: ""
+});
 
 onMounted(() => {
   invitationStore.loadInvitations();
@@ -17,6 +23,38 @@ onMounted(() => {
 
 const draftCount = computed(() =>
   invitationStore.invitations.filter((invitation) => invitation.status === "draft").length
+);
+const filteredInvitations = computed(() => {
+  const query = filters.value.query.trim().toLowerCase();
+
+  return invitationStore.invitations.filter((invitation) => {
+    const searchableText = [
+      invitation.title,
+      invitation.slug,
+      invitation.groom?.fullName,
+      invitation.bride?.fullName
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    if (query && !searchableText.includes(query)) {
+      return false;
+    }
+
+    if (filters.value.dateMode === "date" && filters.value.date) {
+      return toDateInput(invitation.createdAt) === filters.value.date;
+    }
+
+    if (filters.value.dateMode === "month" && filters.value.month) {
+      return toMonthInput(invitation.createdAt) === filters.value.month;
+    }
+
+    return true;
+  });
+});
+const hasActiveFilters = computed(() =>
+  Boolean(filters.value.query.trim() || (filters.value.dateMode === "date" && filters.value.date) || (filters.value.dateMode === "month" && filters.value.month))
 );
 const draftDeleteDetail = computed(() => {
   if (!draftToDelete.value) {
@@ -47,6 +85,31 @@ async function confirmDeleteDraft() {
   await invitationStore.removeDraft(invitationId);
   draftToDelete.value = null;
 }
+
+function resetFilters() {
+  filters.value = {
+    query: "",
+    dateMode: "all",
+    date: "",
+    month: ""
+  };
+}
+
+function toDateInput(value) {
+  if (!value) {
+    return "";
+  }
+
+  return new Date(value).toISOString().slice(0, 10);
+}
+
+function toMonthInput(value) {
+  if (!value) {
+    return "";
+  }
+
+  return new Date(value).toISOString().slice(0, 7);
+}
 </script>
 
 <template>
@@ -69,6 +132,44 @@ async function confirmDeleteDraft() {
       Batas 3 draft sudah penuh. Hapus atau publish salah satu draft sebelum membuat undangan baru.
     </p>
 
+    <section class="mt-6 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+      <div class="grid gap-4 lg:grid-cols-[1fr_180px_180px_120px]">
+        <label class="block text-sm font-semibold text-ink">
+          Cari undangan
+          <input
+            v-model.trim="filters.query"
+            class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+            placeholder="Cari judul, nama pengantin, atau slug"
+          />
+        </label>
+        <label class="block text-sm font-semibold text-ink">
+          Filter tanggal
+          <select v-model="filters.dateMode" class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm">
+            <option value="all">Semua tanggal</option>
+            <option value="date">Tanggal dibuat</option>
+            <option value="month">Bulan dibuat</option>
+          </select>
+        </label>
+        <label v-if="filters.dateMode === 'date'" class="block text-sm font-semibold text-ink">
+          Tanggal dibuat
+          <input v-model="filters.date" type="date" class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm" />
+        </label>
+        <label v-else-if="filters.dateMode === 'month'" class="block text-sm font-semibold text-ink">
+          Bulan dibuat
+          <input v-model="filters.month" type="month" class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm" />
+        </label>
+        <div v-else class="hidden lg:block" />
+        <div class="flex items-end">
+          <AppButton class="w-full" type="button" variant="secondary" :disabled="!hasActiveFilters" @click="resetFilters">
+            Reset
+          </AppButton>
+        </div>
+      </div>
+      <p class="mt-3 text-sm text-ink/55">
+        Menampilkan {{ filteredInvitations.length }} dari {{ invitationStore.invitations.length }} undangan.
+      </p>
+    </section>
+
     <div v-if="invitationStore.loading" class="mt-8 flex items-center gap-3 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
       <Loader2 class="h-5 w-5 animate-spin text-leaf" />
       <p class="text-sm font-semibold text-ink/70">Memuat undangan...</p>
@@ -79,9 +180,9 @@ async function confirmDeleteDraft() {
     </p>
 
     <section v-else class="mt-8 overflow-hidden rounded-lg border border-ink/10 bg-white shadow-soft">
-      <div v-if="invitationStore.invitations.length" class="divide-y divide-ink/10">
+      <div v-if="filteredInvitations.length" class="divide-y divide-ink/10">
         <div
-          v-for="invitation in invitationStore.invitations"
+          v-for="invitation in filteredInvitations"
           :key="invitation.id"
           class="grid gap-4 px-5 py-4 md:grid-cols-[1fr_120px_150px_150px] md:items-center"
         >
@@ -93,7 +194,7 @@ async function confirmDeleteDraft() {
               {{ invitation.title || `${invitation.groom?.fullName || "Pengantin pria"} & ${invitation.bride?.fullName || "Pengantin wanita"}` }}
             </p>
             <p class="mt-1 text-sm text-ink/55">
-              /{{ invitation.slug }} · Update {{ formatDate(invitation.updatedAt) }}
+              /{{ invitation.slug }} · Dibuat {{ formatDate(invitation.createdAt) }} · Update {{ formatDate(invitation.updatedAt) }}
             </p>
           </RouterLink>
           <InvitationStatusBadge :status="invitation.status" />
@@ -131,11 +232,12 @@ async function confirmDeleteDraft() {
         <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-md bg-mint text-leaf">
           <FilePlus2 class="h-6 w-6" />
         </div>
-        <h2 class="mt-4 text-xl font-bold text-ink">Belum ada undangan</h2>
+        <h2 class="mt-4 text-xl font-bold text-ink">{{ hasActiveFilters ? "Undangan tidak ditemukan" : "Belum ada undangan" }}</h2>
         <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-ink/60">
-          Mulai dari draft pertama. Draft dan preview tidak memakai kredit.
+          {{ hasActiveFilters ? "Coba ubah kata pencarian atau filter tanggal." : "Mulai dari draft pertama. Draft dan preview tidak memakai kredit." }}
         </p>
-        <AppButton to="/app/invitations/new" class="mt-5">Buat Undangan</AppButton>
+        <AppButton v-if="hasActiveFilters" type="button" variant="secondary" class="mt-5" @click="resetFilters">Reset Filter</AppButton>
+        <AppButton v-else to="/app/invitations/new" class="mt-5">Buat Undangan</AppButton>
       </div>
     </section>
 
