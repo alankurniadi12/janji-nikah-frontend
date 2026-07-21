@@ -52,6 +52,7 @@ const form = reactive({
     motherName: ""
   },
   events: [],
+  musicEnabled: false,
   themeId: "",
   musicId: "",
   envelope: {
@@ -117,6 +118,7 @@ function syncForm(source) {
     googleMapsUrl: event.googleMapsUrl || ""
   }));
   form.themeId = source.themeId || "";
+  form.musicEnabled = Boolean(source.musicId);
   form.musicId = source.musicId || "";
   form.envelope.isEnabled = Boolean(source.envelope?.isEnabled);
   form.envelope.methods = (source.envelope?.methods || []).map((method) => ({
@@ -202,7 +204,7 @@ function buildPayload() {
     },
     events: form.events.map((event) => ({ ...event })),
     themeId: form.themeId || null,
-    musicId: form.musicId || null,
+    musicId: form.musicEnabled ? form.musicId || null : null,
     envelope: {
       isEnabled: form.envelope.isEnabled,
       methods: form.envelope.isEnabled ? form.envelope.methods.map((method) => ({ ...method })) : []
@@ -518,11 +520,9 @@ function fieldError(key) {
         </p>
       </div>
       <div class="flex flex-col gap-3 sm:flex-row">
-        <AppButton to="/app/invitations" variant="secondary">Daftar Undangan</AppButton>
         <AppButton
           v-if="invitation"
           :to="{ name: 'member-invitation-guests', params: { id: invitation.id } }"
-          variant="secondary"
         >
           Daftar Tamu
         </AppButton>
@@ -577,16 +577,6 @@ function fieldError(key) {
           <p class="rounded-md bg-linen px-4 py-3 text-sm font-semibold text-ink/70">
             Judul undangan otomatis mengikuti nama pengantin: {{ displayTitle }}.
           </p>
-          <div>
-            <label class="block text-sm font-semibold text-ink" for="slug">Slug undangan</label>
-            <input
-              id="slug"
-              v-model.trim="form.slug"
-              class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
-              placeholder="andi-sari"
-              :disabled="!isMainDataEditable"
-            />
-          </div>
           <div class="grid gap-5 md:grid-cols-2">
             <div class="rounded-md border border-ink/10 p-4">
               <h2 class="font-bold text-ink">Pengantin pria</h2>
@@ -837,16 +827,37 @@ function fieldError(key) {
 
         <section v-else-if="activeStep === 'music'" class="space-y-4">
           <h2 class="text-lg font-bold text-ink">Pilih musik</h2>
-          <select
-            v-model="form.musicId"
-            class="focus-ring h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
-            :disabled="!isMainDataEditable"
-          >
-            <option value="">Tanpa musik</option>
-            <option v-for="music in catalogStore.music" :key="music.id" :value="music.id">
-              {{ music.title }}{{ music.category ? ` · ${music.category}` : "" }}
-            </option>
-          </select>
+          <label class="flex items-start gap-3 rounded-md border border-ink/10 bg-linen p-4">
+            <input
+              v-model="form.musicEnabled"
+              type="checkbox"
+              class="mt-1 h-4 w-4 rounded border-ink/20 text-leaf"
+              :disabled="!isMainDataEditable"
+            />
+            <span>
+              <span class="block text-sm font-bold text-ink">Aktifkan musik undangan</span>
+              <span class="mt-1 block text-sm leading-6 text-ink/60">
+                Musik optional. Jika tidak diaktifkan, undangan tampil tanpa tombol dan audio musik.
+              </span>
+            </span>
+          </label>
+          <div v-if="form.musicEnabled" class="space-y-2">
+            <label class="block text-sm font-semibold text-ink" for="musicId">Lagu undangan</label>
+            <select
+              id="musicId"
+              v-model="form.musicId"
+              class="focus-ring h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+              :disabled="!isMainDataEditable"
+            >
+              <option value="">Pilih musik</option>
+              <option v-for="music in catalogStore.music" :key="music.id" :value="music.id">
+                {{ music.title }}{{ music.category ? ` · ${music.category}` : "" }}
+              </option>
+            </select>
+          </div>
+          <p v-else class="rounded-md bg-mint/60 px-3 py-2 text-sm font-semibold text-ink/70">
+            Undangan akan tampil tanpa musik.
+          </p>
           <p v-if="!catalogStore.music.length" class="rounded-md bg-gold/10 px-3 py-2 text-sm font-semibold text-ink">
             Belum ada musik aktif dari admin.
           </p>
@@ -982,7 +993,7 @@ function fieldError(key) {
               <li>Nama dan orang tua kedua pengantin lengkap.</li>
               <li>Minimal satu acara punya tanggal, jam mulai, dan alamat.</li>
               <li>Foto utama sudah diunggah.</li>
-              <li>Tema dan musik dipilih jika tersedia.</li>
+              <li>Tema dipilih jika tersedia. Musik boleh tidak diaktifkan.</li>
             </ul>
           </div>
           <AppButton type="button" :disabled="invitationStore.saving" @click="openPreview">
@@ -999,7 +1010,16 @@ function fieldError(key) {
                 <Loader2 v-if="invitationStore.saving" class="h-4 w-4 animate-spin" />
                 Publish Undangan
               </AppButton>
-              <AppButton v-else-if="publicPath" :to="publicPath" variant="secondary">Buka Undangan Publik</AppButton>
+              <AppButton
+                v-else-if="publicPath"
+                as="a"
+                :href="publicPath"
+                target="_blank"
+                rel="noreferrer"
+                variant="secondary"
+              >
+                Buka Undangan Publik
+              </AppButton>
             </div>
           </div>
         </section>
