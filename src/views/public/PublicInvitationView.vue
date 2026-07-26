@@ -35,7 +35,8 @@ const wishForm = reactive({
 onMounted(loadInvitation);
 
 const invitation = computed(() => publicData.value?.invitation);
-const isActive = computed(() => Boolean(publicData.value?.isActive));
+const isPreview = computed(() => Boolean(publicData.value?.isPreview));
+const isActive = computed(() => Boolean(publicData.value?.isActive || publicData.value?.isPreview));
 const guest = computed(() => publicData.value?.guest || null);
 const rsvp = computed(() => publicData.value?.rsvp || null);
 const wishes = computed(() => publicData.value?.wishes || []);
@@ -54,7 +55,9 @@ async function loadInvitation() {
   try {
     const detailRequest = hasGuestToken.value
       ? getPublicGuestInvitation(route.params.username, route.params.slug, route.params.token)
-      : getPublicInvitation(route.params.username, route.params.slug);
+      : getPublicInvitation(route.params.username, route.params.slug, {
+          preview: route.query.preview === "true" ? "true" : undefined
+        });
     const [detail, activeMusic] = await Promise.all([
       detailRequest,
       getMusic().catch(() => [])
@@ -203,6 +206,12 @@ async function submitWish() {
       />
 
       <section v-if="!opened" class="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
+        <div
+          v-if="isPreview"
+          class="absolute left-4 top-4 z-20 rounded-md bg-white/90 px-3 py-2 text-xs font-bold uppercase tracking-widest text-leaf shadow-soft"
+        >
+          Mode preview
+        </div>
         <img
           v-if="invitation.mainPhotoUrl"
           :src="assetUrl(invitation.mainPhotoUrl)"

@@ -319,13 +319,32 @@ async function openPreview() {
     return;
   }
 
+  const previewWindow = window.open("about:blank", "_blank");
+
+  if (!previewWindow) {
+    error.value = "Browser memblokir tab baru. Izinkan pop-up untuk membuka preview undangan.";
+    return;
+  }
+
+  previewWindow.opener = null;
+
   try {
     const saved = await saveInvitation();
     if (!saved) {
+      previewWindow.close();
       return;
     }
-    router.push({ name: "member-invitation-preview", params: { id: route.params.id } });
+
+    const preview = await invitationStore.createPreview(route.params.id);
+    if (!preview?.previewUrl) {
+      previewWindow.close();
+      error.value = "URL preview belum tersedia. Coba lagi sebentar.";
+      return;
+    }
+
+    previewWindow.location.href = preview.previewUrl;
   } catch (requestError) {
+    previewWindow.close();
     error.value = getApiErrorMessage(requestError, "Preview belum bisa dibuka.");
   }
 }
