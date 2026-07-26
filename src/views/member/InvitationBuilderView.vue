@@ -1001,45 +1001,62 @@ function fieldError(key) {
           </div>
         </section>
 
-        <section v-else-if="activeStep === 'preview'" class="space-y-4">
-          <h2 class="text-lg font-bold text-ink">Preview undangan</h2>
-          <p class="text-sm leading-6 text-ink/60">
-            Preview tidak memakai kredit. Data draft akan disimpan sebelum preview dibuat.
-          </p>
-          <div class="rounded-md border border-ink/10 bg-linen p-4">
-            <p class="text-sm font-semibold text-ink">Checklist sebelum publish fase berikutnya:</p>
-            <ul class="mt-3 grid gap-2 text-sm text-ink/60">
-              <li>Nama dan orang tua kedua pengantin lengkap.</li>
-              <li>Minimal satu acara punya tanggal, jam mulai, dan alamat.</li>
-              <li>Foto utama sudah diunggah.</li>
-              <li>Tema dipilih jika tersedia. Musik boleh tidak diaktifkan.</li>
-            </ul>
-          </div>
-          <AppButton type="button" :disabled="invitationStore.saving" @click="openPreview">
-            <Loader2 v-if="invitationStore.saving" class="h-4 w-4 animate-spin" />
-            Buka Preview
-          </AppButton>
-          <div class="rounded-md border border-ink/10 bg-linen p-4">
-            <p class="text-sm font-bold text-ink">Publish undangan</p>
-            <p class="mt-2 text-sm leading-6 text-ink/60">
-              Publish memakai 1 kredit. Setelah publish, data utama masih bisa diedit 24 jam.
+        <section v-else-if="activeStep === 'preview'" class="space-y-5">
+          <div>
+            <h2 class="text-lg font-bold text-ink">Cek undangan sebelum publish</h2>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
+              Preview gratis dan tidak memakai kredit. Buka hasil undangan dulu, cek semua detail, lalu publish hanya kalau sudah yakin.
             </p>
-            <div class="mt-4 flex flex-col gap-3 sm:flex-row">
-              <AppButton v-if="invitation.status === 'draft'" type="button" :disabled="invitationStore.saving" @click="requestPublish">
+          </div>
+
+          <div class="grid gap-4 lg:grid-cols-2">
+            <section class="rounded-md border border-leaf/20 bg-mint p-4">
+              <p class="text-sm font-bold text-leaf">1. Lihat hasil undangan</p>
+              <p class="mt-2 text-sm leading-6 text-ink/65">
+                Draft akan disimpan, lalu hasil undangan dibuka di tab baru. Langkah ini aman karena belum mengurangi kredit.
+              </p>
+              <AppButton class="mt-4" type="button" :disabled="invitationStore.saving" @click="openPreview">
                 <Loader2 v-if="invitationStore.saving" class="h-4 w-4 animate-spin" />
-                Publish Undangan
+                Lihat Hasil Undangan
               </AppButton>
-              <AppButton
-                v-else-if="publicPath"
-                as="a"
-                :href="publicPath"
-                target="_blank"
-                rel="noreferrer"
-                variant="secondary"
-              >
-                Buka Undangan Publik
-              </AppButton>
-            </div>
+            </section>
+
+            <section class="rounded-md border border-gold/30 bg-gold/10 p-4">
+              <p class="text-sm font-bold text-ink">2. Publish saat sudah yakin</p>
+              <p class="mt-2 text-sm leading-6 text-ink/65">
+                Publish membuat link undangan aktif dan memakai 1 kredit. Kredit yang sudah dipakai tidak bisa dikembalikan.
+              </p>
+              <p class="mt-2 text-sm leading-6 text-ink/65">
+                Setelah publish, data utama hanya bisa diedit selama 24 jam. Daftar tamu, status kirim, ucapan, dan amplop digital tetap bisa dikelola.
+              </p>
+              <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+                <AppButton v-if="invitation.status === 'draft'" type="button" :disabled="invitationStore.saving" @click="requestPublish">
+                  <Loader2 v-if="invitationStore.saving" class="h-4 w-4 animate-spin" />
+                  Publish dan Pakai 1 Kredit
+                </AppButton>
+                <AppButton
+                  v-else-if="publicPath"
+                  as="a"
+                  :href="publicPath"
+                  target="_blank"
+                  rel="noreferrer"
+                  variant="secondary"
+                >
+                  Buka Undangan Publik
+                </AppButton>
+              </div>
+            </section>
+          </div>
+
+          <div class="rounded-md border border-ink/10 bg-linen p-4">
+            <p class="text-sm font-bold text-ink">Pastikan sebelum publish</p>
+            <ul class="mt-3 grid gap-2 text-sm leading-6 text-ink/60">
+              <li>Nama pengantin dan nama orang tua sudah benar, tidak ada typo.</li>
+              <li>Tanggal, jam, alamat, dan link Google Maps acara sudah sesuai.</li>
+              <li>Foto utama sudah tampil jelas di preview.</li>
+              <li>Galeri, musik, dan amplop digital sudah sesuai kebutuhan. Musik dan amplop boleh dikosongkan.</li>
+              <li>Saldo kredit cukup dan kamu siap memakai 1 kredit untuk undangan ini.</li>
+            </ul>
           </div>
         </section>
 
@@ -1058,21 +1075,28 @@ function fieldError(key) {
 
     <div v-if="showPublishConfirm" class="fixed inset-0 z-50 flex items-center justify-center bg-ink/45 px-4">
       <section class="w-full max-w-md rounded-lg bg-white p-6 shadow-soft">
-        <h2 class="text-xl font-bold text-ink">Publish undangan?</h2>
+        <h2 class="text-xl font-bold text-ink">Yakin publish undangan?</h2>
         <p class="mt-3 text-sm leading-6 text-ink/65">
-          Sistem akan memakai 1 kredit dari saldo kamu. Draft dan preview tetap gratis, tetapi publish membuat link undangan aktif.
+          Setelah kamu klik publish, sistem langsung memakai 1 kredit dan link undangan menjadi aktif. Kredit yang sudah dipakai tidak bisa dikembalikan.
         </p>
         <div class="mt-5 rounded-md bg-linen p-4 text-sm">
           <div class="flex justify-between gap-4">
             <span class="text-ink/55">Sisa kredit</span>
             <span class="font-bold text-ink">{{ auth.user?.creditBalance || 0 }}</span>
           </div>
+          <div class="mt-3 flex justify-between gap-4 border-t border-ink/10 pt-3">
+            <span class="text-ink/55">Dipakai untuk publish ini</span>
+            <span class="font-bold text-rose">1 kredit</span>
+          </div>
         </div>
+        <p class="mt-4 text-sm leading-6 text-ink/65">
+          Data utama masih bisa diedit selama 24 jam setelah publish. Pastikan nama, waktu acara, lokasi, dan foto sudah benar.
+        </p>
         <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
           <AppButton type="button" variant="secondary" @click="showPublishConfirm = false">Batal</AppButton>
           <AppButton type="button" :disabled="invitationStore.saving" @click="publishDraft">
             <Loader2 v-if="invitationStore.saving" class="h-4 w-4 animate-spin" />
-            Ya, Publish
+            Ya, Publish Sekarang
           </AppButton>
         </div>
       </section>
