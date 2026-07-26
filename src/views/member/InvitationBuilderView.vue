@@ -368,6 +368,12 @@ async function publishDraft() {
   error.value = "";
 
   try {
+    const saved = await saveInvitation();
+    if (!saved) {
+      showPublishConfirm.value = false;
+      return;
+    }
+
     const published = await invitationStore.publish(route.params.id);
     await auth.hydrate(true);
     syncForm(published);
