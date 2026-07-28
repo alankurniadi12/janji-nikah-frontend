@@ -30,6 +30,17 @@ const generatorForm = reactive({
   cta: ""
 });
 
+const textLimits = {
+  businessName: 80,
+  instagram: 120,
+  whatsapp: 32,
+  facebook: 120,
+  tiktok: 120,
+  headline: 42,
+  subheadline: 70,
+  captionText: 160
+};
+
 const templateOptions = [
   {
     value: "minimal",
@@ -80,6 +91,28 @@ const hasAssets = computed(() => Boolean(assets.value?.squareImageUrl || assets.
 const hasDirectContact = computed(() =>
   Boolean(profileForm.whatsapp || profileForm.instagram || profileForm.tiktok || profileForm.facebook)
 );
+
+function textLength(value) {
+  return String(value || "").length;
+}
+
+function counterText(value, maxLength) {
+  return `${textLength(value)}/${maxLength}`;
+}
+
+function counterClass(value, maxLength) {
+  const length = textLength(value);
+
+  if (length >= maxLength) {
+    return "text-rose";
+  }
+
+  if (length >= Math.floor(maxLength * 0.85)) {
+    return "text-gold";
+  }
+
+  return "text-ink/45";
+}
 
 function syncForm(profile) {
   Object.assign(profileForm, {
@@ -195,12 +228,17 @@ async function copyCaption() {
 
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-semibold text-ink" for="businessName">Nama usaha/jasa</label>
+                <div class="flex items-center justify-between gap-3">
+                  <label class="block text-sm font-semibold text-ink" for="businessName">Nama usaha/jasa</label>
+                  <span class="text-xs font-semibold" :class="counterClass(profileForm.businessName, textLimits.businessName)">
+                    {{ counterText(profileForm.businessName, textLimits.businessName) }}
+                  </span>
+                </div>
                 <input
                   id="businessName"
                   v-model.trim="profileForm.businessName"
                   class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
-                  maxlength="80"
+                  :maxlength="textLimits.businessName"
                   placeholder="Contoh: Rio Wedding Digital"
                   required
                 />
@@ -208,38 +246,62 @@ async function copyCaption() {
 
               <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
                 <div>
-                  <label class="block text-sm font-semibold text-ink" for="instagram">Instagram</label>
+                  <div class="flex items-center justify-between gap-3">
+                    <label class="block text-sm font-semibold text-ink" for="instagram">Instagram</label>
+                    <span class="text-xs font-semibold" :class="counterClass(profileForm.instagram, textLimits.instagram)">
+                      {{ counterText(profileForm.instagram, textLimits.instagram) }}
+                    </span>
+                  </div>
                   <input
                     id="instagram"
                     v-model.trim="profileForm.instagram"
                     class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                    :maxlength="textLimits.instagram"
                     placeholder="@namabisnis"
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-semibold text-ink" for="whatsapp">WhatsApp</label>
+                  <div class="flex items-center justify-between gap-3">
+                    <label class="block text-sm font-semibold text-ink" for="whatsapp">WhatsApp</label>
+                    <span class="text-xs font-semibold" :class="counterClass(profileForm.whatsapp, textLimits.whatsapp)">
+                      {{ counterText(profileForm.whatsapp, textLimits.whatsapp) }}
+                    </span>
+                  </div>
                   <input
                     id="whatsapp"
                     v-model.trim="profileForm.whatsapp"
                     class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                    :maxlength="textLimits.whatsapp"
                     placeholder="0812 3456 7890"
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-semibold text-ink" for="facebook">Facebook</label>
+                  <div class="flex items-center justify-between gap-3">
+                    <label class="block text-sm font-semibold text-ink" for="facebook">Facebook</label>
+                    <span class="text-xs font-semibold" :class="counterClass(profileForm.facebook, textLimits.facebook)">
+                      {{ counterText(profileForm.facebook, textLimits.facebook) }}
+                    </span>
+                  </div>
                   <input
                     id="facebook"
                     v-model.trim="profileForm.facebook"
                     class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                    :maxlength="textLimits.facebook"
                     placeholder="Nama halaman"
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-semibold text-ink" for="tiktok">TikTok</label>
+                  <div class="flex items-center justify-between gap-3">
+                    <label class="block text-sm font-semibold text-ink" for="tiktok">TikTok</label>
+                    <span class="text-xs font-semibold" :class="counterClass(profileForm.tiktok, textLimits.tiktok)">
+                      {{ counterText(profileForm.tiktok, textLimits.tiktok) }}
+                    </span>
+                  </div>
                   <input
                     id="tiktok"
                     v-model.trim="profileForm.tiktok"
                     class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                    :maxlength="textLimits.tiktok"
                     placeholder="@namabisnis"
                   />
                 </div>
@@ -337,41 +399,61 @@ async function copyCaption() {
 
             <div class="space-y-4 border-t border-ink/10 pt-5">
               <div>
-                <label class="block text-sm font-semibold text-ink" for="headline">Headline gambar</label>
+                <div class="flex items-center justify-between gap-3">
+                  <label class="block text-sm font-semibold text-ink" for="headline">Headline gambar</label>
+                  <span class="text-xs font-semibold" :class="counterClass(generatorForm.headline, textLimits.headline)">
+                    {{ counterText(generatorForm.headline, textLimits.headline) }}
+                  </span>
+                </div>
                 <input
                   id="headline"
                   v-model.trim="generatorForm.headline"
                   class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
-                  maxlength="80"
+                  :maxlength="textLimits.headline"
                 />
               </div>
               <div>
-                <label class="block text-sm font-semibold text-ink" for="subheadline">Subheadline gambar</label>
+                <div class="flex items-center justify-between gap-3">
+                  <label class="block text-sm font-semibold text-ink" for="subheadline">Subheadline gambar</label>
+                  <span class="text-xs font-semibold" :class="counterClass(generatorForm.subheadline, textLimits.subheadline)">
+                    {{ counterText(generatorForm.subheadline, textLimits.subheadline) }}
+                  </span>
+                </div>
                 <textarea
                   id="subheadline"
                   v-model.trim="generatorForm.subheadline"
                   class="focus-ring mt-2 min-h-24 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
-                  maxlength="130"
+                  :maxlength="textLimits.subheadline"
                 />
               </div>
               <div>
-                <label class="block text-sm font-semibold text-ink" for="offer">Kalimat pembuka caption</label>
+                <div class="flex items-center justify-between gap-3">
+                  <label class="block text-sm font-semibold text-ink" for="offer">Kalimat pembuka caption</label>
+                  <span class="text-xs font-semibold" :class="counterClass(generatorForm.offer, textLimits.captionText)">
+                    {{ counterText(generatorForm.offer, textLimits.captionText) }}
+                  </span>
+                </div>
                 <textarea
                   id="offer"
                   v-model.trim="generatorForm.offer"
                   class="focus-ring mt-2 min-h-20 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
                   placeholder="Kosongkan untuk memakai teks bawaan sesuai gaya caption."
-                  maxlength="160"
+                  :maxlength="textLimits.captionText"
                 />
               </div>
               <div>
-                <label class="block text-sm font-semibold text-ink" for="cta">CTA caption</label>
+                <div class="flex items-center justify-between gap-3">
+                  <label class="block text-sm font-semibold text-ink" for="cta">CTA caption</label>
+                  <span class="text-xs font-semibold" :class="counterClass(generatorForm.cta, textLimits.captionText)">
+                    {{ counterText(generatorForm.cta, textLimits.captionText) }}
+                  </span>
+                </div>
                 <textarea
                   id="cta"
                   v-model.trim="generatorForm.cta"
                   class="focus-ring mt-2 min-h-20 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
                   placeholder="Kosongkan untuk memakai CTA bawaan sesuai gaya caption."
-                  maxlength="160"
+                  :maxlength="textLimits.captionText"
                 />
               </div>
             </div>
