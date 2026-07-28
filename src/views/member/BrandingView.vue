@@ -19,7 +19,7 @@ const profileForm = reactive({
   facebook: "",
   tiktok: "",
   whatsapp: "",
-  selectedTemplate: "elegant"
+  selectedTemplate: "minimal"
 });
 
 const generatorForm = reactive({
@@ -32,19 +32,19 @@ const generatorForm = reactive({
 
 const templateOptions = [
   {
+    value: "minimal",
+    label: "Minimal",
+    description: "Foto besar di atas dengan teks ringkas dan CTA jelas."
+  },
+  {
     value: "elegant",
-    label: "Elegant",
-    description: "Hangat, lembut, cocok untuk gaya romantis."
+    label: "Tengah",
+    description: "Foto utama berada di tengah sebagai poster promosi."
   },
   {
     value: "modern",
-    label: "Modern",
-    description: "Bersih, tegas, cocok untuk promosi profesional."
-  },
-  {
-    value: "minimal",
-    label: "Minimal",
-    description: "Netral, simpel, fokus pada teks utama."
+    label: "Bulat",
+    description: "Foto dibuat bulat dengan kesan bersih dan modern."
   }
 ];
 
@@ -88,7 +88,7 @@ function syncForm(profile) {
     facebook: profile.facebook || "",
     tiktok: profile.tiktok || "",
     whatsapp: profile.whatsapp || "",
-    selectedTemplate: profile.selectedTemplate || "elegant"
+    selectedTemplate: profile.selectedTemplate || "minimal"
   });
 }
 
