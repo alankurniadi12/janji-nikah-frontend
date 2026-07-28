@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-import { AlertCircle, Check, Copy, Download, Image, Loader2, MessageCircle, Sparkles, Upload } from "@lucide/vue";
+import { AlertCircle, Check, Copy, Download, Image, Loader2, MessageCircle, Sparkles } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import { getApiErrorMessage } from "@/lib/api";
@@ -12,7 +12,6 @@ import { formatDate } from "@/utils/formatters";
 const brandingStore = useBrandingStore();
 const toastStore = useToastStore();
 const error = ref("");
-const photoInput = ref(null);
 
 const profileForm = reactive({
   businessName: "",
@@ -93,18 +92,6 @@ function syncForm(profile) {
   });
 }
 
-async function saveProfile() {
-  error.value = "";
-
-  try {
-    const profile = await brandingStore.saveProfile(profileForm);
-    syncForm(profile);
-    toastStore.show("Profil branding berhasil disimpan.");
-  } catch (requestError) {
-    error.value = getApiErrorMessage(requestError, "Profil branding belum bisa disimpan.");
-  }
-}
-
 async function generateAssets() {
   error.value = "";
 
@@ -164,10 +151,9 @@ async function copyCaption() {
         <p class="text-sm font-bold uppercase tracking-widest text-gold">Branding</p>
         <h1 class="mt-2 text-3xl font-bold text-ink">Generator materi promosi</h1>
         <p class="mt-2 max-w-2xl leading-7 text-ink/65">
-          Simpan identitas usaha, buat gambar promosi ukuran feed dan story, lalu salin caption untuk dipakai di media sosial.
+          Isi identitas usaha, pilih foto dan gaya promosi, lalu buat materi feed, story, dan caption siap pakai.
         </p>
       </div>
-      <AppButton to="/app/invitations" variant="secondary">Undangan Saya</AppButton>
     </div>
 
     <div v-if="brandingStore.loading" class="mt-8 flex items-center gap-3 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
@@ -195,16 +181,19 @@ async function copyCaption() {
       </p>
 
       <div class="mt-8 grid gap-6 xl:grid-cols-[420px_1fr]">
-        <aside class="space-y-6">
-          <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+        <aside>
+          <form class="space-y-5 rounded-lg border border-ink/10 bg-white p-5 shadow-soft" @submit.prevent="generateAssets">
             <div class="flex items-center gap-3">
               <div class="flex h-10 w-10 items-center justify-center rounded-md bg-mint text-leaf">
                 <Sparkles class="h-5 w-5" />
               </div>
-              <h2 class="text-lg font-bold text-ink">Profil usaha</h2>
+              <div>
+                <h2 class="text-lg font-bold text-ink">Komposer promosi</h2>
+                <p class="mt-1 text-xs leading-5 text-ink/55">Perubahan profil otomatis disimpan saat materi dibuat.</p>
+              </div>
             </div>
 
-            <form class="mt-5 space-y-4" @submit.prevent="saveProfile">
+            <div class="space-y-4">
               <div>
                 <label class="block text-sm font-semibold text-ink" for="businessName">Nama usaha/jasa</label>
                 <input
@@ -255,10 +244,53 @@ async function copyCaption() {
                   />
                 </div>
               </div>
+            </div>
 
+            <div class="border-t border-ink/10 pt-5">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <p class="text-sm font-semibold text-ink">Foto utama</p>
+                  <p class="mt-1 text-xs leading-5 text-ink/55">Cocok untuk foto pasangan, mockup HP, atau contoh undangan.</p>
+                </div>
+                <span v-if="brandingStore.uploadingPhoto" class="inline-flex items-center gap-2 text-xs font-semibold text-leaf">
+                  <Loader2 class="h-3.5 w-3.5 animate-spin" />
+                  Mengunggah
+                </span>
+              </div>
+
+              <input
+                id="promoPhoto"
+                class="sr-only"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                @change="uploadPromoPhoto"
+              />
+              <label
+                class="focus-ring mt-3 block cursor-pointer overflow-hidden rounded-md border border-dashed border-ink/20 bg-linen transition hover:border-leaf hover:bg-mint/30"
+                for="promoPhoto"
+                tabindex="0"
+                @keydown.enter.prevent="$event.currentTarget.click()"
+                @keydown.space.prevent="$event.currentTarget.click()"
+              >
+                <img
+                  v-if="brandingStore.profile?.promoPhotoUrl"
+                  :src="assetUrl(brandingStore.profile.promoPhotoUrl)"
+                  alt="Foto promosi"
+                  class="aspect-[4/3] w-full object-cover"
+                />
+                <span v-else class="flex aspect-[4/3] items-center justify-center p-5 text-center text-ink/45">
+                  <span>
+                    <Image class="mx-auto h-8 w-8" />
+                    <span class="mt-3 block text-sm font-semibold">Pilih foto utama</span>
+                  </span>
+                </span>
+              </label>
+            </div>
+
+            <div class="border-t border-ink/10 pt-5">
               <div>
                 <p class="block text-sm font-semibold text-ink">Template</p>
-                <div class="mt-2 grid gap-2">
+                <div class="mt-2 grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
                   <button
                     v-for="template in templateOptions"
                     :key="template.value"
@@ -277,66 +309,9 @@ async function copyCaption() {
                   </button>
                 </div>
               </div>
-
-              <AppButton class="w-full" type="submit" :disabled="brandingStore.saving">
-                <Loader2 v-if="brandingStore.saving" class="h-4 w-4 animate-spin" />
-                Simpan Profil
-              </AppButton>
-            </form>
-          </section>
-
-          <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-            <div class="flex items-center gap-3">
-              <div class="flex h-10 w-10 items-center justify-center rounded-md bg-linen text-gold">
-                <Image class="h-5 w-5" />
-              </div>
-              <div>
-                <h2 class="text-lg font-bold text-ink">Foto promosi</h2>
-                <p class="mt-1 text-xs leading-5 text-ink/55">Optional, cocok untuk foto pasangan, contoh undangan, atau mockup HP.</p>
-              </div>
             </div>
 
-            <div class="mt-5 overflow-hidden rounded-md border border-ink/10 bg-linen">
-              <img
-                v-if="brandingStore.profile?.promoPhotoUrl"
-                :src="assetUrl(brandingStore.profile.promoPhotoUrl)"
-                alt="Foto promosi"
-                class="aspect-[4/3] w-full object-cover"
-              />
-              <div v-else class="flex aspect-[4/3] items-center justify-center p-5 text-center text-ink/45">
-                <div>
-                  <Image class="mx-auto h-8 w-8" />
-                  <p class="mt-3 text-sm font-semibold">Belum ada foto</p>
-                </div>
-              </div>
-            </div>
-
-            <input
-              ref="photoInput"
-              class="sr-only"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              @change="uploadPromoPhoto"
-            />
-            <AppButton
-              class="mt-4 w-full"
-              type="button"
-              variant="secondary"
-              :disabled="brandingStore.saving || brandingStore.uploadingPhoto"
-              @click="photoInput?.click()"
-            >
-              <Loader2 v-if="brandingStore.saving || brandingStore.uploadingPhoto" class="h-4 w-4 animate-spin" />
-              <Upload v-else class="h-4 w-4" />
-              Upload Foto
-            </AppButton>
-            <p class="mt-3 text-xs leading-5 text-ink/50">
-              Sistem akan memakai foto ini di dalam frame/template saat kamu generate materi.
-            </p>
-          </section>
-
-          <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-            <h2 class="text-lg font-bold text-ink">Teks promosi</h2>
-            <form class="mt-5 space-y-4" @submit.prevent="generateAssets">
+            <div class="border-t border-ink/10 pt-5">
               <div>
                 <p class="block text-sm font-semibold text-ink">Gaya caption</p>
                 <div class="mt-2 grid gap-2">
@@ -358,7 +333,9 @@ async function copyCaption() {
                   </button>
                 </div>
               </div>
+            </div>
 
+            <div class="space-y-4 border-t border-ink/10 pt-5">
               <div>
                 <label class="block text-sm font-semibold text-ink" for="headline">Headline gambar</label>
                 <input
@@ -397,13 +374,15 @@ async function copyCaption() {
                   maxlength="160"
                 />
               </div>
+            </div>
 
-              <AppButton class="w-full" type="submit" :disabled="brandingStore.saving || brandingStore.generating">
+            <div class="border-t border-ink/10 pt-5">
+              <AppButton class="w-full" type="submit" :disabled="brandingStore.saving || brandingStore.generating || brandingStore.uploadingPhoto">
                 <Loader2 v-if="brandingStore.saving || brandingStore.generating" class="h-4 w-4 animate-spin" />
                 Generate Materi
               </AppButton>
-            </form>
-          </section>
+            </div>
+          </form>
         </aside>
 
         <section class="space-y-6">
@@ -510,7 +489,7 @@ async function copyCaption() {
 
           <section v-if="!hasAssets" class="rounded-lg border border-gold/25 bg-gold/10 p-5">
             <p class="text-sm font-semibold leading-6 text-ink">
-              Simpan profil terlebih dahulu jika hanya ingin cek nama usaha. Tombol generate akan menyimpan profil dan membuat asset sekaligus.
+              Isi komposer di sebelah kiri, lalu generate materi untuk membuat gambar feed, story, dan caption pertama.
             </p>
           </section>
         </section>

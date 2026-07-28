@@ -55,7 +55,7 @@ export const useBrandingStore = defineStore("branding", {
 
       try {
         this.profile = await uploadBrandingPhoto(file);
-        this.assets = this.profile?.promoAssets || this.assets;
+        this.assets = null;
         return this.profile;
       } catch (error) {
         this.error = getApiErrorMessage(error, "Foto promosi belum bisa diunggah.");
