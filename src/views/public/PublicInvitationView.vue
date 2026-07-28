@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, nextTick, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { CalendarDays, Gift, Loader2, MapPin, Music2 } from "@lucide/vue";
 
@@ -24,6 +24,8 @@ const publicData = ref(null);
 const music = ref([]);
 const opened = ref(false);
 const audioRef = ref(null);
+const wishFormSectionRef = ref(null);
+const wishMessageInputRef = ref(null);
 const audioPlaying = ref(false);
 const submitting = ref(false);
 const guestMessage = ref("");
@@ -198,7 +200,7 @@ async function submitWish() {
   }
 }
 
-function startEditWish(wish) {
+async function startEditWish(wish) {
   guestError.value = "";
   guestMessage.value = "";
   editingWishId.value = wish.id;
@@ -213,6 +215,7 @@ function startEditWish(wish) {
       invitationId: invitation.value?.id
     }
   };
+  await focusWishForm();
 }
 
 function cancelEditWish() {
@@ -223,6 +226,18 @@ function cancelEditWish() {
 
 function canEditWish(wish) {
   return Boolean(guest.value?.id && wish.guestId === guest.value.id);
+}
+
+async function focusWishForm() {
+  await nextTick();
+  wishFormSectionRef.value?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+
+  window.setTimeout(() => {
+    wishMessageInputRef.value?.focus({ preventScroll: true });
+  }, 350);
 }
 
 function rsvpStatusLabel(status) {
@@ -426,7 +441,7 @@ function rsvpStatusClass(status) {
             RSVP dan ucapan tersedia melalui link personal tamu.
           </p>
           <div v-else class="mt-6 text-left">
-            <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+            <section ref="wishFormSectionRef" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
               <p class="text-sm font-bold uppercase tracking-widest text-gold">Konfirmasi tamu</p>
               <h3 class="mt-3 text-xl font-bold text-ink">Kehadiran dan ucapan</h3>
               <p class="mt-2 text-sm leading-6 text-ink/60">
@@ -467,6 +482,7 @@ function rsvpStatusClass(status) {
                 <label class="block text-sm font-semibold text-ink">
                   Ucapan
                   <textarea
+                    ref="wishMessageInputRef"
                     v-model="wishForm.message"
                     class="focus-ring mt-2 min-h-28 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
                     :class="isWishMessageTooLong ? 'border-rose' : ''"
