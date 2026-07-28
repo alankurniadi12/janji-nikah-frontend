@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, nextTick, onMounted, reactive, ref } from "vue";
 import { AlertCircle, Check, Copy, Download, Image, Loader2, MessageCircle, Sparkles } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
@@ -12,6 +12,8 @@ import { formatDate } from "@/utils/formatters";
 const brandingStore = useBrandingStore();
 const toastStore = useToastStore();
 const error = ref("");
+const resultsSection = ref(null);
+const downloadingAsset = ref("");
 
 const profileForm = reactive({
   businessName: "",
@@ -132,6 +134,8 @@ async function generateAssets() {
     const profile = await brandingStore.saveProfile(profileForm);
     syncForm(profile);
     await brandingStore.generate(generatorForm);
+    await nextTick();
+    resultsSection.value?.scrollIntoView({ behavior: "smooth", block: "start" });
     toastStore.show("Materi promosi berhasil dibuat.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Materi branding belum bisa dibuat.");
@@ -173,6 +177,39 @@ async function copyCaption() {
     toastStore.show("Caption berhasil disalin.");
   } catch {
     error.value = "Browser belum mengizinkan copy otomatis. Salin caption secara manual.";
+  }
+}
+
+async function downloadAsset(url, filename) {
+  if (!url || downloadingAsset.value) {
+    return;
+  }
+
+  error.value = "";
+  downloadingAsset.value = filename;
+
+  try {
+    const response = await fetch(assetUrl(url));
+
+    if (!response.ok) {
+      throw new Error("Download failed");
+    }
+
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(objectUrl);
+    toastStore.show("Gambar berhasil didownload.");
+  } catch {
+    error.value = "Gambar belum bisa didownload. Coba generate ulang lalu download lagi.";
+  } finally {
+    downloadingAsset.value = "";
   }
 }
 </script>
@@ -224,6 +261,13 @@ async function copyCaption() {
                 <h2 class="text-lg font-bold text-ink">Komposer promosi</h2>
                 <p class="mt-1 text-xs leading-5 text-ink/55">Perubahan profil otomatis disimpan saat materi dibuat.</p>
               </div>
+            </div>
+
+            <div class="sticky top-4 z-10 rounded-md border border-ink/10 bg-white/95 p-3 shadow-soft backdrop-blur">
+              <AppButton class="w-full" type="submit" :disabled="brandingStore.saving || brandingStore.generating || brandingStore.uploadingPhoto">
+                <Loader2 v-if="brandingStore.saving || brandingStore.generating" class="h-4 w-4 animate-spin" />
+                Generate Materi
+              </AppButton>
             </div>
 
             <div class="space-y-4">
@@ -457,17 +501,10 @@ async function copyCaption() {
                 />
               </div>
             </div>
-
-            <div class="border-t border-ink/10 pt-5">
-              <AppButton class="w-full" type="submit" :disabled="brandingStore.saving || brandingStore.generating || brandingStore.uploadingPhoto">
-                <Loader2 v-if="brandingStore.saving || brandingStore.generating" class="h-4 w-4 animate-spin" />
-                Generate Materi
-              </AppButton>
-            </div>
           </form>
         </aside>
 
-        <section class="space-y-6">
+        <section ref="resultsSection" class="scroll-mt-6 space-y-6">
           <div class="grid gap-6 lg:grid-cols-2">
             <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
               <div class="flex items-center justify-between gap-3">
@@ -475,16 +512,17 @@ async function copyCaption() {
                   <p class="text-sm font-bold uppercase tracking-widest text-gold">Feed</p>
                   <h2 class="mt-1 text-lg font-bold text-ink">Gambar 1:1</h2>
                 </div>
-                <a
+                <button
                   v-if="assets?.squareImageUrl"
-                  :href="assetUrl(assets.squareImageUrl)"
                   class="focus-ring rounded-md p-2 text-ink/60 hover:bg-mint hover:text-leaf"
-                  target="_blank"
-                  rel="noreferrer"
-                  title="Buka gambar 1:1"
+                  type="button"
+                  :disabled="Boolean(downloadingAsset)"
+                  title="Download gambar 1:1"
+                  @click="downloadAsset(assets.squareImageUrl, 'janji-nikah-branding-feed.webp')"
                 >
-                  <Download class="h-4 w-4" />
-                </a>
+                  <Loader2 v-if="downloadingAsset === 'janji-nikah-branding-feed.webp'" class="h-4 w-4 animate-spin" />
+                  <Download v-else class="h-4 w-4" />
+                </button>
               </div>
               <div class="mt-4 overflow-hidden rounded-md border border-ink/10 bg-linen">
                 <img
@@ -508,16 +546,17 @@ async function copyCaption() {
                   <p class="text-sm font-bold uppercase tracking-widest text-gold">Story</p>
                   <h2 class="mt-1 text-lg font-bold text-ink">Gambar 9:16</h2>
                 </div>
-                <a
+                <button
                   v-if="assets?.storyImageUrl"
-                  :href="assetUrl(assets.storyImageUrl)"
                   class="focus-ring rounded-md p-2 text-ink/60 hover:bg-mint hover:text-leaf"
-                  target="_blank"
-                  rel="noreferrer"
-                  title="Buka gambar 9:16"
+                  type="button"
+                  :disabled="Boolean(downloadingAsset)"
+                  title="Download gambar 9:16"
+                  @click="downloadAsset(assets.storyImageUrl, 'janji-nikah-branding-story.webp')"
                 >
-                  <Download class="h-4 w-4" />
-                </a>
+                  <Loader2 v-if="downloadingAsset === 'janji-nikah-branding-story.webp'" class="h-4 w-4 animate-spin" />
+                  <Download v-else class="h-4 w-4" />
+                </button>
               </div>
               <div class="mt-4 overflow-hidden rounded-md border border-ink/10 bg-linen">
                 <img
