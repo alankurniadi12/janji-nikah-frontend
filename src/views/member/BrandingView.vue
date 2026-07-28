@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-import { AlertCircle, Check, Copy, Download, Image, Loader2, MessageCircle, Sparkles } from "@lucide/vue";
+import { AlertCircle, Check, Copy, Download, Image, Loader2, MessageCircle, Sparkles, Upload } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import { getApiErrorMessage } from "@/lib/api";
@@ -12,6 +12,7 @@ import { formatDate } from "@/utils/formatters";
 const brandingStore = useBrandingStore();
 const toastStore = useToastStore();
 const error = ref("");
+const photoInput = ref(null);
 
 const profileForm = reactive({
   businessName: "",
@@ -114,6 +115,33 @@ async function generateAssets() {
     toastStore.show("Materi promosi berhasil dibuat.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Materi branding belum bisa dibuat.");
+  }
+}
+
+async function uploadPromoPhoto(event) {
+  error.value = "";
+
+  const [file] = Array.from(event.target.files || []);
+
+  if (!file) {
+    return;
+  }
+
+  if (!profileForm.businessName) {
+    error.value = "Isi nama usaha/jasa sebelum mengunggah foto promosi.";
+    event.target.value = "";
+    return;
+  }
+
+  try {
+    const profile = await brandingStore.saveProfile(profileForm);
+    syncForm(profile);
+    await brandingStore.uploadPhoto(file);
+    toastStore.show("Foto promosi berhasil diunggah.");
+  } catch (requestError) {
+    error.value = getApiErrorMessage(requestError, "Foto promosi belum bisa diunggah.");
+  } finally {
+    event.target.value = "";
   }
 }
 
@@ -255,6 +283,55 @@ async function copyCaption() {
                 Simpan Profil
               </AppButton>
             </form>
+          </section>
+
+          <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-md bg-linen text-gold">
+                <Image class="h-5 w-5" />
+              </div>
+              <div>
+                <h2 class="text-lg font-bold text-ink">Foto promosi</h2>
+                <p class="mt-1 text-xs leading-5 text-ink/55">Optional, cocok untuk foto pasangan, contoh undangan, atau mockup HP.</p>
+              </div>
+            </div>
+
+            <div class="mt-5 overflow-hidden rounded-md border border-ink/10 bg-linen">
+              <img
+                v-if="brandingStore.profile?.promoPhotoUrl"
+                :src="assetUrl(brandingStore.profile.promoPhotoUrl)"
+                alt="Foto promosi"
+                class="aspect-[4/3] w-full object-cover"
+              />
+              <div v-else class="flex aspect-[4/3] items-center justify-center p-5 text-center text-ink/45">
+                <div>
+                  <Image class="mx-auto h-8 w-8" />
+                  <p class="mt-3 text-sm font-semibold">Belum ada foto</p>
+                </div>
+              </div>
+            </div>
+
+            <input
+              ref="photoInput"
+              class="sr-only"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              @change="uploadPromoPhoto"
+            />
+            <AppButton
+              class="mt-4 w-full"
+              type="button"
+              variant="secondary"
+              :disabled="brandingStore.saving || brandingStore.uploadingPhoto"
+              @click="photoInput?.click()"
+            >
+              <Loader2 v-if="brandingStore.saving || brandingStore.uploadingPhoto" class="h-4 w-4 animate-spin" />
+              <Upload v-else class="h-4 w-4" />
+              Upload Foto
+            </AppButton>
+            <p class="mt-3 text-xs leading-5 text-ink/50">
+              Sistem akan memakai foto ini di dalam frame/template saat kamu generate materi.
+            </p>
           </section>
 
           <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">

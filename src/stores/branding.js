@@ -4,6 +4,7 @@ import { getApiErrorMessage } from "@/lib/api";
 import {
   generateBranding,
   getBrandingProfile,
+  uploadBrandingPhoto,
   upsertBrandingProfile
 } from "@/services/brandingService";
 
@@ -13,6 +14,7 @@ export const useBrandingStore = defineStore("branding", {
     assets: null,
     loading: false,
     saving: false,
+    uploadingPhoto: false,
     generating: false,
     error: ""
   }),
@@ -45,6 +47,21 @@ export const useBrandingStore = defineStore("branding", {
         throw error;
       } finally {
         this.saving = false;
+      }
+    },
+    async uploadPhoto(file) {
+      this.uploadingPhoto = true;
+      this.error = "";
+
+      try {
+        this.profile = await uploadBrandingPhoto(file);
+        this.assets = this.profile?.promoAssets || this.assets;
+        return this.profile;
+      } catch (error) {
+        this.error = getApiErrorMessage(error, "Foto promosi belum bisa diunggah.");
+        throw error;
+      } finally {
+        this.uploadingPhoto = false;
       }
     },
     async generate(payload) {
