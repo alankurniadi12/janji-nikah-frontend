@@ -15,7 +15,7 @@ import {
 import AppButton from "@/components/AppButton.vue";
 import TransactionStatusBadge from "@/components/TransactionStatusBadge.vue";
 import { paymentConfig, hasConfiguredPaymentAccount } from "@/config/payment";
-import { getApiErrorMessage } from "@/lib/api";
+import { getApiErrorGuidance } from "@/lib/api";
 import { useToastStore } from "@/stores/toasts";
 import { useTransactionStore } from "@/stores/transactions";
 import { formatCurrency, formatDate, formatDateTime } from "@/utils/formatters";
@@ -24,7 +24,7 @@ const route = useRoute();
 const transactionStore = useTransactionStore();
 const toastStore = useToastStore();
 const selectedFile = ref(null);
-const uploadError = ref("");
+const uploadError = ref(null);
 
 onMounted(() => {
   transactionStore.loadTransaction(route.params.id);
@@ -121,7 +121,7 @@ const statusMessage = computed(() => {
 
 function chooseFile(event) {
   selectedFile.value = event.target.files?.[0] || null;
-  uploadError.value = "";
+  uploadError.value = null;
 }
 
 async function copyText(value, label) {
@@ -139,18 +139,21 @@ async function copyText(value, label) {
 
 async function submitProof() {
   if (!selectedFile.value) {
-    uploadError.value = "Pilih file bukti transfer terlebih dahulu.";
+    uploadError.value = {
+      title: "File bukti belum dipilih",
+      message: "Pilih screenshot atau foto bukti transfer terlebih dahulu, lalu klik upload lagi."
+    };
     return;
   }
 
-  uploadError.value = "";
+  uploadError.value = null;
 
   try {
     await transactionStore.uploadProof(transaction.value.id, selectedFile.value);
     selectedFile.value = null;
     toastStore.show("Bukti pembayaran berhasil diunggah dan menunggu verifikasi admin.");
   } catch (requestError) {
-    uploadError.value = getApiErrorMessage(requestError, "Bukti pembayaran belum bisa diunggah.");
+    uploadError.value = getApiErrorGuidance(requestError, "Bukti pembayaran belum bisa diunggah.");
   }
 }
 </script>
@@ -363,7 +366,27 @@ async function submitProof() {
             <p v-if="selectedFile" class="rounded-md bg-linen px-3 py-2 text-sm font-medium text-ink">
               {{ selectedFile.name }}
             </p>
-            <p v-if="uploadError" class="rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">{{ uploadError }}</p>
+            <div v-if="uploadError" class="rounded-md border border-rose/20 bg-rose/10 p-4">
+              <p class="text-sm font-bold text-rose">{{ uploadError.title }}</p>
+              <p class="mt-1 text-sm leading-6 text-rose/85">{{ uploadError.message }}</p>
+              <div v-if="uploadError.actionLabel" class="mt-3">
+                <AppButton
+                  v-if="uploadError.actionTo"
+                  :to="uploadError.actionTo"
+                  variant="secondary"
+                >
+                  {{ uploadError.actionLabel }}
+                </AppButton>
+                <AppButton
+                  v-else
+                  type="button"
+                  variant="secondary"
+                  @click="uploadError = null"
+                >
+                  {{ uploadError.actionLabel }}
+                </AppButton>
+              </div>
+            </div>
 
             <AppButton class="w-full" type="submit" :disabled="transactionStore.uploading">
               <Loader2 v-if="transactionStore.uploading" class="h-4 w-4 animate-spin" />
