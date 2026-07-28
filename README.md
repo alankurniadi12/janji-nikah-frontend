@@ -11,6 +11,15 @@ Stack:
 - Pinia
 - Axios
 
+Environment lokal:
+
+- `VITE_API_BASE_URL`: base URL backend API.
+- `VITE_GOOGLE_CLIENT_ID`: Google OAuth client ID.
+- `VITE_PAYMENT_BANK_NAME`: nama bank tujuan transfer manual.
+- `VITE_PAYMENT_ACCOUNT_NUMBER`: nomor rekening tujuan transfer manual.
+- `VITE_PAYMENT_ACCOUNT_HOLDER`: nama pemilik rekening.
+- `VITE_PAYMENT_SUPPORT_CONTACT`: kontak bantuan pembayaran optional.
+
 Catatan:
 
 - User-facing copy menggunakan Bahasa Indonesia.

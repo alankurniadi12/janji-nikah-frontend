@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Check, CreditCard, Loader2 } from "@lucide/vue";
+import { Check, CreditCard, Landmark, Loader2, ReceiptText, UploadCloud } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import { getApiErrorMessage } from "@/lib/api";
@@ -26,6 +26,28 @@ onMounted(async () => {
 const selectedPackage = computed(() =>
   creditStore.packages.find((creditPackage) => creditPackage.id === selectedPackageId.value)
 );
+const nextSteps = [
+  {
+    icon: ReceiptText,
+    title: "Buat transaksi",
+    description: "Sistem membuat total bayar final dengan kode unik 3 digit."
+  },
+  {
+    icon: Landmark,
+    title: "Transfer manual",
+    description: "Transfer ke rekening tujuan sesuai nominal final, jangan dibulatkan."
+  },
+  {
+    icon: UploadCloud,
+    title: "Upload bukti",
+    description: "Kirim screenshot atau foto bukti transfer dari halaman detail transaksi."
+  },
+  {
+    icon: Check,
+    title: "Menunggu admin",
+    description: "Kredit masuk setelah pembayaran diverifikasi admin."
+  }
+];
 
 async function createPayment() {
   if (!selectedPackageId.value) {
@@ -51,7 +73,7 @@ async function createPayment() {
         <p class="text-sm font-bold uppercase tracking-widest text-gold">Beli kredit</p>
         <h1 class="mt-2 text-3xl font-bold text-ink">Pilih paket kredit</h1>
         <p class="mt-2 max-w-2xl leading-7 text-ink/65">
-          Pembayaran MVP dilakukan melalui transfer manual. Sistem akan membuat kode unik 3 digit setelah paket dipilih.
+          Pilih paket dulu. Setelah transaksi dibuat, kamu akan melihat nominal final, rekening tujuan, dan form upload bukti transfer.
         </p>
       </div>
       <AppButton to="/app/transactions" variant="secondary">Riwayat Transaksi</AppButton>
@@ -97,15 +119,25 @@ async function createPayment() {
 
       <section class="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <h2 class="text-lg font-bold text-ink">Instruksi pembayaran</h2>
-          <div class="mt-4 grid gap-3 text-sm leading-6 text-ink/65">
-            <p>1. Pilih paket kredit yang ingin dibeli.</p>
-            <p>2. Klik buat transaksi untuk mendapatkan total bayar dengan kode unik.</p>
-            <p>3. Transfer sesuai total bayar, lalu upload bukti transfer pada detail transaksi.</p>
-            <p>4. Kredit masuk setelah admin menyetujui pembayaran.</p>
+          <h2 class="text-lg font-bold text-ink">Setelah klik Buat Transaksi</h2>
+          <p class="mt-2 text-sm leading-6 text-ink/60">
+            Kamu belum perlu transfer di halaman ini. Ikuti instruksi di detail transaksi setelah nominal final muncul.
+          </p>
+          <div class="mt-5 grid gap-3 sm:grid-cols-2">
+            <article
+              v-for="step in nextSteps"
+              :key="step.title"
+              class="rounded-md border border-ink/10 bg-linen p-4"
+            >
+              <div class="flex h-9 w-9 items-center justify-center rounded-md bg-white text-leaf">
+                <component :is="step.icon" class="h-4 w-4" />
+              </div>
+              <p class="mt-3 text-sm font-bold text-ink">{{ step.title }}</p>
+              <p class="mt-1 text-sm leading-6 text-ink/60">{{ step.description }}</p>
+            </article>
           </div>
           <p class="mt-4 rounded-md bg-gold/10 px-3 py-2 text-sm font-semibold text-ink">
-            Kredit yang sudah dibeli dan kredit yang sudah dipakai untuk publish tidak bisa refund.
+            Nominal transfer memakai kode unik 3 digit. Transfer persis sesuai total bayar agar verifikasi admin lebih cepat.
           </p>
         </div>
 
@@ -127,6 +159,9 @@ async function createPayment() {
               <span class="text-ink/55">Harga paket</span>
               <span class="font-semibold text-ink">{{ formatCurrency(selectedPackage.price) }}</span>
             </div>
+            <div class="rounded-md bg-linen px-3 py-2 text-ink/65">
+              Total bayar final dibuat setelah transaksi dibuat.
+            </div>
           </div>
 
           <p v-if="error || transactionStore.error" class="mt-4 rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">
@@ -135,8 +170,11 @@ async function createPayment() {
 
           <AppButton class="mt-5 w-full" :disabled="transactionStore.submitting || !selectedPackage" @click="createPayment">
             <Loader2 v-if="transactionStore.submitting" class="h-4 w-4 animate-spin" />
-            Buat Transaksi
+            Buat Transaksi dan Lihat Instruksi
           </AppButton>
+          <p class="mt-3 text-xs leading-5 text-ink/50">
+            Kredit yang sudah dibeli dan kredit yang sudah dipakai publish tidak bisa refund.
+          </p>
         </aside>
       </section>
     </template>
