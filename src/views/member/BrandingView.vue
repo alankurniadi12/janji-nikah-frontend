@@ -518,9 +518,9 @@ async function downloadAsset(url, filename) {
                   type="button"
                   :disabled="Boolean(downloadingAsset)"
                   title="Download gambar 1:1"
-                  @click="downloadAsset(assets.squareImageUrl, 'janji-nikah-branding-feed.webp')"
+                  @click="downloadAsset(assets.squareImageUrl, 'janji-nikah-branding-feed.jpg')"
                 >
-                  <Loader2 v-if="downloadingAsset === 'janji-nikah-branding-feed.webp'" class="h-4 w-4 animate-spin" />
+                  <Loader2 v-if="downloadingAsset === 'janji-nikah-branding-feed.jpg'" class="h-4 w-4 animate-spin" />
                   <Download v-else class="h-4 w-4" />
                 </button>
               </div>
@@ -552,9 +552,9 @@ async function downloadAsset(url, filename) {
                   type="button"
                   :disabled="Boolean(downloadingAsset)"
                   title="Download gambar 9:16"
-                  @click="downloadAsset(assets.storyImageUrl, 'janji-nikah-branding-story.webp')"
+                  @click="downloadAsset(assets.storyImageUrl, 'janji-nikah-branding-story.jpg')"
                 >
-                  <Loader2 v-if="downloadingAsset === 'janji-nikah-branding-story.webp'" class="h-4 w-4 animate-spin" />
+                  <Loader2 v-if="downloadingAsset === 'janji-nikah-branding-story.jpg'" class="h-4 w-4 animate-spin" />
                   <Download v-else class="h-4 w-4" />
                 </button>
               </div>
