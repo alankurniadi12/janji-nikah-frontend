@@ -27,7 +27,7 @@ const audioPlaying = ref(false);
 const submitting = ref(false);
 const guestMessage = ref("");
 const guestError = ref("");
-const maxWishMessageLength = 500;
+const maxWishMessageLength = 150;
 const wishForm = reactive({
   displayName: "",
   message: ""
