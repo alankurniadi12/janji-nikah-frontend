@@ -35,6 +35,7 @@ const canUploadProof = computed(() => transaction.value?.status === "waiting_pay
 const isPaymentAccountReady = computed(() => hasConfiguredPaymentAccount(paymentConfig));
 const paymentSteps = computed(() => {
   const status = transaction.value?.status;
+  const proofUploaded = ["waiting_verification", "success"].includes(status);
 
   return [
     {
@@ -44,15 +45,9 @@ const paymentSteps = computed(() => {
       active: status === "waiting_payment"
     },
     {
-      title: "Transfer manual",
-      description: "Member transfer sesuai total bayar.",
-      done: ["waiting_verification", "success"].includes(status),
-      active: status === "waiting_payment"
-    },
-    {
       title: "Upload bukti",
       description: "Bukti transfer menunggu cek admin.",
-      done: status === "success",
+      done: proofUploaded,
       active: status === "waiting_verification"
     },
     {
@@ -196,7 +191,7 @@ async function submitProof() {
         </div>
       </section>
 
-      <section class="grid gap-3 md:grid-cols-4">
+      <section class="grid gap-3 md:grid-cols-3">
         <article
           v-for="(step, index) in paymentSteps"
           :key="step.title"
