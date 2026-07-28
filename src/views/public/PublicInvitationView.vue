@@ -27,6 +27,7 @@ const audioPlaying = ref(false);
 const submitting = ref(false);
 const guestMessage = ref("");
 const guestError = ref("");
+const maxWishMessageLength = 500;
 const wishForm = reactive({
   displayName: "",
   message: ""
@@ -42,6 +43,13 @@ const rsvp = computed(() => publicData.value?.rsvp || null);
 const wishes = computed(() => publicData.value?.wishes || []);
 const hasGuestToken = computed(() => Boolean(route.params.token));
 const musicItem = computed(() => music.value.find((item) => item.id === invitation.value?.musicId));
+const wishMessageLength = computed(() => wishForm.message.length);
+const isWishMessageTooLong = computed(() => wishMessageLength.value > maxWishMessageLength);
+const canSubmitWish = computed(() =>
+  Boolean(wishForm.displayName.trim() && wishForm.message.trim()) &&
+  !isWishMessageTooLong.value &&
+  !submitting.value
+);
 const coupleNames = computed(() => {
   const groom = invitation.value?.groom?.fullName || invitation.value?.summary?.groomName || "Pengantin";
   const bride = invitation.value?.bride?.fullName || invitation.value?.summary?.brideName || "Pasangan";
@@ -145,6 +153,12 @@ async function submitRsvp(status) {
 async function submitWish() {
   guestError.value = "";
   guestMessage.value = "";
+
+  if (isWishMessageTooLong.value) {
+    guestError.value = `Ucapan maksimal ${maxWishMessageLength} karakter.`;
+    return;
+  }
+
   submitting.value = true;
 
   try {
@@ -380,15 +394,23 @@ async function submitWish() {
                 <label class="block text-sm font-semibold text-ink">
                   Ucapan
                   <textarea
-                    v-model.trim="wishForm.message"
+                    v-model="wishForm.message"
                     class="focus-ring mt-2 min-h-28 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
+                    :class="isWishMessageTooLong ? 'border-rose' : ''"
+                    :maxlength="maxWishMessageLength"
                     placeholder="Tulis doa dan ucapan"
                   />
+                  <span
+                    class="mt-1 flex justify-end text-xs font-semibold"
+                    :class="isWishMessageTooLong ? 'text-rose' : 'text-ink/45'"
+                  >
+                    {{ wishMessageLength }}/{{ maxWishMessageLength }}
+                  </span>
                 </label>
                 <button
                   class="focus-ring inline-flex min-h-11 items-center justify-center rounded-md bg-leaf px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink disabled:opacity-60"
                   type="submit"
-                  :disabled="submitting"
+                  :disabled="!canSubmitWish"
                 >
                   <Loader2 v-if="submitting" class="mr-2 h-4 w-4 animate-spin" />
                   Kirim Ucapan
