@@ -129,7 +129,7 @@ export function getApiErrorGuidance(error, fallback = "Terjadi kesalahan. Coba l
   if (status === 413) {
     return {
       title: "File terlalu besar",
-      message: "Ukuran file terlalu besar. Kompres gambar atau pilih file lain, lalu upload ulang."
+      message: serverMessage || "Ukuran file terlalu besar. Kompres gambar atau pilih file lain, lalu upload ulang."
     };
   }
 
