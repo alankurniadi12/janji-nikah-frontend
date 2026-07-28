@@ -140,7 +140,10 @@ async function submitRsvp(status) {
     const nextRsvp = await submitPublicRsvp(route.params.username, route.params.slug, route.params.token, status);
     publicData.value = {
       ...publicData.value,
-      rsvp: nextRsvp
+      rsvp: nextRsvp,
+      wishes: wishes.value.map((wish) =>
+        wish.guestId === guest.value?.id ? { ...wish, rsvpStatus: nextRsvp.status } : wish
+      )
     };
     guestMessage.value = "RSVP berhasil disimpan.";
   } catch (requestError) {
@@ -177,6 +180,30 @@ async function submitWish() {
   } finally {
     submitting.value = false;
   }
+}
+
+function rsvpStatusLabel(status) {
+  if (status === "attending") {
+    return "Hadir";
+  }
+
+  if (status === "not_attending") {
+    return "Tidak hadir";
+  }
+
+  return "Belum RSVP";
+}
+
+function rsvpStatusClass(status) {
+  if (status === "attending") {
+    return "border-leaf/20 bg-leaf/10 text-leaf";
+  }
+
+  if (status === "not_attending") {
+    return "border-rose/20 bg-rose/10 text-rose";
+  }
+
+  return "border-ink/10 bg-white text-ink/50";
 }
 </script>
 
@@ -428,7 +455,15 @@ async function submitWish() {
             <p class="text-center text-sm font-bold uppercase tracking-widest text-gold">Ucapan tamu</p>
             <div class="mt-8 grid gap-3">
               <article v-for="wish in wishes" :key="wish.id" class="rounded-lg border border-ink/10 bg-linen p-5 shadow-soft">
-                <p class="font-bold text-ink">{{ wish.displayName }}</p>
+                <div class="flex flex-wrap items-center gap-2">
+                  <p class="font-bold text-ink">{{ wish.displayName }}</p>
+                  <span
+                    class="rounded-full border px-2.5 py-1 text-xs font-bold"
+                    :class="rsvpStatusClass(wish.rsvpStatus)"
+                  >
+                    {{ rsvpStatusLabel(wish.rsvpStatus) }}
+                  </span>
+                </div>
                 <p class="mt-2 text-sm leading-6 text-ink/65">{{ wish.message }}</p>
               </article>
             </div>

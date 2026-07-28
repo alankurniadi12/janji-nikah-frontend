@@ -246,6 +246,30 @@ async function confirmDelete() {
     await deleteWish(pendingDelete.value.item);
   }
 }
+
+function rsvpStatusLabel(status) {
+  if (status === "attending") {
+    return "Hadir";
+  }
+
+  if (status === "not_attending") {
+    return "Tidak hadir";
+  }
+
+  return "Belum RSVP";
+}
+
+function rsvpStatusClass(status) {
+  if (status === "attending") {
+    return "border-leaf/20 bg-leaf/10 text-leaf";
+  }
+
+  if (status === "not_attending") {
+    return "border-rose/20 bg-rose/10 text-rose";
+  }
+
+  return "border-ink/10 bg-white text-ink/50";
+}
 </script>
 
 <template>
@@ -492,6 +516,12 @@ async function confirmDelete() {
               <div>
                 <div class="flex flex-wrap items-center gap-2">
                   <p class="font-bold text-ink">{{ wish.displayName }}</p>
+                  <span
+                    class="rounded-full border px-2.5 py-1 text-xs font-bold"
+                    :class="rsvpStatusClass(wish.rsvpStatus)"
+                  >
+                    {{ rsvpStatusLabel(wish.rsvpStatus) }}
+                  </span>
                   <span v-if="wish.isHidden" class="rounded-full bg-gold/10 px-2 py-1 text-xs font-bold text-gold">Disembunyikan</span>
                 </div>
                 <p class="mt-2 text-sm leading-6 text-ink/65">{{ wish.message }}</p>
