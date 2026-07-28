@@ -32,6 +32,7 @@ onMounted(() => {
 
 const transaction = computed(() => transactionStore.current);
 const canUploadProof = computed(() => transaction.value?.status === "waiting_payment");
+const hasUploadedProof = computed(() => ["waiting_verification", "success"].includes(transaction.value?.status));
 const isPaymentAccountReady = computed(() => hasConfiguredPaymentAccount(paymentConfig));
 const paymentSteps = computed(() => {
   const status = transaction.value?.status;
@@ -388,6 +389,13 @@ async function submitProof() {
               Upload Bukti dan Minta Verifikasi
             </AppButton>
           </form>
+
+          <div v-else-if="hasUploadedProof" class="mt-5 rounded-md border border-leaf/20 bg-leaf/10 p-4">
+            <p class="text-sm font-bold text-leaf">Bukti transfer sudah diupload.</p>
+            <p class="mt-1 text-sm leading-6 text-ink/65">
+              Admin akan mencocokkan nominal dan bukti transfer. Kredit otomatis masuk setelah pembayaran disetujui.
+            </p>
+          </div>
 
           <div v-else class="mt-5 rounded-md border border-ink/10 bg-linen p-4">
             <p class="text-sm font-semibold text-ink">
