@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-import { Check, Copy, Download, Image, Loader2, MessageCircle, Sparkles } from "@lucide/vue";
+import { AlertCircle, Check, Copy, Download, Image, Loader2, MessageCircle, Sparkles } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import { getApiErrorMessage } from "@/lib/api";
@@ -23,10 +23,11 @@ const profileForm = reactive({
 });
 
 const generatorForm = reactive({
+  promoMode: "soft",
   headline: "Undangan Digital Pernikahan",
   subheadline: "Cantik, praktis, dan siap dibagikan ke semua tamu.",
-  offer: "Undangan digital elegan untuk hari bahagiamu.",
-  cta: "Yuk buat undangan yang rapi, cantik, dan mudah dibagikan."
+  offer: "",
+  cta: ""
 });
 
 const templateOptions = [
@@ -47,6 +48,24 @@ const templateOptions = [
   }
 ];
 
+const promoModeOptions = [
+  {
+    value: "soft",
+    label: "Soft selling",
+    description: "Cocok untuk feed dan story yang terasa natural."
+  },
+  {
+    value: "direct",
+    label: "Hard selling",
+    description: "Lebih tegas untuk menawarkan jasa dan manfaat."
+  },
+  {
+    value: "whatsapp",
+    label: "Broadcast WA",
+    description: "Ringkas untuk dikirim ke calon klien lewat chat."
+  }
+];
+
 onMounted(async () => {
   const profile = await brandingStore.loadProfile();
 
@@ -58,6 +77,9 @@ onMounted(async () => {
 const assets = computed(() => brandingStore.assets || brandingStore.profile?.promoAssets || null);
 const warnings = computed(() => brandingStore.profile?.warnings || []);
 const hasAssets = computed(() => Boolean(assets.value?.squareImageUrl || assets.value?.storyImageUrl || assets.value?.caption));
+const hasDirectContact = computed(() =>
+  Boolean(profileForm.whatsapp || profileForm.instagram || profileForm.tiktok || profileForm.facebook)
+);
 
 function syncForm(profile) {
   Object.assign(profileForm, {
@@ -128,6 +150,13 @@ async function copyCaption() {
     <template v-else>
       <p v-if="error || brandingStore.error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">
         {{ error || brandingStore.error }}
+      </p>
+      <p
+        v-if="!hasDirectContact"
+        class="mt-5 flex items-start gap-2 rounded-md bg-gold/10 px-4 py-3 text-sm font-semibold leading-6 text-ink"
+      >
+        <AlertCircle class="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+        Isi minimal WhatsApp atau Instagram supaya gambar dan caption punya jalur konsultasi yang jelas.
       </p>
       <p
         v-for="warning in warnings"
@@ -232,6 +261,28 @@ async function copyCaption() {
             <h2 class="text-lg font-bold text-ink">Teks promosi</h2>
             <form class="mt-5 space-y-4" @submit.prevent="generateAssets">
               <div>
+                <p class="block text-sm font-semibold text-ink">Gaya caption</p>
+                <div class="mt-2 grid gap-2">
+                  <button
+                    v-for="mode in promoModeOptions"
+                    :key="mode.value"
+                    type="button"
+                    class="focus-ring rounded-md border p-3 text-left transition hover:border-leaf"
+                    :class="generatorForm.promoMode === mode.value ? 'border-leaf bg-mint/45' : 'border-ink/10 bg-white'"
+                    @click="generatorForm.promoMode = mode.value"
+                  >
+                    <span class="flex items-start justify-between gap-3">
+                      <span>
+                        <span class="block text-sm font-bold text-ink">{{ mode.label }}</span>
+                        <span class="mt-1 block text-xs leading-5 text-ink/55">{{ mode.description }}</span>
+                      </span>
+                      <Check v-if="generatorForm.promoMode === mode.value" class="h-4 w-4 text-leaf" />
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
                 <label class="block text-sm font-semibold text-ink" for="headline">Headline gambar</label>
                 <input
                   id="headline"
@@ -255,6 +306,7 @@ async function copyCaption() {
                   id="offer"
                   v-model.trim="generatorForm.offer"
                   class="focus-ring mt-2 min-h-20 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
+                  placeholder="Kosongkan untuk memakai teks bawaan sesuai gaya caption."
                   maxlength="160"
                 />
               </div>
@@ -264,6 +316,7 @@ async function copyCaption() {
                   id="cta"
                   v-model.trim="generatorForm.cta"
                   class="focus-ring mt-2 min-h-20 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
+                  placeholder="Kosongkan untuk memakai CTA bawaan sesuai gaya caption."
                   maxlength="160"
                 />
               </div>
