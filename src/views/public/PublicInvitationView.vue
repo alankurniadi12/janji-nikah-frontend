@@ -140,10 +140,7 @@ async function submitRsvp(status) {
     const nextRsvp = await submitPublicRsvp(route.params.username, route.params.slug, route.params.token, status);
     publicData.value = {
       ...publicData.value,
-      rsvp: nextRsvp,
-      wishes: wishes.value.map((wish) =>
-        wish.guestId === guest.value?.id ? { ...wish, rsvpStatus: nextRsvp.status } : wish
-      )
+      rsvp: nextRsvp
     };
     guestMessage.value = "RSVP berhasil disimpan.";
   } catch (requestError) {
@@ -382,10 +379,14 @@ function rsvpStatusClass(status) {
           <p v-if="!guest" class="mt-3 text-sm leading-6 text-ink/60">
             RSVP dan ucapan tersedia melalui link personal tamu.
           </p>
-          <div v-else class="mt-6 space-y-6 text-left">
+          <div v-else class="mt-6 text-left">
             <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-              <p class="text-sm font-bold uppercase tracking-widest text-gold">RSVP</p>
-              <h3 class="mt-3 text-xl font-bold text-ink">Konfirmasi kehadiran</h3>
+              <p class="text-sm font-bold uppercase tracking-widest text-gold">Konfirmasi tamu</p>
+              <h3 class="mt-3 text-xl font-bold text-ink">Kehadiran dan ucapan</h3>
+              <p class="mt-2 text-sm leading-6 text-ink/60">
+                Pilih konfirmasi kehadiran, lalu tulis ucapan singkat untuk pengantin.
+              </p>
+              <p class="mt-5 text-sm font-semibold text-ink">Konfirmasi kehadiran</p>
               <div class="mt-5 grid gap-3 sm:grid-cols-2">
                 <button
                   class="focus-ring rounded-md border px-4 py-3 text-sm font-bold transition"
@@ -406,10 +407,9 @@ function rsvpStatusClass(status) {
                   Tidak Hadir
                 </button>
               </div>
-            </section>
 
-            <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-              <p class="text-sm font-bold uppercase tracking-widest text-gold">Ucapan</p>
+              <div class="my-5 border-t border-ink/10" />
+              <p class="text-sm font-semibold text-ink">Ucapan</p>
               <form class="mt-4 space-y-4" @submit.prevent="submitWish">
                 <label class="block text-sm font-semibold text-ink">
                   Nama
