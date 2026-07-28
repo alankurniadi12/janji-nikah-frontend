@@ -9,7 +9,8 @@ import {
   getPublicGuestInvitation,
   markPublicGuestOpened,
   submitPublicRsvp,
-  submitPublicWish
+  submitPublicWish,
+  updatePublicWish
 } from "@/services/publicGuestService";
 import { getPublicInvitation } from "@/services/publicInvitationService";
 import { assetUrl } from "@/utils/assets";
@@ -27,6 +28,7 @@ const audioPlaying = ref(false);
 const submitting = ref(false);
 const guestMessage = ref("");
 const guestError = ref("");
+const editingWishId = ref("");
 const maxWishMessageLength = 150;
 const wishForm = reactive({
   displayName: "",
@@ -40,6 +42,7 @@ const isPreview = computed(() => Boolean(publicData.value?.isPreview));
 const isActive = computed(() => Boolean(publicData.value?.isActive || publicData.value?.isPreview));
 const guest = computed(() => publicData.value?.guest || null);
 const rsvp = computed(() => publicData.value?.rsvp || null);
+const selectedRsvpStatus = computed(() => rsvp.value?.status || "attending");
 const wishes = computed(() => publicData.value?.wishes || []);
 const hasGuestToken = computed(() => Boolean(route.params.token));
 const musicItem = computed(() => music.value.find((item) => item.id === invitation.value?.musicId));
@@ -162,21 +165,64 @@ async function submitWish() {
   submitting.value = true;
 
   try {
-    const wish = await submitPublicWish(route.params.username, route.params.slug, route.params.token, {
+    const wasEditing = Boolean(editingWishId.value);
+    const payload = {
       displayName: wishForm.displayName,
-      message: wishForm.message
-    });
+      message: wishForm.message,
+      rsvpStatus: selectedRsvpStatus.value
+    };
+    const wish = editingWishId.value
+      ? await updatePublicWish(route.params.username, route.params.slug, route.params.token, editingWishId.value, payload)
+      : await submitPublicWish(route.params.username, route.params.slug, route.params.token, payload);
+    const nextRsvp = {
+      ...(rsvp.value || {}),
+      status: wish.rsvpStatus,
+      guestId: guest.value?.id,
+      invitationId: invitation.value?.id
+    };
+
     publicData.value = {
       ...publicData.value,
-      wishes: [wish, ...wishes.value]
+      rsvp: nextRsvp,
+      wishes: editingWishId.value
+        ? wishes.value.map((item) => (item.id === wish.id ? wish : item))
+        : [wish, ...wishes.value]
     };
+    editingWishId.value = "";
     wishForm.message = "";
-    guestMessage.value = "Ucapan berhasil dikirim.";
+    guestMessage.value = wasEditing ? "Ucapan berhasil diperbarui." : "Ucapan berhasil dikirim.";
   } catch (requestError) {
     guestError.value = getApiErrorMessage(requestError, "Ucapan belum bisa dikirim.");
   } finally {
     submitting.value = false;
   }
+}
+
+function startEditWish(wish) {
+  guestError.value = "";
+  guestMessage.value = "";
+  editingWishId.value = wish.id;
+  wishForm.displayName = wish.displayName;
+  wishForm.message = wish.message;
+  publicData.value = {
+    ...publicData.value,
+    rsvp: {
+      ...(rsvp.value || {}),
+      status: wish.rsvpStatus || "attending",
+      guestId: guest.value?.id,
+      invitationId: invitation.value?.id
+    }
+  };
+}
+
+function cancelEditWish() {
+  editingWishId.value = "";
+  wishForm.displayName = guest.value?.name || "";
+  wishForm.message = "";
+}
+
+function canEditWish(wish) {
+  return Boolean(guest.value?.id && wish.guestId === guest.value.id);
 }
 
 function rsvpStatusLabel(status) {
@@ -390,7 +436,7 @@ function rsvpStatusClass(status) {
               <div class="mt-5 grid gap-3 sm:grid-cols-2">
                 <button
                   class="focus-ring rounded-md border px-4 py-3 text-sm font-bold transition"
-                  :class="rsvp?.status === 'attending' ? 'border-leaf bg-leaf text-white' : 'border-ink/15 bg-white text-ink hover:border-leaf'"
+                  :class="selectedRsvpStatus === 'attending' ? 'border-leaf bg-leaf text-white' : 'border-ink/15 bg-white text-ink hover:border-leaf'"
                   type="button"
                   :disabled="submitting"
                   @click="submitRsvp('attending')"
@@ -399,7 +445,7 @@ function rsvpStatusClass(status) {
                 </button>
                 <button
                   class="focus-ring rounded-md border px-4 py-3 text-sm font-bold transition"
-                  :class="rsvp?.status === 'not_attending' ? 'border-rose bg-rose text-white' : 'border-ink/15 bg-white text-ink hover:border-rose'"
+                  :class="selectedRsvpStatus === 'not_attending' ? 'border-rose bg-rose text-white' : 'border-ink/15 bg-white text-ink hover:border-rose'"
                   type="button"
                   :disabled="submitting"
                   @click="submitRsvp('not_attending')"
@@ -409,7 +455,7 @@ function rsvpStatusClass(status) {
               </div>
 
               <div class="my-5 border-t border-ink/10" />
-              <p class="text-sm font-semibold text-ink">Ucapan</p>
+              <p class="text-sm font-semibold text-ink">{{ editingWishId ? "Edit ucapan" : "Ucapan" }}</p>
               <form class="mt-4 space-y-4" @submit.prevent="submitWish">
                 <label class="block text-sm font-semibold text-ink">
                   Nama
@@ -434,14 +480,25 @@ function rsvpStatusClass(status) {
                     {{ wishMessageLength }}/{{ maxWishMessageLength }}
                   </span>
                 </label>
-                <button
-                  class="focus-ring inline-flex min-h-11 items-center justify-center rounded-md bg-leaf px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink disabled:opacity-60"
-                  type="submit"
-                  :disabled="!canSubmitWish"
-                >
-                  <Loader2 v-if="submitting" class="mr-2 h-4 w-4 animate-spin" />
-                  Kirim Ucapan
-                </button>
+                <div class="flex flex-col gap-3 sm:flex-row">
+                  <button
+                    class="focus-ring inline-flex min-h-11 items-center justify-center rounded-md bg-leaf px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink disabled:opacity-60"
+                    type="submit"
+                    :disabled="!canSubmitWish"
+                  >
+                    <Loader2 v-if="submitting" class="mr-2 h-4 w-4 animate-spin" />
+                    {{ editingWishId ? "Simpan Perubahan" : "Kirim Ucapan" }}
+                  </button>
+                  <button
+                    v-if="editingWishId"
+                    class="focus-ring inline-flex min-h-11 items-center justify-center rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-leaf hover:text-leaf"
+                    type="button"
+                    :disabled="submitting"
+                    @click="cancelEditWish"
+                  >
+                    Batal Edit
+                  </button>
+                </div>
               </form>
             </section>
 
@@ -465,6 +522,14 @@ function rsvpStatusClass(status) {
                   </span>
                 </div>
                 <p class="mt-2 text-sm leading-6 text-ink/65">{{ wish.message }}</p>
+                <button
+                  v-if="canEditWish(wish)"
+                  class="focus-ring mt-3 inline-flex rounded-md border border-ink/15 bg-white px-3 py-2 text-xs font-bold text-ink hover:border-leaf hover:text-leaf"
+                  type="button"
+                  @click="startEditWish(wish)"
+                >
+                  Edit ucapan
+                </button>
               </article>
             </div>
           </div>
