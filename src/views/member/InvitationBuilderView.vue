@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { ImagePlus, Loader2, Plus, Trash2 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
@@ -15,7 +15,6 @@ import { assetUrl } from "@/utils/assets";
 import { formatDate, photoIdFromUrl } from "@/utils/formatters";
 
 const route = useRoute();
-const router = useRouter();
 const auth = useAuthStore();
 const invitationStore = useInvitationStore();
 const catalogStore = useCatalogStore();
@@ -367,9 +366,19 @@ function requestPublish() {
 async function publishDraft() {
   error.value = "";
 
+  const liveWindow = window.open("about:blank", "_blank");
+
+  if (!liveWindow) {
+    error.value = "Browser memblokir tab baru. Izinkan pop-up untuk membuka undangan setelah publish.";
+    return;
+  }
+
+  liveWindow.opener = null;
+
   try {
     const saved = await saveInvitation();
     if (!saved) {
+      liveWindow.close();
       showPublishConfirm.value = false;
       return;
     }
@@ -378,8 +387,10 @@ async function publishDraft() {
     await auth.hydrate(true);
     syncForm(published);
     showPublishConfirm.value = false;
-    router.push(`/${auth.user.username}/${published.slug}`);
+    liveWindow.location.href = new URL(`/${auth.user.username}/${published.slug}`, window.location.origin).toString();
+    toastStore.show("Undangan berhasil dipublish. Link live dibuka di tab baru.");
   } catch (requestError) {
+    liveWindow.close();
     const status = requestError.response?.status;
 
     if (status === 402) {
