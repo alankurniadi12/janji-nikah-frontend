@@ -38,13 +38,13 @@ const templateOptions = [
   },
   {
     value: "elegant",
-    label: "Tengah",
-    description: "Foto utama berada di tengah sebagai poster promosi."
+    label: "Elegant",
+    description: "Foto utama di tengah dengan frame promosi yang lembut."
   },
   {
     value: "modern",
-    label: "Bulat",
-    description: "Foto dibuat bulat dengan kesan bersih dan modern."
+    label: "Modern",
+    description: "Foto bulat dengan kesan bersih dan profesional."
   }
 ];
 
