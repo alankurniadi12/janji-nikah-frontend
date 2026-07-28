@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
 import { useRoute } from "vue-router";
-import { Check, Copy, Loader2, Trash2 } from "@lucide/vue";
+import { Check, Copy, Download, Loader2, Search, Trash2 } from "@lucide/vue";
 
 import whatsappIconUrl from "@/assets/ic-whatsapp.png";
 import AppButton from "@/components/AppButton.vue";
@@ -18,6 +18,10 @@ const invitationStore = useInvitationStore();
 const toastStore = useToastStore();
 const error = ref("");
 const pendingDelete = ref(null);
+const activeTab = ref("guests");
+const guestSearch = ref("");
+const sentFilter = ref("all");
+const wishFilter = ref("all");
 const form = reactive({
   name: "",
   bulkNames: ""
@@ -33,6 +37,33 @@ onMounted(async () => {
 
 const invitation = computed(() => invitationStore.current);
 const sentCount = computed(() => guestStore.guests.filter((guest) => guest.sentStatus === "sent").length);
+const unsentCount = computed(() => guestStore.guests.length - sentCount.value);
+const hiddenWishCount = computed(() => guestStore.wishes.filter((wish) => wish.isHidden).length);
+const visibleWishCount = computed(() => guestStore.wishes.length - hiddenWishCount.value);
+const filteredGuests = computed(() => {
+  const keyword = guestSearch.value.trim().toLowerCase();
+
+  return guestStore.guests.filter((guest) => {
+    const matchesSearch =
+      !keyword ||
+      guest.name.toLowerCase().includes(keyword) ||
+      absoluteLink(guest.link).toLowerCase().includes(keyword);
+    const matchesStatus = sentFilter.value === "all" || guest.sentStatus === sentFilter.value;
+
+    return matchesSearch && matchesStatus;
+  });
+});
+const filteredWishes = computed(() => {
+  if (wishFilter.value === "hidden") {
+    return guestStore.wishes.filter((wish) => wish.isHidden);
+  }
+
+  if (wishFilter.value === "visible") {
+    return guestStore.wishes.filter((wish) => !wish.isHidden);
+  }
+
+  return guestStore.wishes;
+});
 
 function absoluteLink(link) {
   if (!link) {
@@ -86,6 +117,51 @@ async function copyWhatsapp(guest) {
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Pesan WhatsApp belum bisa dibuat.");
   }
+}
+
+async function copyAllGuestLinks() {
+  if (!guestStore.guests.length) {
+    error.value = "Belum ada tamu yang bisa disalin.";
+    return;
+  }
+
+  const rows = guestStore.guests.map((guest) => `${guest.name}\t${absoluteLink(guest.link)}`);
+  await copyText(["Nama Tamu\tLink Personal", ...rows].join("\n"), "Semua link tamu berhasil disalin.");
+}
+
+function downloadGuestLinksCsv() {
+  error.value = "";
+
+  if (!guestStore.guests.length) {
+    error.value = "Belum ada tamu yang bisa diunduh.";
+    return;
+  }
+
+  const rows = [
+    ["Nama Tamu", "Link Personal", "Status Kirim"],
+    ...guestStore.guests.map((guest) => [
+      guest.name,
+      absoluteLink(guest.link),
+      guest.sentStatus === "sent" ? "Sudah dikirim" : "Belum dikirim"
+    ])
+  ];
+  const csv = rows.map((row) => row.map(escapeCsvCell).join(",")).join("\n");
+  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const slug = invitation.value?.slug || "undangan";
+
+  link.href = url;
+  link.download = `daftar-link-tamu-${slug}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  toastStore.show("CSV daftar link tamu berhasil diunduh.");
+}
+
+function escapeCsvCell(value) {
+  return `"${String(value || "").replaceAll('"', '""')}"`;
 }
 
 async function markSent(guest) {
@@ -193,7 +269,7 @@ async function confirmDelete() {
       </AppButton>
     </div>
 
-    <div class="mt-6 grid gap-4 md:grid-cols-3">
+    <div class="mt-6 grid gap-4 md:grid-cols-4">
       <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
         <p class="text-sm font-medium text-ink/55">Total tamu</p>
         <p class="mt-2 text-3xl font-bold text-ink">{{ guestStore.guests.length }}</p>
@@ -201,6 +277,10 @@ async function confirmDelete() {
       <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
         <p class="text-sm font-medium text-ink/55">Sudah dikirim</p>
         <p class="mt-2 text-3xl font-bold text-ink">{{ sentCount }}</p>
+      </section>
+      <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+        <p class="text-sm font-medium text-ink/55">Belum dikirim</p>
+        <p class="mt-2 text-3xl font-bold text-ink">{{ unsentCount }}</p>
       </section>
       <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
         <p class="text-sm font-medium text-ink/55">Ucapan masuk</p>
@@ -212,8 +292,8 @@ async function confirmDelete() {
       {{ error || guestStore.error }}
     </p>
 
-    <div class="mt-6 grid gap-6 xl:grid-cols-[360px_1fr]">
-      <aside class="space-y-6">
+    <div class="mt-6 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
+      <aside class="space-y-6 xl:sticky xl:top-6 xl:self-start">
         <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <h2 class="text-lg font-bold text-ink">Tambah satu tamu</h2>
           <p class="mt-2 text-sm leading-6 text-ink/60">
@@ -263,90 +343,172 @@ async function confirmDelete() {
 
       <section class="rounded-lg border border-ink/10 bg-white shadow-soft">
         <div class="border-b border-ink/10 p-5">
-          <h2 class="text-lg font-bold text-ink">Daftar Tamu</h2>
-        </div>
-
-        <div v-if="guestStore.loading" class="flex items-center gap-3 p-5">
-          <Loader2 class="h-5 w-5 animate-spin text-leaf" />
-          <p class="text-sm font-semibold text-ink/70">Memuat tamu...</p>
-        </div>
-
-        <div v-else-if="guestStore.guests.length" class="divide-y divide-ink/10">
-          <article v-for="guest in guestStore.guests" :key="guest.id" class="grid gap-4 p-5 lg:grid-cols-[1fr_130px_220px] lg:items-center">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p class="font-bold text-ink">{{ guest.name }}</p>
-              <p class="mt-1 break-all text-sm text-ink/55">{{ absoluteLink(guest.link) }}</p>
+              <h2 class="text-lg font-bold text-ink">Kelola pengiriman dan ucapan</h2>
+              <p class="mt-1 text-sm leading-6 text-ink/55">
+                Pantau link personal, status kirim, dan ucapan tamu dari satu area kerja.
+              </p>
             </div>
-            <span
-              class="inline-flex w-fit rounded-full border px-2.5 py-1 text-xs font-bold"
-              :class="guest.sentStatus === 'sent' ? 'border-leaf/20 bg-leaf/10 text-leaf' : 'border-gold/20 bg-gold/10 text-gold'"
-            >
-              {{ guest.sentStatus === "sent" ? "Sudah dikirim" : "Belum dikirim" }}
-            </span>
-            <div class="flex flex-wrap justify-start gap-2 lg:justify-end">
+            <div class="inline-flex rounded-md border border-ink/10 bg-linen p-1">
               <button
-                class="focus-ring rounded-md p-2 text-ink/60 hover:bg-mint hover:text-leaf"
+                class="focus-ring rounded px-3 py-2 text-sm font-bold transition"
+                :class="activeTab === 'guests' ? 'bg-white text-leaf shadow-sm' : 'text-ink/55 hover:text-ink'"
                 type="button"
-                title="Copy link"
-                @click="copyText(absoluteLink(guest.link), 'Link tamu berhasil disalin.')"
+                @click="activeTab = 'guests'"
               >
-                <Copy class="h-4 w-4" />
+                Daftar Tamu
+                <span class="ml-1 text-xs text-ink/45">{{ guestStore.guests.length }}</span>
               </button>
               <button
-                class="focus-ring rounded-md p-1.5 text-ink/60 hover:bg-mint hover:text-leaf"
+                class="focus-ring rounded px-3 py-2 text-sm font-bold transition"
+                :class="activeTab === 'wishes' ? 'bg-white text-leaf shadow-sm' : 'text-ink/55 hover:text-ink'"
                 type="button"
-                title="Copy WhatsApp"
-                aria-label="Copy WhatsApp"
-                @click="copyWhatsapp(guest)"
+                @click="activeTab = 'wishes'"
               >
-                <img :src="whatsappIconUrl" alt="" class="h-5 w-5" />
-              </button>
-              <button
-                class="focus-ring rounded-md p-2 text-ink/60 hover:bg-mint hover:text-leaf"
-                type="button"
-                title="Tandai sudah dikirim"
-                @click="markSent(guest)"
-              >
-                <Check class="h-4 w-4" />
-              </button>
-              <button
-                class="focus-ring rounded-md p-2 text-rose hover:bg-rose/10"
-                type="button"
-                title="Hapus tamu"
-                @click="requestRemoveGuest(guest)"
-              >
-                <Trash2 class="h-4 w-4" />
+                Ucapan
+                <span class="ml-1 text-xs text-ink/45">{{ guestStore.wishes.length }}</span>
               </button>
             </div>
-          </article>
+          </div>
         </div>
 
-        <p v-else class="p-8 text-center text-sm font-semibold text-ink/55">Belum ada tamu.</p>
+        <template v-if="activeTab === 'guests'">
+          <div class="border-b border-ink/10 p-5">
+            <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_170px_auto] lg:items-center">
+              <label class="relative block">
+                <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/35" />
+                <input
+                  v-model="guestSearch"
+                  class="focus-ring h-11 w-full rounded-md border border-ink/15 pl-10 pr-3 text-sm"
+                  placeholder="Cari nama tamu atau link"
+                />
+              </label>
+              <select v-model="sentFilter" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm font-semibold text-ink">
+                <option value="all">Semua status</option>
+                <option value="not_sent">Belum dikirim</option>
+                <option value="sent">Sudah dikirim</option>
+              </select>
+              <div class="flex flex-col gap-2 sm:flex-row lg:justify-end">
+                <AppButton type="button" variant="secondary" :disabled="!guestStore.guests.length" @click="copyAllGuestLinks">
+                  <Copy class="h-4 w-4" />
+                  Salin Semua
+                </AppButton>
+                <AppButton type="button" variant="secondary" :disabled="!guestStore.guests.length" @click="downloadGuestLinksCsv">
+                  <Download class="h-4 w-4" />
+                  Unduh CSV
+                </AppButton>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="guestStore.loading" class="flex items-center gap-3 p-5">
+            <Loader2 class="h-5 w-5 animate-spin text-leaf" />
+            <p class="text-sm font-semibold text-ink/70">Memuat tamu...</p>
+          </div>
+
+          <div v-else-if="filteredGuests.length" class="max-h-[640px] overflow-y-auto divide-y divide-ink/10">
+            <article v-for="guest in filteredGuests" :key="guest.id" class="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_130px_196px] lg:items-center">
+              <div class="min-w-0">
+                <p class="font-bold text-ink">{{ guest.name }}</p>
+                <p class="mt-1 break-all text-sm text-ink/55">{{ absoluteLink(guest.link) }}</p>
+              </div>
+              <span
+                class="inline-flex w-fit rounded-full border px-2.5 py-1 text-xs font-bold"
+                :class="guest.sentStatus === 'sent' ? 'border-leaf/20 bg-leaf/10 text-leaf' : 'border-gold/20 bg-gold/10 text-gold'"
+              >
+                {{ guest.sentStatus === "sent" ? "Sudah dikirim" : "Belum dikirim" }}
+              </span>
+              <div class="flex flex-wrap justify-start gap-2 lg:justify-end">
+                <button
+                  class="focus-ring rounded-md p-2 text-ink/60 hover:bg-mint hover:text-leaf"
+                  type="button"
+                  title="Salin link"
+                  @click="copyText(absoluteLink(guest.link), 'Link tamu berhasil disalin.')"
+                >
+                  <Copy class="h-4 w-4" />
+                </button>
+                <button
+                  class="focus-ring rounded-md p-1.5 text-ink/60 hover:bg-mint hover:text-leaf"
+                  type="button"
+                  title="Salin pesan WhatsApp"
+                  aria-label="Salin pesan WhatsApp"
+                  @click="copyWhatsapp(guest)"
+                >
+                  <img :src="whatsappIconUrl" alt="" class="h-5 w-5" />
+                </button>
+                <button
+                  class="focus-ring rounded-md p-2 text-ink/60 hover:bg-mint hover:text-leaf"
+                  type="button"
+                  title="Tandai sudah dikirim"
+                  @click="markSent(guest)"
+                >
+                  <Check class="h-4 w-4" />
+                </button>
+                <button
+                  class="focus-ring rounded-md p-2 text-rose hover:bg-rose/10"
+                  type="button"
+                  title="Hapus tamu"
+                  @click="requestRemoveGuest(guest)"
+                >
+                  <Trash2 class="h-4 w-4" />
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <p v-else class="p-8 text-center text-sm font-semibold text-ink/55">
+            {{ guestStore.guests.length ? "Tidak ada tamu yang cocok dengan pencarian/filter." : "Belum ada tamu." }}
+          </p>
+        </template>
+
+        <template v-else>
+          <div class="border-b border-ink/10 p-5">
+            <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div class="grid grid-cols-3 gap-2 text-center text-sm">
+                <div class="rounded-md bg-linen px-3 py-2">
+                  <p class="font-bold text-ink">{{ guestStore.wishes.length }}</p>
+                  <p class="mt-1 text-xs text-ink/50">Semua</p>
+                </div>
+                <div class="rounded-md bg-mint px-3 py-2">
+                  <p class="font-bold text-leaf">{{ visibleWishCount }}</p>
+                  <p class="mt-1 text-xs text-ink/50">Tampil</p>
+                </div>
+                <div class="rounded-md bg-gold/10 px-3 py-2">
+                  <p class="font-bold text-gold">{{ hiddenWishCount }}</p>
+                  <p class="mt-1 text-xs text-ink/50">Disembunyikan</p>
+                </div>
+              </div>
+              <select v-model="wishFilter" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm font-semibold text-ink">
+                <option value="all">Semua ucapan</option>
+                <option value="visible">Yang tampil</option>
+                <option value="hidden">Disembunyikan</option>
+              </select>
+            </div>
+          </div>
+
+          <div v-if="filteredWishes.length" class="max-h-[640px] overflow-y-auto divide-y divide-ink/10">
+            <article v-for="wish in filteredWishes" :key="wish.id" class="grid gap-4 p-5 md:grid-cols-[1fr_180px] md:items-start">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <p class="font-bold text-ink">{{ wish.displayName }}</p>
+                  <span v-if="wish.isHidden" class="rounded-full bg-gold/10 px-2 py-1 text-xs font-bold text-gold">Disembunyikan</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-ink/65">{{ wish.message }}</p>
+                <p class="mt-2 text-xs text-ink/45">{{ formatDate(wish.createdAt) }}</p>
+              </div>
+              <div class="flex gap-2 md:justify-end">
+                <AppButton type="button" variant="secondary" @click="hideWish(wish)">Sembunyikan</AppButton>
+                <AppButton type="button" variant="ghost" @click="requestDeleteWish(wish)">Hapus</AppButton>
+              </div>
+            </article>
+          </div>
+          <p v-else class="p-8 text-center text-sm font-semibold text-ink/55">
+            {{ guestStore.wishes.length ? "Tidak ada ucapan yang cocok dengan filter." : "Belum ada ucapan." }}
+          </p>
+        </template>
       </section>
     </div>
-
-    <section class="mt-6 rounded-lg border border-ink/10 bg-white shadow-soft">
-      <div class="border-b border-ink/10 p-5">
-        <h2 class="text-lg font-bold text-ink">Ucapan tamu</h2>
-      </div>
-      <div v-if="guestStore.wishes.length" class="divide-y divide-ink/10">
-        <article v-for="wish in guestStore.wishes" :key="wish.id" class="grid gap-4 p-5 md:grid-cols-[1fr_180px] md:items-start">
-          <div>
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="font-bold text-ink">{{ wish.displayName }}</p>
-              <span v-if="wish.isHidden" class="rounded-full bg-gold/10 px-2 py-1 text-xs font-bold text-gold">Disembunyikan</span>
-            </div>
-            <p class="mt-2 text-sm leading-6 text-ink/65">{{ wish.message }}</p>
-            <p class="mt-2 text-xs text-ink/45">{{ formatDate(wish.createdAt) }}</p>
-          </div>
-          <div class="flex gap-2 md:justify-end">
-            <AppButton type="button" variant="secondary" @click="hideWish(wish)">Sembunyikan</AppButton>
-            <AppButton type="button" variant="ghost" @click="requestDeleteWish(wish)">Hapus</AppButton>
-          </div>
-        </article>
-      </div>
-      <p v-else class="p-8 text-center text-sm font-semibold text-ink/55">Belum ada ucapan.</p>
-    </section>
 
     <ConfirmDialog
       :open="Boolean(pendingDelete)"
