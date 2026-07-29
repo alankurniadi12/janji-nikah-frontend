@@ -1,22 +1,55 @@
 <script setup>
-import { computed, onMounted } from "vue";
-import { Bell, CalendarClock, CreditCard, FilePlus2, Loader2, WalletCards } from "@lucide/vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { ArrowRight, Bell, CalendarClock, Clock3, CreditCard, FilePlus2, Loader2, WalletCards } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import StatCard from "@/components/StatCard.vue";
+import TransactionStatusBadge from "@/components/TransactionStatusBadge.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useMemberDashboardStore } from "@/stores/memberDashboard";
 import { formatCurrency, formatDate, transactionStatusLabel } from "@/utils/formatters";
 
 const auth = useAuthStore();
 const memberDashboard = useMemberDashboardStore();
+const currentTime = ref(Date.now());
+let timerInterval = null;
 
 onMounted(async () => {
+  timerInterval = window.setInterval(() => {
+    currentTime.value = Date.now();
+  }, 1000);
   await Promise.all([memberDashboard.loadDashboard(), memberDashboard.loadNotifications()]);
+});
+
+onUnmounted(() => {
+  if (timerInterval) {
+    window.clearInterval(timerInterval);
+  }
 });
 
 const dashboard = computed(() => memberDashboard.dashboard);
 const latestTransaction = computed(() => dashboard.value?.latestTransaction);
+const pendingTransactions = computed(() => dashboard.value?.pendingTransactions?.items || []);
+const pendingTransactionTotal = computed(() => dashboard.value?.pendingTransactions?.total || 0);
+const hiddenPendingTransactionCount = computed(() =>
+  Math.max(0, pendingTransactionTotal.value - pendingTransactions.value.length)
+);
+
+function paymentTimeLeft(transaction) {
+  if (transaction.status !== "waiting_payment" || !transaction.expiresAt) {
+    return null;
+  }
+
+  const totalSeconds = Math.max(0, Math.floor((new Date(transaction.expiresAt).getTime() - currentTime.value) / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return {
+    label: `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`,
+    isExpired: totalSeconds <= 0
+  };
+}
 </script>
 
 <template>
@@ -57,6 +90,62 @@ const latestTransaction = computed(() => dashboard.value?.latestTransaction);
         <StatCard label="Draft" :value="dashboard.invitations.draft" tone="rose" />
         <StatCard label="Expired" :value="dashboard.invitations.expired" tone="ink" />
       </div>
+
+      <section
+        v-if="pendingTransactions.length"
+        class="mt-6 rounded-lg border border-gold/25 bg-white p-5 shadow-soft"
+      >
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div class="flex items-start gap-3">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-gold/10 text-gold">
+              <Clock3 class="h-5 w-5" />
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-ink">Pembayaran belum selesai</h2>
+              <p class="mt-1 text-sm leading-6 text-ink/60">
+                Ada {{ pendingTransactionTotal }} transaksi yang masih menunggu pembayaran atau verifikasi admin.
+              </p>
+            </div>
+          </div>
+          <AppButton to="/app/transactions" variant="secondary">Lihat Semua</AppButton>
+        </div>
+
+        <div class="mt-5 grid gap-3 lg:grid-cols-3">
+          <RouterLink
+            v-for="transaction in pendingTransactions"
+            :key="transaction.id"
+            :to="{ name: 'member-transaction-detail', params: { id: transaction.id } }"
+            class="focus-ring rounded-md border border-ink/10 bg-linen p-4 transition hover:border-gold/40 hover:bg-gold/10"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-sm font-bold text-ink">{{ transaction.creditAmount }} kredit</p>
+                <p class="mt-1 text-xs text-ink/50">Dibuat {{ formatDate(transaction.createdAt) }}</p>
+              </div>
+              <ArrowRight class="h-4 w-4 shrink-0 text-ink/35" />
+            </div>
+
+            <p class="mt-4 text-xl font-bold text-ink">{{ formatCurrency(transaction.totalAmount) }}</p>
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <TransactionStatusBadge :status="transaction.status" />
+              <span
+                v-if="paymentTimeLeft(transaction)"
+                class="inline-flex items-center gap-1.5 rounded-md border border-gold/20 bg-white px-2.5 py-1 text-xs font-bold text-ink"
+              >
+                <Clock3 class="h-3.5 w-3.5 text-gold" />
+                {{ paymentTimeLeft(transaction).isExpired ? "Waktu habis" : paymentTimeLeft(transaction).label }}
+              </span>
+              <span v-else class="rounded-md border border-leaf/15 bg-white px-2.5 py-1 text-xs font-bold text-leaf">
+                Menunggu admin
+              </span>
+            </div>
+          </RouterLink>
+        </div>
+
+        <p v-if="hiddenPendingTransactionCount" class="mt-4 text-sm font-semibold text-ink/60">
+          +{{ hiddenPendingTransactionCount }} transaksi waiting lainnya. Buka riwayat transaksi untuk melihat semuanya.
+        </p>
+      </section>
 
       <div class="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
