@@ -179,8 +179,8 @@ async function logout() {
           <p class="mt-2 text-2xl font-bold text-ink">{{ auth.user?.creditBalance || 0 }}</p>
         </div>
         <div class="rounded-md border border-ink/10 bg-linen p-4">
-          <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Login</p>
-          <p class="mt-2 text-sm font-semibold text-ink">Google OAuth</p>
+          <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Bergabung</p>
+          <p class="mt-2 text-sm font-semibold text-ink">{{ formatDate(auth.user?.createdAt) }}</p>
         </div>
       </div>
     </section>
