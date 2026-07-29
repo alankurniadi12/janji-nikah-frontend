@@ -90,7 +90,7 @@ const routes = [
       {
         path: "settings",
         name: "member-settings",
-        component: () => import("@/views/member/ComingSoonView.vue")
+        component: () => import("@/views/member/SettingsView.vue")
       }
     ]
   },

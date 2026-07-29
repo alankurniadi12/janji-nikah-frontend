@@ -72,6 +72,21 @@ export const useAuthStore = defineStore("auth", {
         this.loading = false;
       }
     },
+    async updateSettings(payload) {
+      this.loading = true;
+      this.error = "";
+
+      try {
+        const response = await api.patch("/auth/settings", payload);
+        this.user = response.data.data.user;
+        return this.user;
+      } catch (error) {
+        this.error = getApiErrorMessage(error, "Pengaturan gagal disimpan.");
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
     async logout() {
       try {
         await api.post("/auth/logout");
