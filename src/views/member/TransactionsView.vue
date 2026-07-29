@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted } from "vue";
-import { ArrowRight, Loader2, ReceiptText } from "@lucide/vue";
+import { onMounted, onUnmounted, ref } from "vue";
+import { ArrowRight, Clock3, Loader2, ReceiptText } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import TransactionStatusBadge from "@/components/TransactionStatusBadge.vue";
@@ -8,10 +8,37 @@ import { useTransactionStore } from "@/stores/transactions";
 import { formatCurrency, formatDate } from "@/utils/formatters";
 
 const transactionStore = useTransactionStore();
+const currentTime = ref(Date.now());
+let timerInterval = null;
 
 onMounted(() => {
   transactionStore.loadTransactions();
+  timerInterval = window.setInterval(() => {
+    currentTime.value = Date.now();
+  }, 1000);
 });
+
+onUnmounted(() => {
+  if (timerInterval) {
+    window.clearInterval(timerInterval);
+  }
+});
+
+function paymentTimeLeft(transaction) {
+  if (transaction.status !== "waiting_payment" || !transaction.expiresAt) {
+    return null;
+  }
+
+  const totalSeconds = Math.max(0, Math.floor((new Date(transaction.expiresAt).getTime() - currentTime.value) / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return {
+    label: `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`,
+    isExpired: totalSeconds <= 0
+  };
+}
 </script>
 
 <template>
@@ -49,7 +76,16 @@ onMounted(() => {
             <p class="mt-1 text-sm text-ink/55">Dibuat {{ formatDate(transaction.createdAt) }}</p>
           </div>
           <p class="font-bold text-ink">{{ formatCurrency(transaction.totalAmount) }}</p>
-          <TransactionStatusBadge :status="transaction.status" />
+          <div class="space-y-2">
+            <TransactionStatusBadge :status="transaction.status" />
+            <div
+              v-if="paymentTimeLeft(transaction)"
+              class="inline-flex items-center gap-1.5 rounded-md border border-gold/20 bg-gold/10 px-2.5 py-1 text-xs font-bold text-ink"
+            >
+              <Clock3 class="h-3.5 w-3.5 text-gold" />
+              <span>{{ paymentTimeLeft(transaction).isExpired ? "Waktu habis" : paymentTimeLeft(transaction).label }}</span>
+            </div>
+          </div>
           <ArrowRight class="hidden h-4 w-4 text-ink/35 md:block" />
         </RouterLink>
       </div>
