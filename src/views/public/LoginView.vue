@@ -13,6 +13,7 @@ const googleButtonRef = ref(null);
 const devIdToken = ref("");
 const localError = ref("");
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const showDevLogin = import.meta.env.DEV && !googleClientId;
 let scriptElement = null;
 
 onMounted(() => {
@@ -65,7 +66,7 @@ async function handleCredential(idToken) {
 
 async function loginWithDevToken() {
   if (!devIdToken.value.trim()) {
-    localError.value = "Masukkan Google ID token untuk mode development.";
+    localError.value = "Masukkan Google ID token untuk pengujian lokal.";
     return;
   }
 
@@ -95,7 +96,7 @@ function redirectAfterLogin(user) {
         <p class="text-sm font-bold uppercase tracking-widest text-gold">Login member</p>
         <h1 class="mt-4 max-w-xl text-4xl font-bold leading-tight text-ink">Masuk dan lanjut kelola undangan klien.</h1>
         <p class="mt-4 max-w-lg leading-7 text-ink/65">
-          MVP hanya memakai Google OAuth. Setelah login pertama, member wajib menyelesaikan username dan menyetujui syarat layanan.
+          Gunakan akun Google untuk masuk dengan cepat. Setelah login pertama, lengkapi username member dan setujui syarat layanan.
         </p>
       </div>
       <p class="text-sm text-ink/45">Draft dan preview tidak memakai kredit. Publish memakai 1 kredit.</p>
@@ -114,20 +115,20 @@ function redirectAfterLogin(user) {
         <div class="mt-6">
           <div v-if="googleClientId" ref="googleButtonRef" class="min-h-11" />
           <div v-else class="rounded-md border border-gold/30 bg-gold/10 p-4">
-            <p class="text-sm font-semibold text-ink">Google Client ID belum diatur.</p>
+            <p class="text-sm font-semibold text-ink">Login Google sedang belum tersedia.</p>
             <p class="mt-1 text-sm leading-6 text-ink/60">
-              Isi `VITE_GOOGLE_CLIENT_ID` untuk tombol Google. Untuk smoke test lokal, tempel ID token valid di bawah.
+              Silakan coba lagi beberapa saat lagi atau hubungi admin Janji Nikah.
             </p>
           </div>
         </div>
 
-        <form v-if="!googleClientId" class="mt-4 space-y-3" @submit.prevent="loginWithDevToken">
+        <form v-if="showDevLogin" class="mt-4 space-y-3" @submit.prevent="loginWithDevToken">
           <label class="block text-sm font-semibold text-ink" for="idToken">Google ID token</label>
           <textarea
             id="idToken"
             v-model="devIdToken"
             class="focus-ring min-h-28 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
-            placeholder="Tempel ID token development"
+            placeholder="Tempel ID token pengujian"
           />
           <AppButton type="submit" class="w-full" :disabled="auth.loading">
             <Loader2 v-if="auth.loading" class="h-4 w-4 animate-spin" />

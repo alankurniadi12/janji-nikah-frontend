@@ -9,9 +9,9 @@
     <main class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <section class="rounded-lg border border-ink/10 bg-white p-6 shadow-soft">
         <p class="text-sm font-bold uppercase tracking-widest text-gold">Demo tema</p>
-        <h1 class="mt-3 text-3xl font-bold text-ink">Demo tema akan disambungkan pada fase tema publik.</h1>
+        <h1 class="mt-3 text-3xl font-bold text-ink">Koleksi tema Janji Nikah</h1>
         <p class="mt-3 leading-7 text-ink/65">
-          Endpoint tema sudah tersedia di backend. Halaman ini disiapkan agar navigasi publik tidak buntu saat fase auth berjalan.
+          Pilihan tema sedang kami kurasi agar undangan tetap rapi, elegan, dan mudah dibaca tamu.
         </p>
       </section>
     </main>

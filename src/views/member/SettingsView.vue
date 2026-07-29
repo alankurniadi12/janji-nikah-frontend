@@ -278,7 +278,7 @@ async function logout() {
         <div>
           <h2 class="text-xl font-bold text-ink">Sesi login</h2>
           <p class="mt-2 text-sm leading-6 text-ink/60">
-            Akun ini masuk dengan Google. Janji Nikah tidak menyimpan password member di MVP.
+            Akun ini masuk dengan Google. Janji Nikah tidak meminta atau menyimpan password member.
           </p>
         </div>
       </div>

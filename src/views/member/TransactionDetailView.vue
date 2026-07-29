@@ -345,7 +345,7 @@ async function submitProof() {
               <div>
                 <h2 class="text-lg font-bold text-ink">Metode pembayaran</h2>
                 <p class="mt-1 text-sm leading-6 text-ink/60">
-                  Gunakan transfer bank manual. Platform belum memakai payment gateway otomatis pada MVP.
+                  Gunakan transfer bank manual sesuai rekening tujuan dan nominal yang tertera.
                 </p>
               </div>
             </div>
@@ -377,7 +377,7 @@ async function submitProof() {
             </div>
 
             <p v-if="!isPaymentAccountReady" class="mt-4 rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">
-              Rekening pembayaran belum dikonfigurasi. Isi env pembayaran sebelum transaksi dipakai member sungguhan.
+              Rekening pembayaran belum tersedia. Hubungi admin sebelum melakukan transfer.
             </p>
           </section>
 
