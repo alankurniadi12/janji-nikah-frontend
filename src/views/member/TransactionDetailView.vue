@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import {
   AlertCircle,
@@ -25,15 +25,46 @@ const transactionStore = useTransactionStore();
 const toastStore = useToastStore();
 const selectedFile = ref(null);
 const uploadError = ref(null);
+const currentTime = ref(Date.now());
+let timerInterval = null;
 
 onMounted(() => {
   transactionStore.loadTransaction(route.params.id);
+  timerInterval = window.setInterval(() => {
+    currentTime.value = Date.now();
+  }, 1000);
+});
+
+onUnmounted(() => {
+  if (timerInterval) {
+    window.clearInterval(timerInterval);
+  }
 });
 
 const transaction = computed(() => transactionStore.current);
 const canUploadProof = computed(() => transaction.value?.status === "waiting_payment");
 const hasUploadedProof = computed(() => ["waiting_verification", "success"].includes(transaction.value?.status));
 const isPaymentAccountReady = computed(() => hasConfiguredPaymentAccount(paymentConfig));
+const remainingPaymentMs = computed(() => {
+  if (transaction.value?.status !== "waiting_payment" || !transaction.value?.expiresAt) {
+    return 0;
+  }
+
+  return Math.max(0, new Date(transaction.value.expiresAt).getTime() - currentTime.value);
+});
+const paymentCountdown = computed(() => {
+  const totalSeconds = Math.floor(remainingPaymentMs.value / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return {
+    hours: String(hours).padStart(2, "0"),
+    minutes: String(minutes).padStart(2, "0"),
+    seconds: String(seconds).padStart(2, "0"),
+    isExpired: totalSeconds <= 0
+  };
+});
 const paymentSteps = computed(() => {
   const status = transaction.value?.status;
   const proofUploaded = ["waiting_verification", "success"].includes(status);
@@ -189,6 +220,41 @@ async function submitProof() {
             </div>
           </div>
           <TransactionStatusBadge :status="transaction.status" />
+        </div>
+      </section>
+
+      <section
+        v-if="transaction.status === 'waiting_payment'"
+        class="rounded-lg border border-gold/25 bg-white p-5 shadow-soft"
+      >
+        <div class="grid gap-5 lg:grid-cols-[1fr_340px] lg:items-center">
+          <div>
+            <p class="text-sm font-bold uppercase tracking-widest text-gold">Batas transfer berjalan</p>
+            <h2 class="mt-2 text-xl font-bold text-ink">Selesaikan sebelum transaksi kedaluwarsa</h2>
+            <p class="mt-2 text-sm leading-6 text-ink/60">
+              Nominal dan kode unik hanya berlaku sampai {{ formatDateTime(transaction.expiresAt) }}. Upload bukti setelah transfer agar admin bisa verifikasi.
+            </p>
+          </div>
+          <div class="rounded-lg border border-gold/20 bg-gold/10 p-4 text-center">
+            <p class="text-xs font-bold uppercase tracking-widest text-ink/50">Sisa waktu</p>
+            <div class="mt-3 grid grid-cols-3 gap-2">
+              <div class="rounded-md bg-white px-2 py-3">
+                <p class="text-2xl font-bold text-ink">{{ paymentCountdown.hours }}</p>
+                <p class="mt-1 text-[11px] font-bold uppercase tracking-wide text-ink/45">Jam</p>
+              </div>
+              <div class="rounded-md bg-white px-2 py-3">
+                <p class="text-2xl font-bold text-ink">{{ paymentCountdown.minutes }}</p>
+                <p class="mt-1 text-[11px] font-bold uppercase tracking-wide text-ink/45">Menit</p>
+              </div>
+              <div class="rounded-md bg-white px-2 py-3">
+                <p class="text-2xl font-bold text-ink">{{ paymentCountdown.seconds }}</p>
+                <p class="mt-1 text-[11px] font-bold uppercase tracking-wide text-ink/45">Detik</p>
+              </div>
+            </div>
+            <p class="mt-3 text-xs font-semibold leading-5 text-ink/55">
+              {{ paymentCountdown.isExpired ? "Waktu habis. Muat ulang halaman untuk cek status terbaru." : "Timer berjalan sampai batas pembayaran." }}
+            </p>
+          </div>
         </div>
       </section>
 
