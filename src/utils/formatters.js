@@ -32,6 +32,62 @@ export function formatDateTime(value) {
   }).format(new Date(value));
 }
 
+export function formatRelativeDate(value, now = new Date()) {
+  if (!value) {
+    return "-";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  const diffMs = now.getTime() - date.getTime();
+
+  if (diffMs < 0) {
+    return "baru saja";
+  }
+
+  const dayMs = 24 * 60 * 60 * 1000;
+  const days = Math.floor(diffMs / dayMs);
+
+  if (days === 0) {
+    return "hari ini";
+  }
+
+  if (days < 30) {
+    return `${days} hari yang lalu`;
+  }
+
+  const months = completeMonthDifference(date, now);
+
+  if (months < 12) {
+    return `${Math.max(1, months)} bulan yang lalu`;
+  }
+
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
+
+  if (!remainingMonths) {
+    return `${years} tahun yang lalu`;
+  }
+
+  return `${years} tahun ${remainingMonths} bulan yang lalu`;
+}
+
+function completeMonthDifference(startDate, endDate) {
+  let months =
+    (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+    (endDate.getMonth() - startDate.getMonth());
+
+  if (endDate.getDate() < startDate.getDate()) {
+    months -= 1;
+  }
+
+  return Math.max(0, months);
+}
+
 export function transactionStatusLabel(status) {
   const labels = {
     waiting_payment: "Menunggu pembayaran",

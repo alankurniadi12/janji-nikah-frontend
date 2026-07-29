@@ -17,7 +17,7 @@ import AppButton from "@/components/AppButton.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth";
 import { useToastStore } from "@/stores/toasts";
-import { formatDate, formatDateTime } from "@/utils/formatters";
+import { formatDate, formatDateTime, formatRelativeDate } from "@/utils/formatters";
 
 const auth = useAuthStore();
 const router = useRouter();
@@ -181,6 +181,7 @@ async function logout() {
         <div class="rounded-md border border-ink/10 bg-linen p-4">
           <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Bergabung</p>
           <p class="mt-2 text-sm font-semibold text-ink">{{ formatDate(auth.user?.createdAt) }}</p>
+          <p class="mt-1 text-sm text-ink/55">{{ formatRelativeDate(auth.user?.createdAt) }}</p>
         </div>
       </div>
     </section>
