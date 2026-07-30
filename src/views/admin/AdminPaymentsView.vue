@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { ArrowRight, Loader2 } from "@lucide/vue";
+import { Loader2 } from "@lucide/vue";
 
 import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import AppButton from "@/components/AppButton.vue";
@@ -80,7 +80,7 @@ async function reject(transaction) {
         <article
           v-for="transaction in adminStore.transactions"
           :key="transaction.id"
-          class="grid cursor-pointer gap-4 p-5 transition hover:bg-mint/30 lg:grid-cols-[1fr_170px_150px_250px] lg:items-center"
+          class="grid cursor-pointer gap-4 p-5 transition hover:bg-mint/30 lg:grid-cols-[1fr_170px_150px_170px] lg:items-center"
           tabindex="0"
           role="button"
           @click="openDetail(transaction)"
@@ -109,10 +109,6 @@ async function reject(transaction) {
           <div class="flex flex-wrap gap-2 lg:justify-end">
             <AppButton type="button" :disabled="adminStore.saving || transaction.status !== 'waiting_verification'" @click.stop="approve(transaction)">Approve</AppButton>
             <AppButton type="button" variant="secondary" :disabled="adminStore.saving || transaction.status !== 'waiting_verification'" @click.stop="reject(transaction)">Tolak</AppButton>
-            <AppButton type="button" variant="ghost" @click.stop="openDetail(transaction)">
-              Detail
-              <ArrowRight class="h-4 w-4" />
-            </AppButton>
           </div>
         </article>
       </div>
