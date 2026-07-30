@@ -1,8 +1,9 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { AlertCircle, ArrowLeft, CheckCircle2, ExternalLink, Loader2, ReceiptText, XCircle } from "@lucide/vue";
 
+import AdminPaymentActionDialog from "@/components/AdminPaymentActionDialog.vue";
 import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import AppButton from "@/components/AppButton.vue";
 import TransactionStatusBadge from "@/components/TransactionStatusBadge.vue";
@@ -16,8 +17,11 @@ const route = useRoute();
 const router = useRouter();
 const adminStore = useAdminStore();
 const toastStore = useToastStore();
-const note = ref("");
-const actionError = ref("");
+const actionDialog = reactive({
+  open: false,
+  mode: "approve",
+  error: ""
+});
 
 onMounted(() => {
   adminStore.loadTransaction(route.params.id);
@@ -64,27 +68,40 @@ const statusMessage = computed(() => {
   };
 });
 
-async function approve() {
-  actionError.value = "";
-
-  try {
-    await adminStore.approveTransaction(transaction.value.id, note.value);
-    await adminStore.loadTransaction(transaction.value.id);
-    toastStore.show("Transaksi berhasil diapprove.");
-  } catch (requestError) {
-    actionError.value = getApiErrorMessage(requestError, "Transaksi belum bisa diapprove.");
-  }
+function openAction(mode) {
+  actionDialog.mode = mode;
+  actionDialog.error = "";
+  actionDialog.open = true;
 }
 
-async function reject() {
-  actionError.value = "";
+function closeAction() {
+  actionDialog.open = false;
+  actionDialog.error = "";
+}
+
+async function confirmAction(note) {
+  if (!transaction.value) {
+    return;
+  }
+
+  actionDialog.error = "";
 
   try {
-    await adminStore.rejectTransaction(transaction.value.id, note.value);
+    if (actionDialog.mode === "reject") {
+      await adminStore.rejectTransaction(transaction.value.id, note);
+      toastStore.show("Transaksi berhasil ditolak.");
+    } else {
+      await adminStore.approveTransaction(transaction.value.id, note);
+      toastStore.show("Transaksi berhasil diapprove.");
+    }
+
     await adminStore.loadTransaction(transaction.value.id);
-    toastStore.show("Transaksi berhasil ditolak.");
+    closeAction();
   } catch (requestError) {
-    actionError.value = getApiErrorMessage(requestError, "Transaksi belum bisa ditolak.");
+    actionDialog.error = getApiErrorMessage(
+      requestError,
+      actionDialog.mode === "reject" ? "Transaksi belum bisa ditolak." : "Transaksi belum bisa diapprove."
+    );
   }
 }
 </script>
@@ -154,20 +171,15 @@ async function reject() {
 
         <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <h2 class="text-lg font-bold text-ink">Aksi admin</h2>
-          <label class="mt-4 block text-sm font-semibold text-ink" for="adminPaymentNote">Catatan admin</label>
-          <textarea
-            id="adminPaymentNote"
-            v-model.trim="note"
-            class="focus-ring mt-2 min-h-28 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
-            placeholder="Wajib untuk tolak, optional untuk approve."
-          />
-          <p v-if="actionError" class="mt-3 rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">{{ actionError }}</p>
-          <div class="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
-            <AppButton type="button" :disabled="adminStore.saving || !canVerify" @click="approve">
+          <p class="mt-2 text-sm leading-6 text-ink/60">
+            Proses pembayaran hanya setelah admin mengonfirmasi aksi. Catatan penolakan diisi pada popup agar melekat ke transaksi ini.
+          </p>
+          <div class="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+            <AppButton type="button" :disabled="adminStore.saving || !canVerify" @click="openAction('approve')">
               <CheckCircle2 class="h-4 w-4" />
               Approve
             </AppButton>
-            <AppButton type="button" variant="secondary" :disabled="adminStore.saving || !canVerify" @click="reject">
+            <AppButton type="button" variant="secondary" :disabled="adminStore.saving || !canVerify" @click="openAction('reject')">
               <XCircle class="h-4 w-4" />
               Tolak
             </AppButton>
@@ -249,5 +261,15 @@ async function reject() {
         </p>
       </section>
     </div>
+
+    <AdminPaymentActionDialog
+      :open="actionDialog.open"
+      :mode="actionDialog.mode"
+      :transaction="transaction"
+      :loading="adminStore.saving"
+      :error="actionDialog.error"
+      @cancel="closeAction"
+      @confirm="confirmAction"
+    />
   </section>
 </template>

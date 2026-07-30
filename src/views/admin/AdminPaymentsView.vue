@@ -1,8 +1,9 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { reactive, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { Loader2 } from "@lucide/vue";
 
+import AdminPaymentActionDialog from "@/components/AdminPaymentActionDialog.vue";
 import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import AppButton from "@/components/AppButton.vue";
 import TransactionStatusBadge from "@/components/TransactionStatusBadge.vue";
@@ -16,8 +17,13 @@ const adminStore = useAdminStore();
 const toastStore = useToastStore();
 const router = useRouter();
 const status = ref("waiting_verification");
-const note = ref("");
 const error = ref("");
+const actionDialog = reactive({
+  open: false,
+  mode: "approve",
+  transaction: null,
+  error: ""
+});
 
 onMounted(load);
 
@@ -29,23 +35,42 @@ function openDetail(transaction) {
   router.push(`/admin/payments/${transaction.id}`);
 }
 
-async function approve(transaction) {
-  error.value = "";
-  try {
-    await adminStore.approveTransaction(transaction.id, note.value);
-    toastStore.show("Transaksi berhasil diapprove.");
-  } catch (requestError) {
-    error.value = getApiErrorMessage(requestError, "Transaksi belum bisa diapprove.");
-  }
+function openAction(mode, transaction) {
+  actionDialog.mode = mode;
+  actionDialog.transaction = transaction;
+  actionDialog.error = "";
+  actionDialog.open = true;
 }
 
-async function reject(transaction) {
+function closeAction() {
+  actionDialog.open = false;
+  actionDialog.transaction = null;
+  actionDialog.error = "";
+}
+
+async function confirmAction(note) {
+  if (!actionDialog.transaction) {
+    return;
+  }
+
   error.value = "";
+  actionDialog.error = "";
+
   try {
-    await adminStore.rejectTransaction(transaction.id, note.value);
-    toastStore.show("Transaksi berhasil ditolak.");
+    if (actionDialog.mode === "reject") {
+      await adminStore.rejectTransaction(actionDialog.transaction.id, note);
+      toastStore.show("Transaksi berhasil ditolak.");
+    } else {
+      await adminStore.approveTransaction(actionDialog.transaction.id, note);
+      toastStore.show("Transaksi berhasil diapprove.");
+    }
+
+    closeAction();
   } catch (requestError) {
-    error.value = getApiErrorMessage(requestError, "Transaksi belum bisa ditolak.");
+    actionDialog.error = getApiErrorMessage(
+      requestError,
+      actionDialog.mode === "reject" ? "Transaksi belum bisa ditolak." : "Transaksi belum bisa diapprove."
+    );
   }
 }
 </script>
@@ -62,11 +87,6 @@ async function reject(transaction) {
         <option value="expired">Expired</option>
       </select>
     </AdminPageHeader>
-
-    <div class="mt-6 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-      <label class="block text-sm font-semibold text-ink" for="adminNote">Catatan admin</label>
-      <input id="adminNote" v-model.trim="note" class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm" placeholder="Wajib untuk reject, optional untuk approve" />
-    </div>
 
     <p v-if="error || adminStore.error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ error || adminStore.error }}</p>
 
@@ -107,12 +127,22 @@ async function reject(transaction) {
           </div>
           <TransactionStatusBadge :status="transaction.status" />
           <div class="flex flex-wrap gap-2 lg:justify-end">
-            <AppButton type="button" :disabled="adminStore.saving || transaction.status !== 'waiting_verification'" @click.stop="approve(transaction)">Approve</AppButton>
-            <AppButton type="button" variant="secondary" :disabled="adminStore.saving || transaction.status !== 'waiting_verification'" @click.stop="reject(transaction)">Tolak</AppButton>
+            <AppButton type="button" :disabled="adminStore.saving || transaction.status !== 'waiting_verification'" @click.stop="openAction('approve', transaction)">Approve</AppButton>
+            <AppButton type="button" variant="secondary" :disabled="adminStore.saving || transaction.status !== 'waiting_verification'" @click.stop="openAction('reject', transaction)">Tolak</AppButton>
           </div>
         </article>
       </div>
       <p v-else class="p-8 text-center text-sm font-semibold text-ink/55">Belum ada transaksi.</p>
     </section>
+
+    <AdminPaymentActionDialog
+      :open="actionDialog.open"
+      :mode="actionDialog.mode"
+      :transaction="actionDialog.transaction"
+      :loading="adminStore.saving"
+      :error="actionDialog.error"
+      @cancel="closeAction"
+      @confirm="confirmAction"
+    />
   </section>
 </template>
