@@ -16,7 +16,7 @@ import { formatCurrency, formatDate } from "@/utils/formatters";
 const adminStore = useAdminStore();
 const toastStore = useToastStore();
 const router = useRouter();
-const status = ref("waiting_verification");
+const status = ref("");
 const error = ref("");
 const actionDialog = reactive({
   open: false,
