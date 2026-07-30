@@ -120,6 +120,11 @@ const routes = [
         component: () => import("@/views/admin/AdminMembersView.vue")
       },
       {
+        path: "members/:id",
+        name: "admin-member-detail",
+        component: () => import("@/views/admin/AdminMemberDetailView.vue")
+      },
+      {
         path: "invitations",
         name: "admin-invitations",
         component: () => import("@/views/admin/AdminInvitationsView.vue")

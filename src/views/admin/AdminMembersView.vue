@@ -1,7 +1,9 @@
 <script setup>
 import { onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 import { Loader2 } from "@lucide/vue";
 
+import AdminMemberStatusDialog from "@/components/AdminMemberStatusDialog.vue";
 import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import AppButton from "@/components/AppButton.vue";
 import { getApiErrorMessage } from "@/lib/api";
@@ -10,9 +12,15 @@ import { useToastStore } from "@/stores/toasts";
 
 const adminStore = useAdminStore();
 const toastStore = useToastStore();
+const router = useRouter();
 const filters = reactive({ q: "", status: "" });
-const adjustment = reactive({ memberId: "", amount: 0, reason: "" });
 const error = ref("");
+const statusDialog = reactive({
+  open: false,
+  member: null,
+  status: "active",
+  error: ""
+});
 
 onMounted(load);
 
@@ -20,36 +28,44 @@ function load() {
   adminStore.loadMembers({ ...filters });
 }
 
-async function setStatus(member, status) {
-  error.value = "";
-  try {
-    await adminStore.updateMemberStatus(member.id, status);
-    toastStore.show("Status member berhasil diubah.");
-  } catch (requestError) {
-    error.value = getApiErrorMessage(requestError, "Status member belum bisa diubah.");
-  }
+function openDetail(member) {
+  router.push(`/admin/members/${member.id}`);
 }
 
-async function adjustCredits() {
+function openStatusDialog(member, status) {
+  statusDialog.member = member;
+  statusDialog.status = status;
+  statusDialog.error = "";
+  statusDialog.open = true;
+}
+
+function closeStatusDialog() {
+  statusDialog.open = false;
+  statusDialog.member = null;
+  statusDialog.error = "";
+}
+
+async function confirmStatusChange() {
+  if (!statusDialog.member) {
+    return;
+  }
+
   error.value = "";
+  statusDialog.error = "";
+
   try {
-    await adminStore.adjustMemberCredits(adjustment.memberId, {
-      amount: Number(adjustment.amount),
-      reason: adjustment.reason
-    });
-    adjustment.memberId = "";
-    adjustment.amount = 0;
-    adjustment.reason = "";
-    toastStore.show("Kredit member berhasil diadjust.");
+    await adminStore.updateMemberStatus(statusDialog.member.id, statusDialog.status);
+    closeStatusDialog();
+    toastStore.show("Status member berhasil diubah.");
   } catch (requestError) {
-    error.value = getApiErrorMessage(requestError, "Kredit member belum bisa diadjust.");
+    statusDialog.error = getApiErrorMessage(requestError, "Status member belum bisa diubah.");
   }
 }
 </script>
 
 <template>
   <section>
-    <AdminPageHeader eyebrow="Member" title="Kelola member" description="Cari member, ubah status akun, dan lakukan adjustment kredit manual dengan alasan." />
+    <AdminPageHeader eyebrow="Member" title="Kelola member" description="Cari member, cek detail akun, dan ubah status dengan konfirmasi admin." />
 
     <div class="mt-6 grid gap-4 rounded-lg border border-ink/10 bg-white p-5 shadow-soft md:grid-cols-[1fr_180px_120px]">
       <input v-model.trim="filters.q" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm" placeholder="Cari nama, email, username" />
@@ -62,19 +78,6 @@ async function adjustCredits() {
       <AppButton type="button" @click="load">Cari</AppButton>
     </div>
 
-    <section class="mt-6 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-      <h2 class="text-lg font-bold text-ink">Adjustment kredit</h2>
-      <form class="mt-4 grid gap-3 lg:grid-cols-[1fr_120px_1fr_120px]" @submit.prevent="adjustCredits">
-        <select v-model="adjustment.memberId" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm" required>
-          <option value="">Pilih member</option>
-          <option v-for="member in adminStore.members" :key="member.id" :value="member.id">{{ member.name }} · {{ member.email }}</option>
-        </select>
-        <input v-model.number="adjustment.amount" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm" type="number" placeholder="+/- kredit" required />
-        <input v-model.trim="adjustment.reason" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm" placeholder="Alasan adjustment" required />
-        <AppButton type="submit" :disabled="adminStore.saving">Simpan</AppButton>
-      </form>
-    </section>
-
     <p v-if="error || adminStore.error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ error || adminStore.error }}</p>
 
     <div v-if="adminStore.loading" class="mt-8 flex items-center gap-3 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
@@ -84,7 +87,15 @@ async function adjustCredits() {
 
     <section v-else class="mt-6 overflow-hidden rounded-lg border border-ink/10 bg-white shadow-soft">
       <div v-if="adminStore.members.length" class="divide-y divide-ink/10">
-        <article v-for="member in adminStore.members" :key="member.id" class="grid gap-4 p-5 lg:grid-cols-[1fr_120px_120px_260px] lg:items-center">
+        <article
+          v-for="member in adminStore.members"
+          :key="member.id"
+          class="grid cursor-pointer gap-4 p-5 transition hover:bg-mint/30 lg:grid-cols-[1fr_120px_120px_260px] lg:items-center"
+          tabindex="0"
+          role="button"
+          @click="openDetail(member)"
+          @keyup.enter="openDetail(member)"
+        >
           <div>
             <p class="font-bold text-ink">{{ member.name }}</p>
             <p class="mt-1 text-sm text-ink/55">{{ member.email }} · @{{ member.username }}</p>
@@ -92,13 +103,23 @@ async function adjustCredits() {
           <p class="text-sm font-bold text-ink">{{ member.creditBalance }} kredit</p>
           <p class="text-sm font-semibold capitalize text-ink/65">{{ member.status }}</p>
           <div class="flex flex-wrap gap-2 lg:justify-end">
-            <AppButton type="button" variant="secondary" @click="setStatus(member, 'active')">Active</AppButton>
-            <AppButton type="button" variant="secondary" @click="setStatus(member, 'suspended')">Suspend</AppButton>
-            <AppButton type="button" variant="ghost" @click="setStatus(member, 'blocked')">Block</AppButton>
+            <AppButton type="button" variant="secondary" :disabled="adminStore.saving || member.status === 'active'" @click.stop="openStatusDialog(member, 'active')">Active</AppButton>
+            <AppButton type="button" variant="secondary" :disabled="adminStore.saving || member.status === 'suspended'" @click.stop="openStatusDialog(member, 'suspended')">Suspend</AppButton>
+            <AppButton type="button" variant="ghost" :disabled="adminStore.saving || member.status === 'blocked'" @click.stop="openStatusDialog(member, 'blocked')">Block</AppButton>
           </div>
         </article>
       </div>
       <p v-else class="p-8 text-center text-sm font-semibold text-ink/55">Member tidak ditemukan.</p>
     </section>
+
+    <AdminMemberStatusDialog
+      :open="statusDialog.open"
+      :member="statusDialog.member"
+      :status="statusDialog.status"
+      :loading="adminStore.saving"
+      :error="statusDialog.error"
+      @cancel="closeStatusDialog"
+      @confirm="confirmStatusChange"
+    />
   </section>
 </template>

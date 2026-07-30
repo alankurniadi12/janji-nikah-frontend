@@ -9,6 +9,7 @@ export const useAdminStore = defineStore("admin", {
     transactions: [],
     currentTransaction: null,
     members: [],
+    currentMember: null,
     creditPackages: [],
     themes: [],
     music: [],
@@ -84,14 +85,29 @@ export const useAdminStore = defineStore("admin", {
     async loadMembers(params = {}) {
       this.members = await this.run(() => adminService.getAdminMembers(params), "Member belum bisa dimuat.");
     },
+    async loadMember(id) {
+      this.currentMember = await this.run(() => adminService.getAdminMember(id), "Detail member belum bisa dimuat.");
+    },
     async updateMemberStatus(id, status) {
       const member = await this.mutate(() => adminService.updateMemberStatus(id, status), "Status member belum bisa diubah.");
       this.members = this.members.map((item) => (item.id === id ? member : item));
+      if (this.currentMember?.id === id) {
+        this.currentMember = {
+          ...this.currentMember,
+          ...member
+        };
+      }
       return member;
     },
     async adjustMemberCredits(id, payload) {
       const data = await this.mutate(() => adminService.adjustMemberCredits(id, payload), "Kredit member belum bisa diadjust.");
       this.members = this.members.map((item) => (item.id === id ? data.member : item));
+      if (this.currentMember?.id === id) {
+        this.currentMember = {
+          ...this.currentMember,
+          ...data.member
+        };
+      }
       return data;
     },
     async loadCreditPackages() {

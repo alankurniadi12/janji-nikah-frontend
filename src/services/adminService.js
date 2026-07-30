@@ -30,6 +30,11 @@ export async function getAdminMembers(params = {}) {
   return response.data.data.members;
 }
 
+export async function getAdminMember(id) {
+  const response = await api.get(`/admin/members/${id}`);
+  return response.data.data.member;
+}
+
 export async function updateMemberStatus(id, status) {
   const response = await api.patch(`/admin/members/${id}/status`, { status });
   return response.data.data.member;
