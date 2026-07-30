@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
-import { Loader2 } from "@lucide/vue";
+import { useRouter } from "vue-router";
+import { ArrowRight, Loader2 } from "@lucide/vue";
 
 import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import AppButton from "@/components/AppButton.vue";
@@ -13,6 +14,7 @@ import { formatCurrency, formatDate } from "@/utils/formatters";
 
 const adminStore = useAdminStore();
 const toastStore = useToastStore();
+const router = useRouter();
 const status = ref("waiting_verification");
 const note = ref("");
 const error = ref("");
@@ -21,6 +23,10 @@ onMounted(load);
 
 function load() {
   adminStore.loadTransactions(status.value);
+}
+
+function openDetail(transaction) {
+  router.push(`/admin/payments/${transaction.id}`);
 }
 
 async function approve(transaction) {
@@ -71,17 +77,42 @@ async function reject(transaction) {
 
     <section v-else class="mt-6 overflow-hidden rounded-lg border border-ink/10 bg-white shadow-soft">
       <div v-if="adminStore.transactions.length" class="divide-y divide-ink/10">
-        <article v-for="transaction in adminStore.transactions" :key="transaction.id" class="grid gap-4 p-5 lg:grid-cols-[1fr_160px_160px_220px] lg:items-center">
+        <article
+          v-for="transaction in adminStore.transactions"
+          :key="transaction.id"
+          class="grid cursor-pointer gap-4 p-5 transition hover:bg-mint/30 lg:grid-cols-[1fr_170px_150px_250px] lg:items-center"
+          tabindex="0"
+          role="button"
+          @click="openDetail(transaction)"
+          @keyup.enter="openDetail(transaction)"
+        >
           <div>
-            <p class="font-bold text-ink">{{ transaction.creditAmount }} kredit</p>
-            <p class="mt-1 text-sm text-ink/55">{{ formatDate(transaction.createdAt) }}</p>
-            <a v-if="transaction.paymentProofUrl" :href="assetUrl(transaction.paymentProofUrl)" target="_blank" class="mt-2 inline-flex text-sm font-semibold text-leaf">Buka bukti transfer</a>
+            <p class="font-bold text-ink">{{ transaction.member?.name || `${transaction.creditAmount} kredit` }}</p>
+            <p class="mt-1 text-sm text-ink/55">
+              {{ transaction.member?.email || transaction.memberId }} · {{ formatDate(transaction.createdAt) }}
+            </p>
+            <a
+              v-if="transaction.paymentProofUrl"
+              :href="assetUrl(transaction.paymentProofUrl)"
+              target="_blank"
+              class="mt-2 inline-flex text-sm font-semibold text-leaf"
+              @click.stop
+            >
+              Buka bukti transfer
+            </a>
           </div>
-          <p class="font-bold text-ink">{{ formatCurrency(transaction.totalAmount) }}</p>
+          <div>
+            <p class="font-bold text-ink">{{ formatCurrency(transaction.totalAmount) }}</p>
+            <p class="mt-1 text-sm text-ink/55">{{ transaction.creditAmount }} kredit</p>
+          </div>
           <TransactionStatusBadge :status="transaction.status" />
           <div class="flex flex-wrap gap-2 lg:justify-end">
-            <AppButton type="button" :disabled="adminStore.saving || transaction.status !== 'waiting_verification'" @click="approve(transaction)">Approve</AppButton>
-            <AppButton type="button" variant="secondary" :disabled="adminStore.saving || transaction.status !== 'waiting_verification'" @click="reject(transaction)">Tolak</AppButton>
+            <AppButton type="button" :disabled="adminStore.saving || transaction.status !== 'waiting_verification'" @click.stop="approve(transaction)">Approve</AppButton>
+            <AppButton type="button" variant="secondary" :disabled="adminStore.saving || transaction.status !== 'waiting_verification'" @click.stop="reject(transaction)">Tolak</AppButton>
+            <AppButton type="button" variant="ghost" @click.stop="openDetail(transaction)">
+              Detail
+              <ArrowRight class="h-4 w-4" />
+            </AppButton>
           </div>
         </article>
       </div>

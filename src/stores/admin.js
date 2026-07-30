@@ -7,6 +7,7 @@ export const useAdminStore = defineStore("admin", {
   state: () => ({
     dashboard: null,
     transactions: [],
+    currentTransaction: null,
     members: [],
     creditPackages: [],
     themes: [],
@@ -55,14 +56,29 @@ export const useAdminStore = defineStore("admin", {
     async loadTransactions(status = "") {
       this.transactions = await this.run(() => adminService.getAdminTransactions(status), "Transaksi belum bisa dimuat.");
     },
+    async loadTransaction(id) {
+      this.currentTransaction = await this.run(() => adminService.getAdminTransaction(id), "Detail transaksi belum bisa dimuat.");
+    },
     async approveTransaction(id, adminNote = "") {
       const transaction = await this.mutate(() => adminService.approveTransaction(id, adminNote), "Transaksi belum bisa diapprove.");
       this.transactions = this.transactions.map((item) => (item.id === id ? transaction : item));
+      if (this.currentTransaction?.id === id) {
+        this.currentTransaction = {
+          ...this.currentTransaction,
+          ...transaction
+        };
+      }
       return transaction;
     },
     async rejectTransaction(id, adminNote) {
       const transaction = await this.mutate(() => adminService.rejectTransaction(id, adminNote), "Transaksi belum bisa ditolak.");
       this.transactions = this.transactions.map((item) => (item.id === id ? transaction : item));
+      if (this.currentTransaction?.id === id) {
+        this.currentTransaction = {
+          ...this.currentTransaction,
+          ...transaction
+        };
+      }
       return transaction;
     },
     async loadMembers(params = {}) {

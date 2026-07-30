@@ -10,6 +10,11 @@ export async function getAdminTransactions(status = "") {
   return response.data.data.transactions;
 }
 
+export async function getAdminTransaction(id) {
+  const response = await api.get(`/admin/transactions/${id}`);
+  return response.data.data.transaction;
+}
+
 export async function approveTransaction(id, adminNote = "") {
   const response = await api.post(`/admin/transactions/${id}/approve`, { adminNote });
   return response.data.data.transaction;
