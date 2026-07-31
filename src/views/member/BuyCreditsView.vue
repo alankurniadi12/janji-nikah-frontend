@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Check, CreditCard, Landmark, Loader2, ReceiptText, Tag, UploadCloud } from "@lucide/vue";
+import { Check, CreditCard, Gift, Landmark, Loader2, ReceiptText, Tag, UploadCloud } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import CreditPackageTimer from "@/components/CreditPackageTimer.vue";
@@ -14,6 +14,8 @@ const creditStore = useCreditStore();
 const transactionStore = useTransactionStore();
 const router = useRouter();
 const selectedPackageId = ref("");
+const promoCode = ref("");
+const promoError = ref("");
 const error = ref("");
 
 onMounted(async () => {
@@ -59,10 +61,31 @@ async function createPayment() {
   error.value = "";
 
   try {
+    if (selectedPackage.value?.price <= 0 && selectedPackage.value?.hasPromoCode) {
+      error.value = "Paket promo gratis wajib diklaim lewat kode promo, bukan transaksi transfer.";
+      return;
+    }
+
     const transaction = await transactionStore.create(selectedPackageId.value);
     router.push({ name: "member-transaction-detail", params: { id: transaction.id } });
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Transaksi belum bisa dibuat.");
+  }
+}
+
+async function redeemPromo() {
+  if (!promoCode.value.trim()) {
+    promoError.value = "Masukkan kode promo terlebih dahulu.";
+    return;
+  }
+
+  promoError.value = "";
+
+  try {
+    const transaction = await transactionStore.redeemPromo(promoCode.value.trim());
+    router.push({ name: "member-transaction-detail", params: { id: transaction.id } });
+  } catch (requestError) {
+    promoError.value = getApiErrorMessage(requestError, "Kode promo belum bisa diklaim.");
   }
 }
 </script>
@@ -103,9 +126,9 @@ async function createPayment() {
             <div>
               <div class="flex flex-wrap items-center gap-2">
                 <p class="text-sm font-bold uppercase tracking-widest text-gold">{{ creditPackage.creditAmount }} kredit</p>
-                <span v-if="creditPackage.promoCode" class="inline-flex items-center gap-1 rounded-full bg-gold/10 px-2 py-0.5 text-xs font-bold text-gold">
+                <span v-if="creditPackage.hasPromoCode" class="inline-flex items-center gap-1 rounded-full bg-gold/10 px-2 py-0.5 text-xs font-bold text-gold">
                   <Tag class="h-3.5 w-3.5" />
-                  {{ creditPackage.promoCode }}
+                  Kode promo
                 </span>
               </div>
               <h2 class="mt-3 text-xl font-bold text-ink">{{ creditPackage.name }}</h2>
@@ -134,6 +157,34 @@ async function createPayment() {
 
       <section class="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+          <section class="mb-6 rounded-lg border border-gold/20 bg-gold/10 p-4">
+            <div class="flex items-start gap-3">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white text-gold">
+                <Gift class="h-5 w-5" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <h2 class="text-lg font-bold text-ink">Punya kode promo?</h2>
+                <p class="mt-1 text-sm leading-6 text-ink/60">
+                  Klaim kode promo gratis di sini. Jika valid, kredit langsung masuk tanpa transfer dan tanpa upload bukti.
+                </p>
+                <form class="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]" @submit.prevent="redeemPromo">
+                  <input
+                    v-model.trim="promoCode"
+                    class="focus-ring h-11 rounded-md border border-ink/15 bg-white px-3 text-sm uppercase"
+                    placeholder="Masukkan kode promo"
+                  />
+                  <AppButton type="submit" :disabled="transactionStore.submitting">
+                    <Loader2 v-if="transactionStore.submitting" class="h-4 w-4 animate-spin" />
+                    Klaim Kode
+                  </AppButton>
+                </form>
+                <p v-if="promoError" class="mt-3 rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">
+                  {{ promoError }}
+                </p>
+              </div>
+            </div>
+          </section>
+
           <h2 class="text-lg font-bold text-ink">Setelah klik Buat Transaksi</h2>
           <p class="mt-2 text-sm leading-6 text-ink/60">
             Kamu belum perlu transfer di halaman ini. Ikuti instruksi di detail transaksi setelah nominal final muncul.
@@ -174,9 +225,9 @@ async function createPayment() {
               <span class="text-ink/55">Harga paket</span>
               <span class="font-semibold text-ink">{{ formatCurrency(selectedPackage.price) }}</span>
             </div>
-            <div v-if="selectedPackage.promoCode" class="flex justify-between gap-4">
+            <div v-if="selectedPackage.hasPromoCode" class="flex justify-between gap-4">
               <span class="text-ink/55">Kode promo</span>
-              <span class="font-semibold text-gold">{{ selectedPackage.promoCode }}</span>
+              <span class="font-semibold text-gold">Wajib diisi</span>
             </div>
             <div v-if="selectedPackage.endsAt" class="flex justify-between gap-4">
               <span class="text-ink/55">Promo berakhir</span>
@@ -193,7 +244,7 @@ async function createPayment() {
 
           <AppButton class="mt-5 w-full" :disabled="transactionStore.submitting || !selectedPackage" @click="createPayment">
             <Loader2 v-if="transactionStore.submitting" class="h-4 w-4 animate-spin" />
-            Buat Transaksi dan Lihat Instruksi
+            {{ selectedPackage?.price <= 0 && selectedPackage?.hasPromoCode ? "Isi Kode Promo untuk Klaim" : "Buat Transaksi dan Lihat Instruksi" }}
           </AppButton>
           <p class="mt-3 text-xs leading-5 text-ink/50">
             Kredit yang sudah dibeli dan kredit yang sudah dipakai publish tidak bisa refund.

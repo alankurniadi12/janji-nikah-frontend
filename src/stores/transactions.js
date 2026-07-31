@@ -5,6 +5,7 @@ import {
   createTransaction,
   getTransaction,
   getTransactions,
+  redeemPromoCode,
   uploadPaymentProof
 } from "@/services/transactionService";
 
@@ -55,6 +56,22 @@ export const useTransactionStore = defineStore("transactions", {
         return transaction;
       } catch (error) {
         this.error = getApiErrorMessage(error, "Transaksi belum bisa dibuat.");
+        throw error;
+      } finally {
+        this.submitting = false;
+      }
+    },
+    async redeemPromo(promoCode) {
+      this.submitting = true;
+      this.error = "";
+
+      try {
+        const transaction = await redeemPromoCode(promoCode);
+        this.current = transaction;
+        this.transactions = [transaction, ...this.transactions.filter((item) => item.id !== transaction.id)];
+        return transaction;
+      } catch (error) {
+        this.error = getApiErrorMessage(error, "Kode promo belum bisa diklaim.");
         throw error;
       } finally {
         this.submitting = false;

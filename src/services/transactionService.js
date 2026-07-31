@@ -5,6 +5,11 @@ export async function createTransaction(packageId) {
   return response.data.data.transaction;
 }
 
+export async function redeemPromoCode(promoCode) {
+  const response = await api.post("/member/transactions/promo-code", { promoCode });
+  return response.data.data.transaction;
+}
+
 export async function getTransactions() {
   const response = await api.get("/member/transactions");
   return response.data.data.transactions;

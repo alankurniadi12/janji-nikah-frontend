@@ -42,6 +42,7 @@ onUnmounted(() => {
 });
 
 const transaction = computed(() => transactionStore.current);
+const isPromoTransaction = computed(() => transaction.value?.paymentMethod === "promo_code");
 const canUploadProof = computed(() => transaction.value?.status === "waiting_payment");
 const hasUploadedProof = computed(() => ["waiting_verification", "success"].includes(transaction.value?.status));
 const isPaymentAccountReady = computed(() => hasConfiguredPaymentAccount(paymentConfig));
@@ -67,6 +68,24 @@ const paymentCountdown = computed(() => {
 });
 const paymentSteps = computed(() => {
   const status = transaction.value?.status;
+
+  if (isPromoTransaction.value) {
+    return [
+      {
+        title: "Kode promo diklaim",
+        description: `Kode ${transaction.value?.promoCode || "promo"} sudah divalidasi.`,
+        done: status === "success",
+        active: status !== "success"
+      },
+      {
+        title: "Kredit masuk",
+        description: "Saldo kredit langsung bertambah tanpa transfer manual.",
+        done: status === "success",
+        active: status === "success"
+      }
+    ];
+  }
+
   const proofUploaded = ["waiting_verification", "success"].includes(status);
 
   return [
@@ -115,8 +134,10 @@ const statusMessage = computed(() => {
     return {
       icon: CheckCircle2,
       tone: "border-leaf/20 bg-leaf/10 text-ink",
-      title: "Pembayaran berhasil",
-      message: "Kredit sudah ditambahkan ke saldo member dan bisa dipakai untuk publish undangan."
+      title: isPromoTransaction.value ? "Kode promo berhasil diklaim" : "Pembayaran berhasil",
+      message: isPromoTransaction.value
+        ? "Kredit promo sudah ditambahkan ke saldo member tanpa transfer manual."
+        : "Kredit sudah ditambahkan ke saldo member dan bisa dipakai untuk publish undangan."
     };
   }
 
@@ -190,9 +211,9 @@ async function submitProof() {
     <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
       <div>
         <p class="text-sm font-bold uppercase tracking-widest text-gold">Detail transaksi</p>
-        <h1 class="mt-2 text-3xl font-bold text-ink">Pembayaran kredit</h1>
+        <h1 class="mt-2 text-3xl font-bold text-ink">{{ isPromoTransaction ? "Klaim kode promo" : "Pembayaran kredit" }}</h1>
         <p class="mt-2 max-w-2xl leading-7 text-ink/65">
-          Selesaikan transfer manual sesuai nominal final, lalu upload bukti agar admin bisa memverifikasi pembayaran.
+          {{ isPromoTransaction ? "Kredit promo langsung masuk setelah kode valid diklaim." : "Selesaikan transfer manual sesuai nominal final, lalu upload bukti agar admin bisa memverifikasi pembayaran." }}
         </p>
       </div>
       <AppButton to="/app/transactions" variant="secondary">Kembali</AppButton>
@@ -299,11 +320,11 @@ async function submitProof() {
             </div>
 
             <div class="mt-6 rounded-lg border border-leaf/20 bg-mint p-4">
-              <p class="text-sm font-bold text-leaf">Total yang harus ditransfer</p>
+              <p class="text-sm font-bold text-leaf">{{ isPromoTransaction ? "Nilai klaim promo" : "Total yang harus ditransfer" }}</p>
               <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p class="text-3xl font-bold text-ink">{{ formatCurrency(transaction.totalAmount) }}</p>
                 <AppButton
-                  v-if="canUploadProof"
+                  v-if="canUploadProof && !isPromoTransaction"
                   type="button"
                   variant="secondary"
                   @click="copyText(transaction.totalAmount, 'Nominal transfer')"
@@ -312,8 +333,11 @@ async function submitProof() {
                   Salin Nominal
                 </AppButton>
               </div>
-              <p class="mt-3 text-sm leading-6 text-ink/65">
+              <p v-if="!isPromoTransaction" class="mt-3 text-sm leading-6 text-ink/65">
                 Transfer persis sampai 3 digit terakhir. Jangan dibulatkan agar admin mudah mencocokkan pembayaran.
+              </p>
+              <p v-else class="mt-3 text-sm leading-6 text-ink/65">
+                Transaksi ini berasal dari kode promo gratis. Tidak ada transfer, kode unik, atau upload bukti.
               </p>
             </div>
 
@@ -322,11 +346,15 @@ async function submitProof() {
                 <span class="text-ink/55">Harga paket</span>
                 <span class="font-semibold text-ink">{{ formatCurrency(transaction.baseAmount) }}</span>
               </div>
-              <div class="flex justify-between gap-4 text-sm">
+              <div v-if="!isPromoTransaction" class="flex justify-between gap-4 text-sm">
                 <span class="text-ink/55">Kode unik</span>
                 <span class="font-semibold text-ink">{{ transaction.uniqueCode }}</span>
               </div>
-              <div class="flex justify-between gap-4 text-sm">
+              <div v-if="isPromoTransaction" class="flex justify-between gap-4 text-sm">
+                <span class="text-ink/55">Kode promo</span>
+                <span class="font-semibold text-gold">{{ transaction.promoCode }}</span>
+              </div>
+              <div v-if="!isPromoTransaction" class="flex justify-between gap-4 text-sm">
                 <span class="text-ink/55">Batas pembayaran</span>
                 <span class="font-semibold text-ink">{{ formatDateTime(transaction.expiresAt) }}</span>
               </div>
@@ -337,7 +365,7 @@ async function submitProof() {
             </p>
           </section>
 
-          <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+          <section v-if="!isPromoTransaction" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
             <div class="flex items-start gap-3">
               <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-mint text-leaf">
                 <Landmark class="h-5 w-5" />
@@ -381,7 +409,7 @@ async function submitProof() {
             </p>
           </section>
 
-          <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+          <section v-if="!isPromoTransaction" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
             <h2 class="text-lg font-bold text-ink">Cara transfer</h2>
             <ol class="mt-4 grid gap-3 text-sm leading-6 text-ink/65">
               <li>1. Buka mobile banking, internet banking, ATM, atau e-wallet yang mendukung transfer bank.</li>
@@ -396,7 +424,7 @@ async function submitProof() {
           </section>
         </div>
 
-        <aside class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft lg:sticky lg:top-6 lg:self-start">
+        <aside v-if="!isPromoTransaction" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft lg:sticky lg:top-6 lg:self-start">
           <div class="flex h-10 w-10 items-center justify-center rounded-md bg-rose/10 text-rose">
             <UploadCloud class="h-5 w-5" />
           </div>
@@ -468,6 +496,17 @@ async function submitProof() {
               Upload bukti hanya tersedia saat status transaksi masih menunggu pembayaran.
             </p>
           </div>
+        </aside>
+
+        <aside v-else class="rounded-lg border border-leaf/20 bg-white p-5 shadow-soft lg:sticky lg:top-6 lg:self-start">
+          <div class="flex h-10 w-10 items-center justify-center rounded-md bg-leaf/10 text-leaf">
+            <CheckCircle2 class="h-5 w-5" />
+          </div>
+          <h2 class="mt-4 text-lg font-bold text-ink">Promo berhasil</h2>
+          <p class="mt-2 text-sm leading-6 text-ink/60">
+            Kredit sudah masuk otomatis. Kamu bisa langsung membuat atau publish undangan jika saldo sudah cukup.
+          </p>
+          <AppButton class="mt-5 w-full" to="/app/dashboard">Ke Dashboard</AppButton>
         </aside>
       </div>
     </div>
