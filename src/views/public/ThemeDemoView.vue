@@ -64,11 +64,14 @@ async function loadThemes() {
       <p v-else-if="error" class="mt-8 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ error }}</p>
 
       <section class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <ThemePreviewCard
+        <RouterLink
           v-for="theme in visibleThemes"
           :key="theme.id"
-          :theme="theme"
-        />
+          class="focus-ring rounded-md transition hover:-translate-y-0.5 hover:shadow-soft"
+          :to="{ name: 'theme-demo-detail', params: { themeKey: theme.key } }"
+        >
+          <ThemePreviewCard :theme="theme" />
+        </RouterLink>
       </section>
     </main>
   </div>

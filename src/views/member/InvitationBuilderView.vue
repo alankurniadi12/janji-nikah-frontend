@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { ImagePlus, Loader2, Plus, Trash2 } from "@lucide/vue";
+import { ExternalLink, ImagePlus, Loader2, Plus, Trash2 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
@@ -902,17 +902,43 @@ function fieldError(key) {
 
         <section v-else-if="activeStep === 'theme'" class="space-y-4">
           <h2 class="text-lg font-bold text-ink">Pilih tema</h2>
+          <p class="text-sm leading-6 text-ink/60">
+            Gunakan preview untuk menunjukkan contoh tema ke calon pengantin sebelum menentukan pilihan.
+          </p>
           <div class="grid gap-3 md:grid-cols-3">
-            <button
+            <article
               v-for="theme in catalogStore.themes"
               :key="theme.id"
-              type="button"
-              class="focus-ring rounded-md text-left transition hover:-translate-y-0.5 hover:shadow-soft"
-              :disabled="!isMainDataEditable"
-              @click="form.themeId = theme.id"
+              class="rounded-md border border-ink/10 bg-white p-2 transition hover:shadow-soft"
             >
-              <ThemePreviewCard :theme="theme" :selected="form.themeId === theme.id" compact />
-            </button>
+              <button
+                type="button"
+                class="focus-ring block w-full rounded-md text-left"
+                :disabled="!isMainDataEditable"
+                @click="form.themeId = theme.id"
+              >
+                <ThemePreviewCard :theme="theme" :selected="form.themeId === theme.id" compact />
+              </button>
+              <div class="mt-2 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  class="focus-ring inline-flex min-h-10 items-center justify-center rounded-md text-sm font-bold"
+                  :class="form.themeId === theme.id ? 'bg-leaf text-white' : 'bg-mint text-leaf hover:bg-leaf hover:text-white'"
+                  :disabled="!isMainDataEditable"
+                  @click="form.themeId = theme.id"
+                >
+                  {{ form.themeId === theme.id ? "Dipilih" : "Pilih" }}
+                </button>
+                <RouterLink
+                  class="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-ink/10 bg-white px-3 text-sm font-bold text-ink hover:border-leaf hover:text-leaf"
+                  :to="{ name: 'theme-demo-detail', params: { themeKey: theme.key } }"
+                  target="_blank"
+                >
+                  <ExternalLink class="h-4 w-4" />
+                  Preview
+                </RouterLink>
+              </div>
+            </article>
           </div>
           <p v-if="!catalogStore.themes.length" class="rounded-md bg-gold/10 px-3 py-2 text-sm font-semibold text-ink">
             Belum ada tema aktif dari admin.

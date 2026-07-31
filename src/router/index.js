@@ -22,6 +22,12 @@ const routes = [
     meta: { public: true }
   },
   {
+    path: "/demo-tema/:themeKey",
+    name: "theme-demo-detail",
+    component: () => import("@/views/public/ThemeDemoDetailView.vue"),
+    meta: { public: true }
+  },
+  {
     path: "/app",
     component: () => import("@/layouts/MemberLayout.vue"),
     meta: { requiresAuth: true, role: "member" },
