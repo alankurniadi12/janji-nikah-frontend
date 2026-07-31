@@ -217,6 +217,7 @@ async function createPayment() {
               <input
                 v-model.trim="promoCode"
                 class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 bg-white px-3 text-sm uppercase"
+                placeholder="Masukkan kode promo"
               />
               <span class="mt-1 block text-xs leading-5 text-ink/45">
                 {{ selectedPackage.hasPromoCode ? "Kode wajib diisi untuk melanjutkan paket promo." : "Kosongkan jika membeli paket reguler." }}
