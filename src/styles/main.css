@@ -32,4 +32,161 @@
   .focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-leaf/30 focus:ring-offset-2 focus:ring-offset-linen;
   }
+
+  .theme-preview {
+    @apply relative overflow-hidden rounded-md border border-ink/10;
+    background: #f8f3ea;
+  }
+
+  .theme-preview::before,
+  .theme-preview::after {
+    position: absolute;
+    content: "";
+  }
+
+  .theme-preview-elegant-classic {
+    background: linear-gradient(145deg, #111514 0%, #2a302c 58%, #f8f4ea 58%);
+  }
+
+  .theme-preview-elegant-classic::before {
+    inset: 14%;
+    border: 1px solid rgba(185, 133, 60, 0.65);
+  }
+
+  .theme-preview-modern-minimal {
+    background: linear-gradient(135deg, #f7f8f6 0%, #f7f8f6 62%, #6f9c9a 62%);
+  }
+
+  .theme-preview-modern-minimal::before {
+    left: 14%;
+    top: 18%;
+    width: 42%;
+    height: 2px;
+    background: #243b3a;
+  }
+
+  .theme-preview-floral-garden {
+    background: radial-gradient(circle at 18% 18%, #f2c2bd 0 10%, transparent 11%),
+      radial-gradient(circle at 82% 24%, #d9eee3 0 14%, transparent 15%),
+      linear-gradient(135deg, #fff7f3, #eef7ed);
+  }
+
+  .theme-preview-floral-garden::before {
+    right: 12%;
+    bottom: 12%;
+    width: 30%;
+    height: 30%;
+    border-radius: 999px;
+    border: 1px solid rgba(73, 108, 84, 0.45);
+  }
+
+  .theme-preview-islamic-soft {
+    background: linear-gradient(135deg, #eef5ee, #faf7ef);
+  }
+
+  .theme-preview-islamic-soft::before {
+    left: 28%;
+    top: 16%;
+    width: 44%;
+    height: 62%;
+    border: 2px solid rgba(47, 93, 81, 0.35);
+    border-radius: 999px 999px 12px 12px;
+  }
+
+  .theme-preview-nusantara-heritage {
+    background: repeating-linear-gradient(45deg, rgba(199, 154, 69, 0.2) 0 8px, transparent 8px 16px),
+      linear-gradient(135deg, #3b1718, #7b2626 58%, #f5eee2 58%);
+  }
+
+  .theme-preview-nusantara-heritage::before {
+    inset: 16%;
+    border: 1px solid rgba(245, 238, 226, 0.55);
+  }
+
+  .invitation-page {
+    min-height: 100vh;
+    color: #17201b;
+    background: #f8f3ea;
+  }
+
+  .invitation-page .theme-cover-title,
+  .invitation-page .theme-hero-title {
+    font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  }
+
+  .invitation-theme-elegant-classic {
+    background: #f8f3ea;
+  }
+
+  .invitation-theme-modern-minimal {
+    background: #f7f8f6;
+  }
+
+  .invitation-theme-modern-minimal .theme-cover-overlay {
+    background: rgba(247, 248, 246, 0.76);
+  }
+
+  .invitation-theme-modern-minimal .theme-cover-copy,
+  .invitation-theme-modern-minimal .theme-hero-copy {
+    color: #17201b;
+  }
+
+  .invitation-theme-modern-minimal .theme-hero {
+    background: #f7f8f6;
+    color: #17201b;
+  }
+
+  .invitation-theme-modern-minimal .theme-hero-image {
+    opacity: 0.18;
+    mix-blend-mode: multiply;
+  }
+
+  .invitation-theme-floral-garden {
+    background: linear-gradient(180deg, #fff7f3, #eef7ed 42%, #fffaf5);
+  }
+
+  .invitation-theme-floral-garden .theme-cover-overlay {
+    background: linear-gradient(180deg, rgba(47, 55, 42, 0.36), rgba(212, 111, 107, 0.48));
+  }
+
+  .invitation-theme-floral-garden .theme-hero {
+    background: #496c54;
+  }
+
+  .invitation-theme-floral-garden .theme-section-panel {
+    background: rgba(255, 247, 243, 0.92);
+  }
+
+  .invitation-theme-islamic-soft {
+    background: linear-gradient(180deg, #eef5ee, #faf7ef);
+  }
+
+  .invitation-theme-islamic-soft .theme-cover-overlay {
+    background: rgba(20, 45, 39, 0.58);
+  }
+
+  .invitation-theme-islamic-soft .theme-hero {
+    background: #2f5d51;
+  }
+
+  .invitation-theme-islamic-soft .theme-ornament {
+    border-radius: 999px 999px 16px 16px;
+    border: 1px solid rgba(193, 154, 85, 0.45);
+  }
+
+  .invitation-theme-nusantara-heritage {
+    background: #f5eee2;
+  }
+
+  .invitation-theme-nusantara-heritage .theme-cover-overlay {
+    background: linear-gradient(180deg, rgba(59, 23, 24, 0.45), rgba(59, 23, 24, 0.82));
+  }
+
+  .invitation-theme-nusantara-heritage .theme-hero {
+    background: #3b1718;
+  }
+
+  .invitation-theme-nusantara-heritage .theme-section-panel {
+    border-color: rgba(199, 154, 69, 0.28);
+  }
 }

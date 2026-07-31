@@ -6,6 +6,7 @@ import { ImagePlus, Loader2, Plus, Trash2 } from "@lucide/vue";
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
+import ThemePreviewCard from "@/components/ThemePreviewCard.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth";
 import { useCatalogStore } from "@/stores/catalog";
@@ -906,21 +907,11 @@ function fieldError(key) {
               v-for="theme in catalogStore.themes"
               :key="theme.id"
               type="button"
-              class="focus-ring rounded-md border p-4 text-left transition hover:border-leaf"
-              :class="form.themeId === theme.id ? 'border-leaf bg-mint/50' : 'border-ink/10 bg-white'"
+              class="focus-ring rounded-md text-left transition hover:-translate-y-0.5 hover:shadow-soft"
               :disabled="!isMainDataEditable"
               @click="form.themeId = theme.id"
             >
-              <div class="aspect-[4/3] rounded-md bg-linen">
-                <img
-                  v-if="theme.thumbnailUrl"
-                  :src="assetUrl(theme.thumbnailUrl)"
-                  :alt="theme.name"
-                  class="h-full w-full rounded-md object-cover"
-                />
-              </div>
-              <p class="mt-3 text-sm font-bold text-ink">{{ theme.name }}</p>
-              <p class="mt-1 text-xs text-ink/45">{{ theme.key }}</p>
+              <ThemePreviewCard :theme="theme" :selected="form.themeId === theme.id" compact />
             </button>
           </div>
           <p v-if="!catalogStore.themes.length" class="rounded-md bg-gold/10 px-3 py-2 text-sm font-semibold text-ink">

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { CalendarDays, Gift, Loader2, MapPin, Music2 } from "@lucide/vue";
 
 import { getApiErrorMessage } from "@/lib/api";
+import { getInvitationTheme, getThemeClass } from "@/lib/invitationThemes";
 import { getMusic } from "@/services/catalogService";
 import {
   getPublicGuestInvitation,
@@ -48,6 +49,8 @@ const selectedRsvpStatus = computed(() => rsvp.value?.status || "attending");
 const wishes = computed(() => publicData.value?.wishes || []);
 const hasGuestToken = computed(() => Boolean(route.params.token));
 const musicItem = computed(() => music.value.find((item) => item.id === invitation.value?.musicId));
+const selectedTheme = computed(() => getInvitationTheme(invitation.value?.theme?.key || invitation.value?.summary?.themeKey));
+const themeClass = computed(() => getThemeClass(selectedTheme.value.key));
 const wishMessageLength = computed(() => wishForm.message.length);
 const isWishMessageTooLong = computed(() => wishMessageLength.value > maxWishMessageLength);
 const canSubmitWish = computed(() =>
@@ -266,7 +269,7 @@ function rsvpStatusClass(status) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-linen text-ink">
+  <div :class="['invitation-page', themeClass]">
     <div v-if="loading" class="flex min-h-screen items-center justify-center">
       <div class="flex items-center gap-3 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
         <Loader2 class="h-5 w-5 animate-spin text-leaf" />
@@ -317,11 +320,12 @@ function rsvpStatusClass(status) {
           alt="Cover undangan"
           class="absolute inset-0 h-full w-full object-cover"
         />
-        <div class="absolute inset-0 bg-ink/55" />
-        <div class="relative z-10 mx-auto max-w-2xl text-center text-white">
+        <div class="theme-cover-overlay absolute inset-0 bg-ink/55" />
+        <div class="theme-ornament pointer-events-none absolute inset-x-10 top-10 bottom-10 hidden sm:block" />
+        <div class="theme-cover-copy relative z-10 mx-auto max-w-2xl text-center text-white">
           <p class="text-sm font-bold uppercase tracking-widest text-white/75">Undangan pernikahan</p>
           <p v-if="guest" class="mt-4 text-sm font-semibold text-white/80">Kepada {{ guest.name }}</p>
-          <h1 class="mt-5 text-5xl font-bold leading-tight sm:text-6xl">{{ coupleNames }}</h1>
+          <h1 class="theme-cover-title mt-5 text-5xl font-bold leading-tight sm:text-6xl">{{ coupleNames }}</h1>
           <p v-if="invitation.events?.[0]" class="mt-5 text-lg text-white/80">
             {{ formatEventDate(invitation.events[0].date) }}
           </p>
@@ -336,16 +340,16 @@ function rsvpStatusClass(status) {
       </section>
 
       <section v-else>
-        <header class="relative overflow-hidden bg-ink px-4 py-20 text-center text-white">
+        <header class="theme-hero relative overflow-hidden bg-ink px-4 py-20 text-center text-white">
           <img
             v-if="invitation.mainPhotoUrl"
             :src="assetUrl(invitation.mainPhotoUrl)"
             alt="Foto utama"
-            class="absolute inset-0 h-full w-full object-cover opacity-35"
+            class="theme-hero-image absolute inset-0 h-full w-full object-cover opacity-35"
           />
-          <div class="relative z-10 mx-auto max-w-3xl">
+          <div class="theme-hero-copy relative z-10 mx-auto max-w-3xl">
             <p class="text-sm font-bold uppercase tracking-widest text-white/70">The wedding of</p>
-            <h1 class="mt-5 text-5xl font-bold leading-tight sm:text-6xl">{{ coupleNames }}</h1>
+            <h1 class="theme-hero-title mt-5 text-5xl font-bold leading-tight sm:text-6xl">{{ coupleNames }}</h1>
             <button
               v-if="musicItem?.fileUrl"
               class="focus-ring mt-8 inline-flex items-center gap-2 rounded-md bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20 hover:bg-white/20"
@@ -360,12 +364,12 @@ function rsvpStatusClass(status) {
 
         <section class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
           <div class="grid gap-4 md:grid-cols-2">
-            <article class="rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
+            <article class="theme-section-panel rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
               <p class="text-sm font-bold uppercase tracking-widest text-gold">Pengantin pria</p>
               <h2 class="mt-3 text-3xl font-bold text-ink">{{ invitation.groom.fullName }}</h2>
               <p class="mt-3 whitespace-pre-line text-sm leading-6 text-ink/60">{{ invitation.groom.parentsName }}</p>
             </article>
-            <article class="rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
+            <article class="theme-section-panel rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
               <p class="text-sm font-bold uppercase tracking-widest text-gold">Pengantin wanita</p>
               <h2 class="mt-3 text-3xl font-bold text-ink">{{ invitation.bride.fullName }}</h2>
               <p class="mt-3 whitespace-pre-line text-sm leading-6 text-ink/60">{{ invitation.bride.parentsName }}</p>
@@ -377,7 +381,7 @@ function rsvpStatusClass(status) {
           <div class="mx-auto max-w-5xl">
             <p class="text-center text-sm font-bold uppercase tracking-widest text-gold">Detail acara</p>
             <div class="mt-8 grid gap-4 md:grid-cols-2">
-              <article v-for="eventItem in invitation.events" :key="`${eventItem.type}-${eventItem.date}`" class="rounded-lg border border-ink/10 bg-linen p-6 shadow-soft">
+              <article v-for="eventItem in invitation.events" :key="`${eventItem.type}-${eventItem.date}`" class="theme-section-panel rounded-lg border border-ink/10 bg-linen p-6 shadow-soft">
                 <div class="flex items-center gap-3 text-leaf">
                   <CalendarDays class="h-5 w-5" />
                   <p class="text-sm font-bold uppercase tracking-widest">{{ eventItem.type }}</p>

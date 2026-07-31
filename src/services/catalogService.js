@@ -5,6 +5,11 @@ export async function getThemes() {
   return response.data.data.themes;
 }
 
+export async function getPublicDemoThemes() {
+  const response = await api.get("/themes/public-demo");
+  return response.data.data.themes;
+}
+
 export async function getMusic() {
   const response = await api.get("/music");
   return response.data.data.music;
