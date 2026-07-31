@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ArrowLeft, CalendarDays, Loader2, ShieldCheck, UserRound, WalletCards } from "@lucide/vue";
+import { ArrowLeft, Loader2, ShieldCheck, UserRound, WalletCards } from "@lucide/vue";
 
 import AdminCreditAdjustmentDialog from "@/components/AdminCreditAdjustmentDialog.vue";
 import AdminMemberStatusDialog from "@/components/AdminMemberStatusDialog.vue";
@@ -161,6 +161,24 @@ async function confirmCreditAdjustment(payload) {
               <p class="mt-2 text-lg font-bold capitalize text-ink">{{ member.role }}</p>
             </div>
           </div>
+
+          <div class="mt-6 border-t border-ink/10 pt-5">
+            <h3 class="text-sm font-bold uppercase tracking-widest text-ink/45">Informasi akun</h3>
+            <div class="mt-4 grid gap-3 text-sm lg:grid-cols-3">
+              <div>
+                <p class="text-ink/55">Bergabung</p>
+                <p class="mt-1 font-semibold text-ink">{{ formatDateTime(member.createdAt) }}</p>
+              </div>
+              <div>
+                <p class="text-ink/55">Terms accepted</p>
+                <p class="mt-1 font-semibold text-ink">{{ formatDateTime(member.termsAcceptedAt) }}</p>
+              </div>
+              <div>
+                <p class="text-ink/55">Username terakhir diubah</p>
+                <p class="mt-1 font-semibold text-ink">{{ formatDateTime(member.lastUsernameChangedAt) }}</p>
+              </div>
+            </div>
+          </div>
         </article>
 
         <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
@@ -187,30 +205,7 @@ async function confirmCreditAdjustment(payload) {
         </article>
       </section>
 
-      <section class="grid gap-6 xl:grid-cols-2">
-        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-md bg-mint text-leaf">
-              <CalendarDays class="h-5 w-5" />
-            </div>
-            <h2 class="text-lg font-bold text-ink">Informasi akun</h2>
-          </div>
-          <div class="mt-5 space-y-3 text-sm">
-            <div class="flex justify-between gap-4">
-              <span class="text-ink/55">Bergabung</span>
-              <span class="font-semibold text-ink">{{ formatDateTime(member.createdAt) }}</span>
-            </div>
-            <div class="flex justify-between gap-4">
-              <span class="text-ink/55">Terms accepted</span>
-              <span class="font-semibold text-ink">{{ formatDateTime(member.termsAcceptedAt) }}</span>
-            </div>
-            <div class="flex justify-between gap-4">
-              <span class="text-ink/55">Username terakhir diubah</span>
-              <span class="font-semibold text-ink">{{ formatDateTime(member.lastUsernameChangedAt) }}</span>
-            </div>
-          </div>
-        </article>
-
+      <section>
         <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <h2 class="text-lg font-bold text-ink">Catatan operasional</h2>
           <div class="mt-4 space-y-3 text-sm leading-6 text-ink/60">
