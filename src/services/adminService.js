@@ -100,6 +100,11 @@ export async function getAdminInvitations(status = "") {
   return response.data.data.invitations;
 }
 
+export async function getAdminInvitation(id) {
+  const response = await api.get(`/admin/invitations/${id}`);
+  return response.data.data.invitation;
+}
+
 export async function unlockInvitation(id, note = "") {
   const response = await api.post(`/admin/invitations/${id}/unlock`, { note });
   return response.data.data.invitation;

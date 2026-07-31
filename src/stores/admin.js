@@ -14,6 +14,7 @@ export const useAdminStore = defineStore("admin", {
     themes: [],
     music: [],
     invitations: [],
+    currentInvitation: null,
     auditLogs: [],
     reports: {
       revenue: null,
@@ -149,9 +150,19 @@ export const useAdminStore = defineStore("admin", {
     async loadInvitations(status = "") {
       this.invitations = await this.run(() => adminService.getAdminInvitations(status), "Undangan belum bisa dimuat.");
     },
+    async loadInvitation(id) {
+      this.currentInvitation = await this.run(() => adminService.getAdminInvitation(id), "Detail undangan belum bisa dimuat.");
+    },
     async unlockInvitation(id, note = "") {
       const invitation = await this.mutate(() => adminService.unlockInvitation(id, note), "Undangan belum bisa dibuka lock.");
       this.invitations = this.invitations.map((row) => (row.id === id ? invitation : row));
+      if (this.currentInvitation?.id === id) {
+        this.currentInvitation = {
+          ...this.currentInvitation,
+          ...invitation
+        };
+      }
+      return invitation;
     },
     async loadAuditLogs() {
       this.auditLogs = await this.run(() => adminService.getAuditLogs(), "Audit log belum bisa dimuat.");
