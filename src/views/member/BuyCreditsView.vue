@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Check, CreditCard, Gift, Landmark, Loader2, ReceiptText, Tag, UploadCloud } from "@lucide/vue";
+import { Check, CreditCard, Landmark, Loader2, ReceiptText, Tag, UploadCloud } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import CreditPackageTimer from "@/components/CreditPackageTimer.vue";
@@ -15,7 +15,6 @@ const transactionStore = useTransactionStore();
 const router = useRouter();
 const selectedPackageId = ref("");
 const promoCode = ref("");
-const promoError = ref("");
 const error = ref("");
 
 onMounted(async () => {
@@ -52,6 +51,15 @@ const nextSteps = [
   }
 ];
 
+function selectPackage(creditPackage) {
+  selectedPackageId.value = creditPackage.id;
+  error.value = "";
+
+  if (!creditPackage.hasPromoCode) {
+    promoCode.value = "";
+  }
+}
+
 async function createPayment() {
   if (!selectedPackageId.value) {
     error.value = "Pilih paket kredit terlebih dahulu.";
@@ -61,31 +69,26 @@ async function createPayment() {
   error.value = "";
 
   try {
-    if (selectedPackage.value?.price <= 0 && selectedPackage.value?.hasPromoCode) {
-      error.value = "Paket promo gratis wajib diklaim lewat kode promo, bukan transaksi transfer.";
+    if (selectedPackage.value?.hasPromoCode && !promoCode.value.trim()) {
+      error.value = "Masukkan kode promo untuk paket promo yang dipilih.";
       return;
     }
 
-    const transaction = await transactionStore.create(selectedPackageId.value);
+    if (!selectedPackage.value?.hasPromoCode && promoCode.value.trim()) {
+      error.value = "Kode promo hanya dipakai saat memilih paket promo.";
+      return;
+    }
+
+    if (selectedPackage.value?.price <= 0 && selectedPackage.value?.hasPromoCode) {
+      const transaction = await transactionStore.redeemPromo(promoCode.value.trim());
+      router.push({ name: "member-transaction-detail", params: { id: transaction.id } });
+      return;
+    }
+
+    const transaction = await transactionStore.create(selectedPackageId.value, promoCode.value.trim());
     router.push({ name: "member-transaction-detail", params: { id: transaction.id } });
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Transaksi belum bisa dibuat.");
-  }
-}
-
-async function redeemPromo() {
-  if (!promoCode.value.trim()) {
-    promoError.value = "Masukkan kode promo terlebih dahulu.";
-    return;
-  }
-
-  promoError.value = "";
-
-  try {
-    const transaction = await transactionStore.redeemPromo(promoCode.value.trim());
-    router.push({ name: "member-transaction-detail", params: { id: transaction.id } });
-  } catch (requestError) {
-    promoError.value = getApiErrorMessage(requestError, "Kode promo belum bisa diklaim.");
   }
 }
 </script>
@@ -120,7 +123,7 @@ async function redeemPromo() {
           type="button"
           class="focus-ring rounded-lg border bg-white p-5 text-left shadow-soft transition hover:border-leaf"
           :class="selectedPackageId === creditPackage.id ? 'border-leaf ring-2 ring-leaf/15' : 'border-ink/10'"
-          @click="selectedPackageId = creditPackage.id"
+          @click="selectPackage(creditPackage)"
         >
           <div class="flex items-start justify-between gap-3">
             <div>
@@ -157,34 +160,6 @@ async function redeemPromo() {
 
       <section class="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <section class="mb-6 rounded-lg border border-gold/20 bg-gold/10 p-4">
-            <div class="flex items-start gap-3">
-              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white text-gold">
-                <Gift class="h-5 w-5" />
-              </div>
-              <div class="min-w-0 flex-1">
-                <h2 class="text-lg font-bold text-ink">Punya kode promo?</h2>
-                <p class="mt-1 text-sm leading-6 text-ink/60">
-                  Klaim kode promo gratis di sini. Jika valid, kredit langsung masuk tanpa transfer dan tanpa upload bukti.
-                </p>
-                <form class="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]" @submit.prevent="redeemPromo">
-                  <input
-                    v-model.trim="promoCode"
-                    class="focus-ring h-11 rounded-md border border-ink/15 bg-white px-3 text-sm uppercase"
-                    placeholder="Masukkan kode promo"
-                  />
-                  <AppButton type="submit" :disabled="transactionStore.submitting">
-                    <Loader2 v-if="transactionStore.submitting" class="h-4 w-4 animate-spin" />
-                    Klaim Kode
-                  </AppButton>
-                </form>
-                <p v-if="promoError" class="mt-3 rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">
-                  {{ promoError }}
-                </p>
-              </div>
-            </div>
-          </section>
-
           <h2 class="text-lg font-bold text-ink">Setelah klik Buat Transaksi</h2>
           <p class="mt-2 text-sm leading-6 text-ink/60">
             Kamu belum perlu transfer di halaman ini. Ikuti instruksi di detail transaksi setelah nominal final muncul.
@@ -234,8 +209,20 @@ async function redeemPromo() {
               <span class="font-semibold text-ink">{{ formatDateTime(selectedPackage.endsAt) }}</span>
             </div>
             <div class="rounded-md bg-linen px-3 py-2 text-ink/65">
-              Total bayar final dibuat setelah transaksi dibuat.
+              {{ selectedPackage.hasPromoCode && selectedPackage.price <= 0 ? "Kode promo valid akan langsung menambahkan kredit tanpa transfer." : "Total bayar final dibuat setelah transaksi dibuat." }}
             </div>
+
+            <label class="block">
+              <span class="text-sm font-semibold text-ink">Kode promo</span>
+              <input
+                v-model.trim="promoCode"
+                class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 bg-white px-3 text-sm uppercase"
+                :placeholder="selectedPackage.hasPromoCode ? 'Masukkan kode promo paket ini' : 'Optional, kosongkan untuk paket biasa'"
+              />
+              <span class="mt-1 block text-xs leading-5 text-ink/45">
+                {{ selectedPackage.hasPromoCode ? "Kode wajib diisi untuk melanjutkan paket promo." : "Kosongkan jika membeli paket reguler." }}
+              </span>
+            </label>
           </div>
 
           <p v-if="error || transactionStore.error" class="mt-4 rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">
@@ -244,7 +231,7 @@ async function redeemPromo() {
 
           <AppButton class="mt-5 w-full" :disabled="transactionStore.submitting || !selectedPackage" @click="createPayment">
             <Loader2 v-if="transactionStore.submitting" class="h-4 w-4 animate-spin" />
-            {{ selectedPackage?.price <= 0 && selectedPackage?.hasPromoCode ? "Isi Kode Promo untuk Klaim" : "Buat Transaksi dan Lihat Instruksi" }}
+            {{ selectedPackage?.price <= 0 && selectedPackage?.hasPromoCode ? "Klaim Kode Promo" : "Buat Transaksi dan Lihat Instruksi" }}
           </AppButton>
           <p class="mt-3 text-xs leading-5 text-ink/50">
             Kredit yang sudah dibeli dan kredit yang sudah dipakai publish tidak bisa refund.

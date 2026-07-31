@@ -45,12 +45,12 @@ export const useTransactionStore = defineStore("transactions", {
         this.loading = false;
       }
     },
-    async create(packageId) {
+    async create(packageId, promoCode = "") {
       this.submitting = true;
       this.error = "";
 
       try {
-        const transaction = await createTransaction(packageId);
+        const transaction = await createTransaction(packageId, promoCode);
         this.current = transaction;
         this.transactions = [transaction, ...this.transactions.filter((item) => item.id !== transaction.id)];
         return transaction;

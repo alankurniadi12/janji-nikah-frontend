@@ -1,7 +1,7 @@
 import api from "@/lib/api";
 
-export async function createTransaction(packageId) {
-  const response = await api.post("/member/transactions", { packageId });
+export async function createTransaction(packageId, promoCode = "") {
+  const response = await api.post("/member/transactions", { packageId, promoCode });
   return response.data.data.transaction;
 }
 
