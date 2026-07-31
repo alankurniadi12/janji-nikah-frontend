@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ArrowLeft, Loader2, ShieldCheck, UserRound, WalletCards } from "@lucide/vue";
+import { ArrowLeft, CreditCard, FileText, Loader2, ReceiptText, ShieldCheck, UserRound, WalletCards } from "@lucide/vue";
 
 import AdminCreditAdjustmentDialog from "@/components/AdminCreditAdjustmentDialog.vue";
 import AdminMemberStatusDialog from "@/components/AdminMemberStatusDialog.vue";
@@ -31,6 +31,7 @@ onMounted(() => {
 });
 
 const member = computed(() => adminStore.currentMember);
+const activityItems = computed(() => member.value?.activity?.items || []);
 const statusTone = computed(() => {
   const tones = {
     active: "border-leaf/20 bg-leaf/10 text-leaf",
@@ -40,6 +41,20 @@ const statusTone = computed(() => {
 
   return tones[member.value?.status] || "border-ink/15 bg-ink/5 text-ink/70";
 });
+const activityMeta = {
+  transaction: {
+    icon: ReceiptText,
+    tone: "border-gold/20 bg-gold/10 text-gold"
+  },
+  invitation: {
+    icon: FileText,
+    tone: "border-leaf/20 bg-leaf/10 text-leaf"
+  },
+  credit: {
+    icon: CreditCard,
+    tone: "border-rose/20 bg-rose/10 text-rose"
+  }
+};
 const statusLabel = computed(() => {
   const labels = {
     active: "Active",
@@ -214,6 +229,43 @@ async function confirmCreditAdjustment(payload) {
             <p>Status akun sebaiknya diubah hanya jika ada alasan operasional yang jelas.</p>
           </div>
         </article>
+      </section>
+
+      <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-ink">Aktivitas member</h2>
+            <p class="mt-1 text-sm text-ink/55">Transaksi, undangan, dan perubahan kredit terbaru.</p>
+          </div>
+          <p class="text-sm font-semibold text-ink/50">{{ activityItems.length }} aktivitas terbaru</p>
+        </div>
+
+        <div v-if="activityItems.length" class="mt-5 divide-y divide-ink/10">
+          <article
+            v-for="item in activityItems"
+            :key="item.id"
+            class="grid gap-4 py-4 md:grid-cols-[42px_1fr_180px] md:items-start"
+          >
+            <div
+              class="flex h-10 w-10 items-center justify-center rounded-md border"
+              :class="(activityMeta[item.type] || activityMeta.transaction).tone"
+            >
+              <component :is="(activityMeta[item.type] || activityMeta.transaction).icon" class="h-5 w-5" />
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="font-bold text-ink">{{ item.title }}</p>
+                <span class="rounded-full bg-ink/5 px-2 py-0.5 text-xs font-semibold capitalize text-ink/55">{{ item.type }}</span>
+              </div>
+              <p class="mt-1 text-sm leading-6 text-ink/60">{{ item.description }}</p>
+              <p v-if="item.note" class="mt-2 rounded-md bg-linen px-3 py-2 text-sm leading-6 text-ink/65">{{ item.note }}</p>
+            </div>
+            <p class="text-sm font-semibold text-ink/50 md:text-right">{{ formatDateTime(item.createdAt) }}</p>
+          </article>
+        </div>
+        <p v-else class="mt-5 rounded-md bg-linen p-5 text-center text-sm font-semibold text-ink/55">
+          Belum ada aktivitas transaksi, undangan, atau kredit untuk member ini.
+        </p>
       </section>
     </div>
 
