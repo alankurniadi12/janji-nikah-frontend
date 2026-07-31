@@ -217,17 +217,9 @@ async function confirmCreditAdjustment(payload) {
               Adjustment kredit
             </AppButton>
           </div>
-        </article>
-      </section>
-
-      <section>
-        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <h2 class="text-lg font-bold text-ink">Catatan operasional</h2>
-          <div class="mt-4 space-y-3 text-sm leading-6 text-ink/60">
-            <p>Adjustment kredit hanya dilakukan dari halaman detail agar konteks member jelas.</p>
-            <p>Setiap perubahan kredit wajib memiliki alasan dan otomatis tercatat pada credit ledger serta audit log.</p>
-            <p>Status akun sebaiknya diubah hanya jika ada alasan operasional yang jelas.</p>
-          </div>
+          <p class="mt-4 border-t border-ink/10 pt-4 text-xs leading-5 text-ink/45">
+            Adjustment kredit wajib memakai alasan dan tercatat di ledger serta audit log.
+          </p>
         </article>
       </section>
 
