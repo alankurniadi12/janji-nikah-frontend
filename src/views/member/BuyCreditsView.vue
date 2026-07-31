@@ -1,13 +1,14 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Check, CreditCard, Landmark, Loader2, ReceiptText, UploadCloud } from "@lucide/vue";
+import { Check, CreditCard, Landmark, Loader2, ReceiptText, Tag, UploadCloud } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
+import CreditPackageTimer from "@/components/CreditPackageTimer.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useCreditStore } from "@/stores/credit";
 import { useTransactionStore } from "@/stores/transactions";
-import { formatCurrency } from "@/utils/formatters";
+import { formatCurrency, formatDateTime } from "@/utils/formatters";
 
 const creditStore = useCreditStore();
 const transactionStore = useTransactionStore();
@@ -100,7 +101,13 @@ async function createPayment() {
         >
           <div class="flex items-start justify-between gap-3">
             <div>
-              <p class="text-sm font-bold uppercase tracking-widest text-gold">{{ creditPackage.creditAmount }} kredit</p>
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="text-sm font-bold uppercase tracking-widest text-gold">{{ creditPackage.creditAmount }} kredit</p>
+                <span v-if="creditPackage.promoCode" class="inline-flex items-center gap-1 rounded-full bg-gold/10 px-2 py-0.5 text-xs font-bold text-gold">
+                  <Tag class="h-3.5 w-3.5" />
+                  {{ creditPackage.promoCode }}
+                </span>
+              </div>
               <h2 class="mt-3 text-xl font-bold text-ink">{{ creditPackage.name }}</h2>
             </div>
             <span
@@ -114,8 +121,16 @@ async function createPayment() {
           <p class="mt-2 text-sm leading-6 text-ink/55">
             Cocok untuk publish {{ creditPackage.creditAmount }} undangan. Draft dan preview tetap gratis.
           </p>
+          <div v-if="creditPackage.countdownEndsAt || creditPackage.endsAt" class="mt-4 space-y-2">
+            <CreditPackageTimer v-if="creditPackage.countdownEndsAt" :ends-at="creditPackage.countdownEndsAt" prefix="Sisa promo" />
+            <p v-if="creditPackage.endsAt" class="text-xs font-semibold text-ink/45">Berakhir {{ formatDateTime(creditPackage.endsAt) }}</p>
+          </div>
         </button>
       </div>
+
+      <p v-if="!creditStore.packages.length" class="mt-8 rounded-lg border border-ink/10 bg-white p-8 text-center text-sm font-semibold text-ink/55 shadow-soft">
+        Belum ada paket kredit yang aktif saat ini.
+      </p>
 
       <section class="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
@@ -158,6 +173,14 @@ async function createPayment() {
             <div class="flex justify-between gap-4">
               <span class="text-ink/55">Harga paket</span>
               <span class="font-semibold text-ink">{{ formatCurrency(selectedPackage.price) }}</span>
+            </div>
+            <div v-if="selectedPackage.promoCode" class="flex justify-between gap-4">
+              <span class="text-ink/55">Kode promo</span>
+              <span class="font-semibold text-gold">{{ selectedPackage.promoCode }}</span>
+            </div>
+            <div v-if="selectedPackage.endsAt" class="flex justify-between gap-4">
+              <span class="text-ink/55">Promo berakhir</span>
+              <span class="font-semibold text-ink">{{ formatDateTime(selectedPackage.endsAt) }}</span>
             </div>
             <div class="rounded-md bg-linen px-3 py-2 text-ink/65">
               Total bayar final dibuat setelah transaksi dibuat.

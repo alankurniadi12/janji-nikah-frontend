@@ -125,6 +125,10 @@ export const useAdminStore = defineStore("admin", {
       const item = await this.mutate(() => adminService.setCreditPackageStatus(id, isActive), "Status paket belum bisa diubah.");
       this.creditPackages = this.creditPackages.map((row) => (row.id === id ? item : row));
     },
+    async deleteCreditPackage(id) {
+      await this.mutate(() => adminService.deleteCreditPackage(id), "Paket kredit belum bisa dihapus.");
+      this.creditPackages = this.creditPackages.filter((row) => row.id !== id);
+    },
     async loadThemes() {
       this.themes = await this.run(() => adminService.getAdminThemes(), "Tema belum bisa dimuat.");
     },

@@ -65,6 +65,11 @@ export async function setCreditPackageStatus(id, isActive) {
   return response.data.data.package;
 }
 
+export async function deleteCreditPackage(id) {
+  const response = await api.delete(`/admin/credit-packages/${id}`);
+  return response.data.data;
+}
+
 export async function getAdminThemes() {
   const response = await api.get("/admin/themes");
   return response.data.data.themes;
