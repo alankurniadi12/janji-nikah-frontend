@@ -66,7 +66,7 @@ export async function setCreditPackageStatus(id, isActive) {
 }
 
 export async function deleteCreditPackage(id) {
-  const response = await api.delete(`/admin/credit-packages/${id}`);
+  const response = await api.post(`/admin/credit-packages/${id}/delete`);
   return response.data.data;
 }
 
