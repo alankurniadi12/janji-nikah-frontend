@@ -213,7 +213,7 @@ async function createPayment() {
             </div>
 
             <label class="block">
-              <span class="text-sm font-semibold text-ink">Kode promo</span>
+              <span class="text-sm font-semibold text-ink">Punya Kode Promo?</span>
               <input
                 v-model.trim="promoCode"
                 class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 bg-white px-3 text-sm uppercase"
