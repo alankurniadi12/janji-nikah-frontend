@@ -1,10 +1,12 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import { ArrowRight, FilePlus2, Loader2, Trash2 } from "@lucide/vue";
+import { ArrowRight, ExternalLink, FilePlus2, Loader2, Sparkles, Trash2 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
+import ThemePreviewCard from "@/components/ThemePreviewCard.vue";
+import { invitationThemes } from "@/lib/invitationThemes";
 import { useInvitationStore } from "@/stores/invitations";
 import { formatDate } from "@/utils/formatters";
 
@@ -23,6 +25,14 @@ onMounted(() => {
 
 const draftCount = computed(() =>
   invitationStore.invitations.filter((invitation) => invitation.status === "draft").length
+);
+const themeShortcuts = computed(() =>
+  invitationThemes.slice(0, 3).map((theme) => ({
+    id: theme.key,
+    key: theme.key,
+    name: theme.name,
+    thumbnailUrl: ""
+  }))
 );
 const filteredInvitations = computed(() => {
   const query = filters.value.query.trim().toLowerCase();
@@ -131,6 +141,41 @@ function toMonthInput(value) {
     <p v-if="draftCount >= 3" class="mt-5 rounded-md bg-gold/10 px-4 py-3 text-sm font-semibold text-ink">
       Batas 3 draft sudah penuh. Hapus atau publish salah satu draft sebelum membuat undangan baru.
     </p>
+
+    <section class="mt-6 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+      <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center">
+        <div>
+          <div class="flex h-10 w-10 items-center justify-center rounded-md bg-mint text-leaf">
+            <Sparkles class="h-5 w-5" />
+          </div>
+          <p class="mt-4 text-sm font-bold uppercase tracking-widest text-gold">Katalog tema</p>
+          <h2 class="mt-2 text-2xl font-bold text-ink">Tunjukkan contoh tema tanpa membuat draft.</h2>
+          <p class="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
+            Buka preview tema siap pakai, salin link, lalu kirim ke calon pengantin untuk bantu proses pilih desain.
+          </p>
+          <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+            <AppButton :to="{ name: 'theme-demo' }" variant="secondary">
+              <ExternalLink class="h-4 w-4" />
+              Buka Katalog Tema
+            </AppButton>
+            <AppButton :to="{ name: 'theme-demo-detail', params: { themeKey: 'elegant-classic' } }">
+              Lihat Preview Utama
+            </AppButton>
+          </div>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-3">
+          <RouterLink
+            v-for="theme in themeShortcuts"
+            :key="theme.id"
+            class="focus-ring rounded-md transition hover:-translate-y-0.5 hover:shadow-soft"
+            :to="{ name: 'theme-demo-detail', params: { themeKey: theme.key } }"
+            target="_blank"
+          >
+            <ThemePreviewCard :theme="theme" compact />
+          </RouterLink>
+        </div>
+      </div>
+    </section>
 
     <section class="mt-6 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
       <div class="grid gap-4 lg:grid-cols-[1fr_180px_180px_120px]">
