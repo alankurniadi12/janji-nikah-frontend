@@ -154,13 +154,21 @@ function toMonthInput(value) {
             Buka preview tema siap pakai, salin link, lalu kirim ke calon pengantin untuk bantu proses pilih desain.
           </p>
           <div class="mt-4 flex flex-col gap-3 sm:flex-row">
-            <AppButton :to="{ name: 'theme-demo' }" variant="secondary">
+            <RouterLink
+              class="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-leaf hover:text-leaf"
+              :to="{ name: 'theme-demo' }"
+              target="_blank"
+            >
               <ExternalLink class="h-4 w-4" />
               Buka Katalog Tema
-            </AppButton>
-            <AppButton :to="{ name: 'theme-demo-detail', params: { themeKey: 'elegant-classic' } }">
+            </RouterLink>
+            <RouterLink
+              class="focus-ring inline-flex min-h-11 items-center justify-center rounded-md bg-leaf px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink"
+              :to="{ name: 'theme-demo-detail', params: { themeKey: 'elegant-classic' } }"
+              target="_blank"
+            >
               Lihat Preview Utama
-            </AppButton>
+            </RouterLink>
           </div>
         </div>
         <div class="grid gap-3 sm:grid-cols-3">
