@@ -36,6 +36,13 @@ onMounted(async () => {
 });
 
 const invitation = computed(() => invitationStore.current);
+const hostViewUrl = computed(() => {
+  if (!invitation.value?.hostViewUrl) {
+    return "";
+  }
+
+  return new URL(invitation.value.hostViewUrl, window.location.origin).toString();
+});
 const sentCount = computed(() => guestStore.guests.filter((guest) => guest.sentStatus === "sent").length);
 const unsentCount = computed(() => guestStore.guests.length - sentCount.value);
 const hiddenWishCount = computed(() => guestStore.wishes.filter((wish) => wish.isHidden).length);
@@ -127,6 +134,15 @@ async function copyAllGuestLinks() {
 
   const rows = guestStore.guests.map((guest) => `${guest.name}\t${absoluteLink(guest.link)}`);
   await copyText(["Nama Tamu\tLink Personal", ...rows].join("\n"), "Semua link tamu berhasil disalin.");
+}
+
+async function copyHostViewUrl() {
+  if (!hostViewUrl.value) {
+    error.value = "Link laporan calon pengantin belum tersedia. Publish undangan dulu, lalu buka ulang halaman ini.";
+    return;
+  }
+
+  await copyText(hostViewUrl.value, "Link laporan calon pengantin berhasil disalin.");
 }
 
 function downloadGuestLinksCsv() {
@@ -284,13 +300,24 @@ function rsvpStatusClass(status) {
           Tambahkan tamu, salin link personal, salin pesan WhatsApp, dan tandai undangan yang sudah dikirim.
         </p>
       </div>
-      <AppButton
-        v-if="invitation"
-        :to="{ name: 'member-invitation-detail', params: { id: invitation.id } }"
-        variant="secondary"
-      >
-        Edit Undangan
-      </AppButton>
+      <div class="flex flex-col gap-2 sm:flex-row">
+        <AppButton
+          v-if="hostViewUrl && invitation?.status !== 'draft'"
+          type="button"
+          variant="secondary"
+          @click="copyHostViewUrl"
+        >
+          <Copy class="h-4 w-4" />
+          Salin Link Laporan
+        </AppButton>
+        <AppButton
+          v-if="invitation"
+          :to="{ name: 'member-invitation-detail', params: { id: invitation.id } }"
+          variant="secondary"
+        >
+          Edit Undangan
+        </AppButton>
+      </div>
     </div>
 
     <div class="mt-6 grid gap-4 md:grid-cols-4">
