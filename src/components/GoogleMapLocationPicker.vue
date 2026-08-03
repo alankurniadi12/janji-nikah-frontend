@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { ExternalLink, MapPin, Search } from "@lucide/vue";
 
 const props = defineProps({
@@ -40,10 +40,15 @@ const searchQuery = ref("");
 const mapElement = ref(null);
 const searchInput = ref(null);
 const mapStatus = ref("");
+const interactiveMapReady = ref(false);
+const interactiveMapFailed = ref(false);
 
 let googleMap = null;
 let marker = null;
 let geocoder = null;
+let mapLoadTimeout = null;
+
+const shouldShowInteractiveMap = computed(() => canUseInteractiveMap.value && !interactiveMapFailed.value);
 
 const fallbackMapUrl = computed(() => {
   const query = props.googleMapsUrl || props.address || "Indonesia";
@@ -76,11 +81,24 @@ onMounted(async () => {
   }
 
   try {
+    window.gm_authFailure = () => {
+      failInteractiveMap("Google Maps menolak API key. Cek restriction domain, billing, dan API yang diizinkan.");
+    };
     await loadGoogleMaps();
     await nextTick();
     initializeMap();
   } catch {
-    mapStatus.value = "Peta interaktif belum bisa dimuat. Cek API key, API yang aktif, billing, dan pembatasan domain.";
+    failInteractiveMap("Peta interaktif belum bisa dimuat. Cek API key, API yang aktif, billing, dan pembatasan domain.");
+  }
+});
+
+onUnmounted(() => {
+  if (mapLoadTimeout) {
+    window.clearTimeout(mapLoadTimeout);
+  }
+
+  if (window.gm_authFailure) {
+    window.gm_authFailure = undefined;
   }
 });
 
@@ -135,6 +153,7 @@ function loadGoogleMaps() {
 
 function initializeMap() {
   if (!mapElement.value || !window.google?.maps?.Map) {
+    failInteractiveMap("Peta interaktif belum siap. Coba refresh halaman atau cek konfigurasi Google Maps.");
     return;
   }
 
@@ -152,6 +171,8 @@ function initializeMap() {
     position: center,
     draggable: !props.disabled
   });
+  interactiveMapReady.value = true;
+  interactiveMapFailed.value = false;
 
   googleMap.addListener("click", (event) => {
     if (props.disabled) {
@@ -182,6 +203,17 @@ function initializeMap() {
 
   if (props.address) {
     searchAddress();
+  }
+}
+
+function failInteractiveMap(message) {
+  interactiveMapFailed.value = true;
+  interactiveMapReady.value = false;
+  mapStatus.value = message;
+
+  if (mapLoadTimeout) {
+    window.clearTimeout(mapLoadTimeout);
+    mapLoadTimeout = null;
   }
 }
 
@@ -262,7 +294,7 @@ function createPlaceUrl(address, placeId, directUrl) {
         <button
           class="focus-ring inline-flex h-11 items-center justify-center gap-2 rounded-md border border-ink/15 px-4 text-sm font-semibold text-ink hover:border-leaf hover:text-leaf disabled:cursor-not-allowed disabled:opacity-50"
           type="button"
-          :disabled="disabled || !canUseInteractiveMap"
+          :disabled="disabled || !shouldShowInteractiveMap"
           @click="searchAddress"
         >
           <MapPin class="h-4 w-4" />
@@ -272,7 +304,7 @@ function createPlaceUrl(address, placeId, directUrl) {
     </label>
 
     <div class="overflow-hidden rounded-md border border-ink/10 bg-linen">
-      <div v-if="canUseInteractiveMap" ref="mapElement" class="h-72 w-full" />
+      <div v-if="shouldShowInteractiveMap" ref="mapElement" class="h-72 w-full" />
       <iframe
         v-else
         class="h-72 w-full border-0"
@@ -284,7 +316,7 @@ function createPlaceUrl(address, placeId, directUrl) {
     </div>
 
     <p v-if="mapStatus" class="text-xs font-semibold text-rose">{{ mapStatus }}</p>
-    <p v-else-if="canUseInteractiveMap" class="text-xs text-ink/50">
+    <p v-else-if="shouldShowInteractiveMap" class="text-xs text-ink/50">
       Klik peta atau geser pin untuk menentukan titik lokasi yang paling tepat.
     </p>
     <p v-else class="text-xs text-ink/50">
