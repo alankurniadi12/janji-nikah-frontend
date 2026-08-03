@@ -5,6 +5,7 @@ import { ExternalLink, ImagePlus, Loader2, Plus, Trash2 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
+import GoogleMapLocationPicker from "@/components/GoogleMapLocationPicker.vue";
 import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
 import ThemePreviewCard from "@/components/ThemePreviewCard.vue";
 import { getApiErrorMessage } from "@/lib/api";
@@ -759,24 +760,14 @@ function fieldError(key) {
                   />
                 </label>
               </div>
-              <label class="mt-4 block text-sm font-semibold text-ink">
-                Alamat
-                <textarea
-                  v-model.trim="eventItem.address"
-                  class="focus-ring mt-2 min-h-24 w-full rounded-md border px-3 py-2 text-sm"
-                  :class="fieldClass(`events.${index}.address`)"
-                  :data-invalid="Boolean(fieldError(`events.${index}.address`))"
-                  :disabled="!isMainDataEditable"
-                />
-              </label>
-              <label class="mt-4 block text-sm font-semibold text-ink">
-                Link Google Maps
-                <input
-                  v-model.trim="eventItem.googleMapsUrl"
-                  class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
-                  :disabled="!isMainDataEditable"
-                />
-              </label>
+              <GoogleMapLocationPicker
+                v-model:address="eventItem.address"
+                v-model:google-maps-url="eventItem.googleMapsUrl"
+                :disabled="!isMainDataEditable"
+                :address-class="fieldClass(`events.${index}.address`)"
+                :address-invalid="Boolean(fieldError(`events.${index}.address`))"
+                :address-error="fieldError(`events.${index}.address`)"
+              />
             </article>
           </div>
           <p
