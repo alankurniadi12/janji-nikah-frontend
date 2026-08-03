@@ -186,6 +186,12 @@ const routes = [
     meta: { public: true }
   },
   {
+    path: "/:username/:slug/host/:token",
+    name: "public-host-dashboard",
+    component: () => import("@/views/public/PublicHostDashboardView.vue"),
+    meta: { public: true }
+  },
+  {
     path: "/:pathMatch(.*)*",
     redirect: "/"
   }

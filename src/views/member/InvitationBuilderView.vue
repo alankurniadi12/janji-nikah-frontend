@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { ExternalLink, ImagePlus, Loader2, Plus, Trash2 } from "@lucide/vue";
+import { Copy, ExternalLink, ImagePlus, Loader2, Plus, Trash2 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
@@ -84,6 +84,14 @@ const publicPath = computed(() => {
   }
 
   return `/${auth.user.username}/${invitation.value.slug}`;
+});
+const hostViewPath = computed(() => invitation.value?.hostViewUrl || "");
+const hostViewUrl = computed(() => {
+  if (!hostViewPath.value) {
+    return "";
+  }
+
+  return new URL(hostViewPath.value, window.location.origin).toString();
 });
 const displayTitle = computed(() => createInvitationTitle(form.groom.fullName, form.bride.fullName));
 const currentSnapshot = computed(() => JSON.stringify(buildPayload()));
@@ -347,6 +355,20 @@ async function openPreview() {
   } catch (requestError) {
     previewWindow.close();
     error.value = getApiErrorMessage(requestError, "Preview belum bisa dibuka.");
+  }
+}
+
+async function copyHostViewUrl() {
+  if (!hostViewUrl.value) {
+    error.value = "Link laporan calon pengantin belum tersedia.";
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(hostViewUrl.value);
+    toastStore.show("Link laporan calon pengantin berhasil disalin.");
+  } catch {
+    error.value = "Browser belum mengizinkan salin otomatis. Buka link laporan lalu salin dari address bar.";
   }
 }
 
@@ -1069,7 +1091,19 @@ function fieldError(key) {
                 >
                   Buka Undangan Publik
                 </AppButton>
+                <AppButton
+                  v-if="hostViewPath && invitation.status !== 'draft'"
+                  type="button"
+                  variant="secondary"
+                  @click="copyHostViewUrl"
+                >
+                  <Copy class="h-4 w-4" />
+                  Salin Link Laporan
+                </AppButton>
               </div>
+              <p v-if="hostViewPath && invitation.status !== 'draft'" class="mt-3 break-all rounded-md bg-white/70 px-3 py-2 text-xs font-semibold text-ink/55">
+                {{ hostViewUrl }}
+              </p>
             </section>
           </div>
 
