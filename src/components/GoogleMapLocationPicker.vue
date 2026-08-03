@@ -32,7 +32,10 @@ const props = defineProps({
 const emit = defineEmits(["update:address", "update:googleMapsUrl"]);
 
 const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+const allowedHosts = parseAllowedHosts(import.meta.env.VITE_GOOGLE_MAPS_ALLOWED_HOSTS);
 const hasMapsApiKey = computed(() => Boolean(apiKey));
+const isHostAllowed = computed(() => allowedHosts.length === 0 || allowedHosts.includes(window.location.hostname));
+const canUseInteractiveMap = computed(() => hasMapsApiKey.value && isHostAllowed.value);
 const searchQuery = ref("");
 const mapElement = ref(null);
 const searchInput = ref(null);
@@ -63,6 +66,12 @@ onMounted(async () => {
   searchQuery.value = props.address;
 
   if (!hasMapsApiKey.value) {
+    mapStatus.value = "API key Google Maps belum terbaca di frontend.";
+    return;
+  }
+
+  if (!isHostAllowed.value) {
+    mapStatus.value = "Google Maps tidak dimuat karena domain halaman ini belum diizinkan.";
     return;
   }
 
@@ -71,7 +80,7 @@ onMounted(async () => {
     await nextTick();
     initializeMap();
   } catch {
-    mapStatus.value = "Peta interaktif belum bisa dimuat. Cek API key Google Maps.";
+    mapStatus.value = "Peta interaktif belum bisa dimuat. Cek API key, API yang aktif, billing, dan pembatasan domain.";
   }
 });
 
@@ -90,6 +99,17 @@ function updateMapsUrl(value) {
   emit("update:googleMapsUrl", value);
 }
 
+function parseAllowedHosts(value) {
+  if (!value) {
+    return ["localhost", "127.0.0.1"];
+  }
+
+  return value
+    .split(",")
+    .map((host) => host.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 function loadGoogleMaps() {
   if (window.google?.maps?.Map) {
     return Promise.resolve();
@@ -101,9 +121,10 @@ function loadGoogleMaps() {
 
   window.__janjiNikahGoogleMapsPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&loading=async`;
     script.async = true;
     script.defer = true;
+    script.referrerPolicy = "strict-origin-when-cross-origin";
     script.onload = resolve;
     script.onerror = reject;
     document.head.appendChild(script);
@@ -180,7 +201,7 @@ function applyPlace(place) {
 }
 
 function searchAddress() {
-  if (!hasMapsApiKey.value || !geocoder || !searchQuery.value.trim()) {
+  if (!canUseInteractiveMap.value || !geocoder || !searchQuery.value.trim()) {
     return;
   }
 
@@ -241,7 +262,7 @@ function createPlaceUrl(address, placeId, directUrl) {
         <button
           class="focus-ring inline-flex h-11 items-center justify-center gap-2 rounded-md border border-ink/15 px-4 text-sm font-semibold text-ink hover:border-leaf hover:text-leaf disabled:cursor-not-allowed disabled:opacity-50"
           type="button"
-          :disabled="disabled || !hasMapsApiKey"
+          :disabled="disabled || !canUseInteractiveMap"
           @click="searchAddress"
         >
           <MapPin class="h-4 w-4" />
@@ -251,7 +272,7 @@ function createPlaceUrl(address, placeId, directUrl) {
     </label>
 
     <div class="overflow-hidden rounded-md border border-ink/10 bg-linen">
-      <div v-if="hasMapsApiKey" ref="mapElement" class="h-72 w-full" />
+      <div v-if="canUseInteractiveMap" ref="mapElement" class="h-72 w-full" />
       <iframe
         v-else
         class="h-72 w-full border-0"
@@ -263,11 +284,11 @@ function createPlaceUrl(address, placeId, directUrl) {
     </div>
 
     <p v-if="mapStatus" class="text-xs font-semibold text-rose">{{ mapStatus }}</p>
-    <p v-else-if="hasMapsApiKey" class="text-xs text-ink/50">
+    <p v-else-if="canUseInteractiveMap" class="text-xs text-ink/50">
       Klik peta atau geser pin untuk menentukan titik lokasi yang paling tepat.
     </p>
     <p v-else class="text-xs text-ink/50">
-      Isi API key Google Maps agar pencarian otomatis, klik peta, dan pin interaktif aktif.
+      Peta interaktif hanya aktif jika API key terbaca dan domain halaman diizinkan.
     </p>
 
     <label class="block text-sm font-semibold text-ink">
