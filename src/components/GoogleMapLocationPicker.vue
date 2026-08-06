@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { ExternalLink, MapPin, Search } from "@lucide/vue";
 
 const props = defineProps({
@@ -101,13 +101,6 @@ onUnmounted(() => {
     window.gm_authFailure = undefined;
   }
 });
-
-watch(
-  () => props.address,
-  (value) => {
-    searchQuery.value = value || "";
-  }
-);
 
 function updateAddress(value) {
   emit("update:address", value);
@@ -290,13 +283,11 @@ function setLocationFromLatLng(latLng) {
 
   geocoder.geocode({ location: { lat, lng } }, (results, status) => {
     if (status === "OK" && results?.[0]?.formatted_address) {
-      updateAddress(results[0].formatted_address);
-      searchQuery.value = results[0].formatted_address;
       mapStatus.value = "";
       return;
     }
 
-    mapStatus.value = "Pin sudah dipasang. Alamat bisa kamu rapikan manual.";
+    mapStatus.value = "Pin sudah dipasang. Tulis alamat yang ingin tampil di undangan secara manual.";
   });
 }
 
