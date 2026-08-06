@@ -138,14 +138,48 @@ function loadGoogleMaps() {
   }
 
   window.__janjiNikahGoogleMapsPromise = new Promise((resolve, reject) => {
+    const callbackName = "__janjiNikahGoogleMapsReady";
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&loading=async`;
+    let settled = false;
+
+    const finish = (callback, value) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+
+      if (mapLoadTimeout) {
+        window.clearTimeout(mapLoadTimeout);
+        mapLoadTimeout = null;
+      }
+
+      if (window[callbackName] === onReady) {
+        window[callbackName] = undefined;
+      }
+
+      callback(value);
+    };
+
+    const onReady = () => {
+      finish(resolve);
+    };
+
+    window[callbackName] = onReady;
+    mapLoadTimeout = window.setTimeout(() => {
+      finish(reject, new Error("Google Maps load timeout"));
+    }, 12000);
+
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&loading=async&callback=${callbackName}`;
     script.async = true;
     script.defer = true;
     script.referrerPolicy = "strict-origin-when-cross-origin";
-    script.onload = resolve;
-    script.onerror = reject;
+    script.onerror = () => finish(reject, new Error("Google Maps script failed to load"));
     document.head.appendChild(script);
+  }).then(() => {
+    if (!window.google?.maps?.Map) {
+      throw new Error("Google Maps API is not ready");
+    }
   });
 
   return window.__janjiNikahGoogleMapsPromise;
