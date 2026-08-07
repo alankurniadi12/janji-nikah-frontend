@@ -1,10 +1,11 @@
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { CalendarDays, Gift, Loader2, MapPin, Music2 } from "@lucide/vue";
+import { Loader2 } from "@lucide/vue";
 
+import InvitationRenderer from "@/components/invitation/InvitationRenderer.vue";
 import { getApiErrorMessage } from "@/lib/api";
-import { getInvitationTheme, getThemeClass } from "@/lib/invitationThemes";
+import { getInvitationTheme } from "@/lib/invitationThemes";
 import { getMusic } from "@/services/catalogService";
 import {
   getPublicGuestInvitation,
@@ -15,7 +16,6 @@ import {
 } from "@/services/publicGuestService";
 import { getPublicInvitation } from "@/services/publicInvitationService";
 import { assetUrl } from "@/utils/assets";
-import { formatEventDate } from "@/utils/formatters";
 
 const route = useRoute();
 const router = useRouter();
@@ -25,8 +25,6 @@ const publicData = ref(null);
 const music = ref([]);
 const opened = ref(false);
 const audioRef = ref(null);
-const wishFormSectionRef = ref(null);
-const wishMessageInputRef = ref(null);
 const audioPlaying = ref(false);
 const submitting = ref(false);
 const guestMessage = ref("");
@@ -50,7 +48,6 @@ const wishes = computed(() => publicData.value?.wishes || []);
 const hasGuestToken = computed(() => Boolean(route.params.token));
 const musicItem = computed(() => music.value.find((item) => item.id === invitation.value?.musicId));
 const selectedTheme = computed(() => getInvitationTheme(invitation.value?.theme?.key || invitation.value?.summary?.themeKey));
-const themeClass = computed(() => getThemeClass(selectedTheme.value.key));
 const wishMessageLength = computed(() => wishForm.message.length);
 const isWishMessageTooLong = computed(() => wishMessageLength.value > maxWishMessageLength);
 const canSubmitWish = computed(() =>
@@ -227,49 +224,21 @@ function cancelEditWish() {
   wishForm.message = "";
 }
 
-function canEditWish(wish) {
-  return Boolean(guest.value?.id && wish.guestId === guest.value.id);
-}
-
 async function focusWishForm() {
   await nextTick();
-  wishFormSectionRef.value?.scrollIntoView({
+  document.getElementById("public-wish-form")?.scrollIntoView({
     behavior: "smooth",
     block: "start"
   });
 
   window.setTimeout(() => {
-    wishMessageInputRef.value?.focus({ preventScroll: true });
+    document.getElementById("public-wish-message")?.focus({ preventScroll: true });
   }, 350);
-}
-
-function rsvpStatusLabel(status) {
-  if (status === "attending") {
-    return "Hadir";
-  }
-
-  if (status === "not_attending") {
-    return "Tidak hadir";
-  }
-
-  return "Belum RSVP";
-}
-
-function rsvpStatusClass(status) {
-  if (status === "attending") {
-    return "border-leaf/20 bg-leaf/10 text-leaf";
-  }
-
-  if (status === "not_attending") {
-    return "border-rose/20 bg-rose/10 text-rose";
-  }
-
-  return "border-ink/10 bg-white text-ink/50";
 }
 </script>
 
 <template>
-  <div :class="['invitation-page', themeClass]">
+  <div>
     <div v-if="loading" class="flex min-h-screen items-center justify-center">
       <div class="flex items-center gap-3 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
         <Loader2 class="h-5 w-5 animate-spin text-leaf" />
@@ -307,259 +276,34 @@ function rsvpStatusClass(status) {
         @pause="audioPlaying = false"
       />
 
-      <section v-if="!opened" class="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
-        <div
-          v-if="isPreview"
-          class="absolute left-4 top-4 z-20 rounded-md bg-white/90 px-3 py-2 text-xs font-bold uppercase tracking-widest text-leaf shadow-soft"
-        >
-          Mode preview
-        </div>
-        <img
-          v-if="invitation.mainPhotoUrl"
-          :src="assetUrl(invitation.mainPhotoUrl)"
-          alt="Cover undangan"
-          class="absolute inset-0 h-full w-full object-cover"
-        />
-        <div class="theme-cover-overlay absolute inset-0 bg-ink/55" />
-        <div class="theme-ornament pointer-events-none absolute inset-x-10 top-10 bottom-10 hidden sm:block" />
-        <div class="theme-cover-copy relative z-10 mx-auto max-w-2xl text-center text-white">
-          <p class="text-sm font-bold uppercase tracking-widest text-white/75">Undangan pernikahan</p>
-          <p v-if="guest" class="mt-4 text-sm font-semibold text-white/80">Kepada {{ guest.name }}</p>
-          <h1 class="theme-cover-title mt-5 text-5xl font-bold leading-tight sm:text-6xl">{{ coupleNames }}</h1>
-          <p v-if="invitation.events?.[0]" class="mt-5 text-lg text-white/80">
-            {{ formatEventDate(invitation.events[0].date) }}
-          </p>
-          <button
-            class="focus-ring mt-8 inline-flex min-h-11 items-center justify-center rounded-md bg-white px-5 py-2 text-sm font-bold text-ink transition hover:bg-mint"
-            type="button"
-            @click="openInvitation"
-          >
-            Buka Undangan
-          </button>
-        </div>
-      </section>
-
-      <section v-else>
-        <header class="theme-hero relative overflow-hidden bg-ink px-4 py-20 text-center text-white">
-          <img
-            v-if="invitation.mainPhotoUrl"
-            :src="assetUrl(invitation.mainPhotoUrl)"
-            alt="Foto utama"
-            class="theme-hero-image absolute inset-0 h-full w-full object-cover opacity-35"
-          />
-          <div class="theme-hero-copy relative z-10 mx-auto max-w-3xl">
-            <p class="text-sm font-bold uppercase tracking-widest text-white/70">The wedding of</p>
-            <h1 class="theme-hero-title mt-5 text-5xl font-bold leading-tight sm:text-6xl">{{ coupleNames }}</h1>
-            <button
-              v-if="musicItem?.fileUrl"
-              class="focus-ring mt-8 inline-flex items-center gap-2 rounded-md bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20 hover:bg-white/20"
-              type="button"
-              @click="toggleMusic"
-            >
-              <Music2 class="h-4 w-4" />
-              {{ audioPlaying ? "Pause musik" : "Play musik" }}
-            </button>
-          </div>
-        </header>
-
-        <section class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-          <div class="grid gap-4 md:grid-cols-2">
-            <article class="theme-section-panel rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
-              <p class="text-sm font-bold uppercase tracking-widest text-gold">Pengantin pria</p>
-              <h2 class="mt-3 text-3xl font-bold text-ink">{{ invitation.groom.fullName }}</h2>
-              <p class="mt-3 whitespace-pre-line text-sm leading-6 text-ink/60">{{ invitation.groom.parentsName }}</p>
-            </article>
-            <article class="theme-section-panel rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
-              <p class="text-sm font-bold uppercase tracking-widest text-gold">Pengantin wanita</p>
-              <h2 class="mt-3 text-3xl font-bold text-ink">{{ invitation.bride.fullName }}</h2>
-              <p class="mt-3 whitespace-pre-line text-sm leading-6 text-ink/60">{{ invitation.bride.parentsName }}</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="bg-white px-4 py-12">
-          <div class="mx-auto max-w-5xl">
-            <p class="text-center text-sm font-bold uppercase tracking-widest text-gold">Detail acara</p>
-            <div class="mt-8 grid gap-4 md:grid-cols-2">
-              <article v-for="eventItem in invitation.events" :key="`${eventItem.type}-${eventItem.date}`" class="theme-section-panel rounded-lg border border-ink/10 bg-linen p-6 shadow-soft">
-                <div class="flex items-center gap-3 text-leaf">
-                  <CalendarDays class="h-5 w-5" />
-                  <p class="text-sm font-bold uppercase tracking-widest">{{ eventItem.type }}</p>
-                </div>
-                <h2 class="mt-4 text-2xl font-bold text-ink">{{ formatEventDate(eventItem.date) }}</h2>
-                <p class="mt-2 text-sm font-semibold text-ink/70">
-                  {{ eventItem.startTime }}{{ eventItem.endTime ? ` - ${eventItem.endTime}` : "" }}
-                </p>
-                <div class="mt-4 flex gap-3 text-sm leading-6 text-ink/60">
-                  <MapPin class="mt-0.5 h-4 w-4 shrink-0 text-rose" />
-                  <p>{{ eventItem.address }}</p>
-                </div>
-                <a
-                  v-if="eventItem.googleMapsUrl"
-                  class="mt-5 inline-flex rounded-md border border-ink/15 px-3 py-2 text-sm font-semibold text-ink hover:border-leaf hover:text-leaf"
-                  :href="eventItem.googleMapsUrl"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Buka Maps
-                </a>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section v-if="invitation.galleryPhotoUrls?.length" class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-          <p class="text-center text-sm font-bold uppercase tracking-widest text-gold">Galeri</p>
-          <div class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <img
-              v-for="url in invitation.galleryPhotoUrls"
-              :key="url"
-              :src="assetUrl(url)"
-              alt="Galeri undangan"
-              class="aspect-[4/3] w-full rounded-lg object-cover shadow-soft"
-            />
-          </div>
-        </section>
-
-        <section v-if="invitation.envelope?.isEnabled" class="bg-white px-4 py-12">
-          <div class="mx-auto max-w-3xl rounded-lg border border-ink/10 bg-linen p-6 text-center shadow-soft">
-            <Gift class="mx-auto h-8 w-8 text-rose" />
-            <h2 class="mt-4 text-2xl font-bold text-ink">Amplop digital</h2>
-            <div class="mt-6 grid gap-3">
-              <div
-                v-for="method in invitation.envelope.methods"
-                :key="`${method.providerName}-${method.accountNumber}`"
-                class="rounded-md border border-ink/10 bg-white p-4"
-              >
-                <p class="text-sm font-bold text-ink">{{ method.providerName }}</p>
-                <p class="mt-1 text-lg font-bold text-leaf">{{ method.accountNumber }}</p>
-                <p class="mt-1 text-sm text-ink/55">a.n. {{ method.accountHolder }}</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="mx-auto max-w-3xl px-4 py-12 text-center">
-          <h2 class="text-2xl font-bold text-ink">RSVP dan ucapan</h2>
-          <p v-if="!guest" class="mt-3 text-sm leading-6 text-ink/60">
-            RSVP dan ucapan tersedia melalui link personal tamu.
-          </p>
-          <div v-else class="mt-6 text-left">
-            <section ref="wishFormSectionRef" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-              <p class="text-sm font-bold uppercase tracking-widest text-gold">Konfirmasi tamu</p>
-              <h3 class="mt-3 text-xl font-bold text-ink">Kehadiran dan ucapan</h3>
-              <p class="mt-2 text-sm leading-6 text-ink/60">
-                Pilih konfirmasi kehadiran, lalu tulis ucapan singkat untuk pengantin.
-              </p>
-              <p class="mt-5 text-sm font-semibold text-ink">Konfirmasi kehadiran</p>
-              <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                <button
-                  class="focus-ring rounded-md border px-4 py-3 text-sm font-bold transition"
-                  :class="selectedRsvpStatus === 'attending' ? 'border-leaf bg-leaf text-white' : 'border-ink/15 bg-white text-ink hover:border-leaf'"
-                  type="button"
-                  :disabled="submitting"
-                  @click="submitRsvp('attending')"
-                >
-                  Hadir
-                </button>
-                <button
-                  class="focus-ring rounded-md border px-4 py-3 text-sm font-bold transition"
-                  :class="selectedRsvpStatus === 'not_attending' ? 'border-rose bg-rose text-white' : 'border-ink/15 bg-white text-ink hover:border-rose'"
-                  type="button"
-                  :disabled="submitting"
-                  @click="submitRsvp('not_attending')"
-                >
-                  Tidak Hadir
-                </button>
-              </div>
-
-              <div class="my-5 border-t border-ink/10" />
-              <p class="text-sm font-semibold text-ink">{{ editingWishId ? "Edit ucapan" : "Ucapan" }}</p>
-              <form class="mt-4 space-y-4" @submit.prevent="submitWish">
-                <label class="block text-sm font-semibold text-ink">
-                  Nama
-                  <input
-                    v-model.trim="wishForm.displayName"
-                    class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
-                  />
-                </label>
-                <label class="block text-sm font-semibold text-ink">
-                  Ucapan
-                  <textarea
-                    ref="wishMessageInputRef"
-                    v-model="wishForm.message"
-                    class="focus-ring mt-2 min-h-28 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
-                    :class="isWishMessageTooLong ? 'border-rose' : ''"
-                    :maxlength="maxWishMessageLength"
-                    placeholder="Tulis doa dan ucapan"
-                  />
-                  <span
-                    class="mt-1 flex justify-end text-xs font-semibold"
-                    :class="isWishMessageTooLong ? 'text-rose' : 'text-ink/45'"
-                  >
-                    {{ wishMessageLength }}/{{ maxWishMessageLength }}
-                  </span>
-                </label>
-                <div class="flex flex-col gap-3 sm:flex-row">
-                  <button
-                    class="focus-ring inline-flex min-h-11 items-center justify-center rounded-md bg-leaf px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink disabled:opacity-60"
-                    type="submit"
-                    :disabled="!canSubmitWish"
-                  >
-                    <Loader2 v-if="submitting" class="mr-2 h-4 w-4 animate-spin" />
-                    {{ editingWishId ? "Simpan Perubahan" : "Kirim Ucapan" }}
-                  </button>
-                  <button
-                    v-if="editingWishId"
-                    class="focus-ring inline-flex min-h-11 items-center justify-center rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-leaf hover:text-leaf"
-                    type="button"
-                    :disabled="submitting"
-                    @click="cancelEditWish"
-                  >
-                    Batal Edit
-                  </button>
-                </div>
-              </form>
-            </section>
-
-            <p v-if="guestError" class="rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ guestError }}</p>
-            <p v-if="guestMessage" class="rounded-md bg-leaf/10 px-4 py-3 text-sm font-semibold text-leaf">{{ guestMessage }}</p>
-          </div>
-        </section>
-
-        <section v-if="wishes.length" class="bg-white px-4 py-12">
-          <div class="mx-auto max-w-3xl">
-            <p class="text-center text-sm font-bold uppercase tracking-widest text-gold">Ucapan tamu</p>
-            <div class="mt-8 grid gap-3">
-              <article v-for="wish in wishes" :key="wish.id" class="rounded-lg border border-ink/10 bg-linen p-5 shadow-soft">
-                <div class="flex flex-wrap items-center gap-2">
-                  <p class="font-bold text-ink">{{ wish.displayName }}</p>
-                  <span
-                    class="rounded-full border px-2.5 py-1 text-xs font-bold"
-                    :class="rsvpStatusClass(wish.rsvpStatus)"
-                  >
-                    {{ rsvpStatusLabel(wish.rsvpStatus) }}
-                  </span>
-                </div>
-                <p class="mt-2 text-sm leading-6 text-ink/65">{{ wish.message }}</p>
-                <button
-                  v-if="canEditWish(wish)"
-                  class="focus-ring mt-3 inline-flex rounded-md border border-ink/15 bg-white px-3 py-2 text-xs font-bold text-ink hover:border-leaf hover:text-leaf"
-                  type="button"
-                  @click="startEditWish(wish)"
-                >
-                  Edit ucapan
-                </button>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <footer class="border-t border-ink/10 bg-white px-4 py-6 text-center text-sm text-ink/55">
-          Dibuat dengan
-          <RouterLink class="font-bold text-leaf hover:text-ink" to="/">Janji Nikah</RouterLink>
-        </footer>
-      </section>
+      <InvitationRenderer
+        :invitation="invitation"
+        :selected-theme="selectedTheme"
+        :guest="guest"
+        :wishes="wishes"
+        :opened="opened"
+        :is-preview="isPreview"
+        :music-item="musicItem"
+        :audio-playing="audioPlaying"
+        :selected-rsvp-status="selectedRsvpStatus"
+        :wish-form="wishForm"
+        :wish-message-length="wishMessageLength"
+        :max-wish-message-length="maxWishMessageLength"
+        :is-wish-message-too-long="isWishMessageTooLong"
+        :can-submit-wish="canSubmitWish"
+        :submitting="submitting"
+        :guest-error="guestError"
+        :guest-message="guestMessage"
+        :editing-wish-id="editingWishId"
+        @open="openInvitation"
+        @toggle-music="toggleMusic"
+        @submit-rsvp="submitRsvp"
+        @submit-wish="submitWish"
+        @update-wish-display-name="wishForm.displayName = $event.trim()"
+        @update-wish-message="wishForm.message = $event"
+        @start-edit-wish="startEditWish"
+        @cancel-edit-wish="cancelEditWish"
+      />
     </template>
   </div>
 </template>

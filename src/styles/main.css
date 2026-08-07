@@ -391,4 +391,346 @@
     font-family: Inter, ui-sans-serif, system-ui, sans-serif;
     font-weight: 800;
   }
+
+  .invitation-page .theme-reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 720ms ease, transform 720ms ease, clip-path 760ms ease;
+  }
+
+  .invitation-page .theme-reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .invitation-page .theme-cover-copy {
+    animation: theme-cover-rise 900ms ease both;
+  }
+
+  .invitation-layout-elegant-classic .theme-section-panel {
+    position: relative;
+    border-radius: 2px !important;
+  }
+
+  .invitation-layout-elegant-classic .theme-section-panel::before {
+    position: absolute;
+    inset: 10px;
+    content: "";
+    pointer-events: none;
+    border: 1px solid rgba(185, 133, 60, 0.24);
+  }
+
+  .invitation-layout-elegant-classic .theme-gallery-grid {
+    gap: 18px;
+  }
+
+  .invitation-layout-elegant-classic .theme-reveal {
+    transition-duration: 920ms;
+  }
+
+  .invitation-layout-modern-minimal .theme-hero {
+    min-height: 64vh;
+    display: flex;
+    align-items: center;
+    text-align: left !important;
+  }
+
+  .invitation-layout-modern-minimal .theme-hero-copy {
+    margin-left: 0;
+  }
+
+  .invitation-layout-modern-minimal .theme-couple-grid,
+  .invitation-layout-modern-minimal .theme-events-grid {
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid var(--theme-border);
+    border-radius: 8px;
+  }
+
+  .invitation-layout-modern-minimal .theme-section-panel {
+    border-radius: 0 !important;
+    border-width: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .invitation-layout-modern-minimal .theme-gallery-grid {
+    grid-template-columns: 1.3fr 0.8fr 0.9fr;
+  }
+
+  .invitation-layout-modern-minimal .theme-gallery-item:nth-child(1) {
+    aspect-ratio: 3 / 4;
+    grid-row: span 2;
+  }
+
+  .invitation-layout-modern-minimal .theme-reveal {
+    transform: translateX(-24px);
+    transition-duration: 640ms;
+  }
+
+  .invitation-layout-modern-minimal .theme-reveal.is-visible {
+    transform: translateX(0);
+  }
+
+  .invitation-layout-floral-garden .theme-cover-section::after,
+  .invitation-layout-floral-garden .theme-hero::after {
+    position: absolute;
+    right: -40px;
+    bottom: -40px;
+    width: 180px;
+    height: 180px;
+    content: "";
+    border-radius: 999px;
+    border: 1px solid rgba(212, 111, 107, 0.28);
+  }
+
+  .invitation-layout-floral-garden .theme-couple-grid {
+    align-items: stretch;
+  }
+
+  .invitation-layout-floral-garden .theme-couple-card:first-child {
+    transform: rotate(-1.2deg);
+  }
+
+  .invitation-layout-floral-garden .theme-couple-card:last-child {
+    transform: rotate(1.2deg);
+  }
+
+  .invitation-layout-floral-garden .theme-section-panel,
+  .invitation-layout-floral-garden .theme-wish-card {
+    border-radius: 8px 8px 36px 8px !important;
+  }
+
+  .invitation-layout-floral-garden .theme-reveal {
+    transform: translateY(24px) scale(0.98);
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .invitation-layout-floral-garden .theme-reveal.is-visible {
+    transform: translateY(0) scale(1);
+  }
+
+  .invitation-layout-islamic-soft .theme-cover-section,
+  .invitation-layout-islamic-soft .theme-hero {
+    clip-path: inset(0 round 0 0 36px 36px);
+  }
+
+  .invitation-layout-islamic-soft .theme-section-panel {
+    border-radius: 999px 999px 8px 8px !important;
+    padding-top: 56px !important;
+  }
+
+  .invitation-layout-islamic-soft .theme-events-grid .theme-section-panel {
+    border-radius: 80px 80px 8px 8px !important;
+  }
+
+  .invitation-layout-islamic-soft .theme-gallery-item {
+    border-radius: 999px 999px 8px 8px !important;
+  }
+
+  .invitation-layout-islamic-soft .theme-reveal {
+    clip-path: inset(12% 0 0 0);
+    transform: translateY(18px);
+  }
+
+  .invitation-layout-islamic-soft .theme-reveal.is-visible {
+    clip-path: inset(0);
+  }
+
+  .invitation-layout-nusantara-heritage .theme-cover-section::before,
+  .invitation-layout-nusantara-heritage .theme-hero::before {
+    position: absolute;
+    inset: 18px;
+    z-index: 1;
+    content: "";
+    pointer-events: none;
+    border: 1px solid rgba(199, 154, 69, 0.42);
+    background: repeating-linear-gradient(45deg, rgba(199, 154, 69, 0.12) 0 5px, transparent 5px 12px);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    padding: 10px;
+  }
+
+  .invitation-layout-nusantara-heritage .theme-couple-grid {
+    position: relative;
+  }
+
+  .invitation-layout-nusantara-heritage .theme-couple-grid::before {
+    position: absolute;
+    left: 50%;
+    top: -22px;
+    bottom: -22px;
+    width: 1px;
+    content: "";
+    background: linear-gradient(180deg, transparent, rgba(199, 154, 69, 0.64), transparent);
+  }
+
+  .invitation-layout-nusantara-heritage .theme-section-panel,
+  .invitation-layout-nusantara-heritage .theme-wish-card {
+    border-radius: 2px !important;
+  }
+
+  .invitation-layout-nusantara-heritage .theme-reveal {
+    transform: translateY(0) scaleX(0.96);
+    transform-origin: top center;
+    transition-duration: 820ms;
+  }
+
+  .invitation-layout-nusantara-heritage .theme-reveal.is-visible {
+    transform: translateY(0) scaleX(1);
+  }
+
+  .invitation-layout-coastal-dawn .theme-cover-section {
+    justify-content: flex-start !important;
+    min-height: calc(100vh - 24px);
+  }
+
+  .invitation-layout-coastal-dawn .theme-cover-copy,
+  .invitation-layout-coastal-dawn .theme-hero-copy {
+    margin-left: clamp(1rem, 8vw, 7rem);
+    margin-right: auto;
+    max-width: 560px;
+    text-align: left !important;
+  }
+
+  .invitation-layout-coastal-dawn .theme-open-button {
+    border-radius: 999px !important;
+  }
+
+  .invitation-layout-coastal-dawn .theme-hero {
+    min-height: 58vh;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 4rem;
+    text-align: left !important;
+  }
+
+  .invitation-layout-coastal-dawn .theme-content-flow {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0) 0, rgba(231, 143, 114, 0.12) 100%),
+      var(--theme-page);
+  }
+
+  .invitation-layout-coastal-dawn .theme-couple-section {
+    max-width: 1120px;
+  }
+
+  .invitation-layout-coastal-dawn .theme-couple-grid {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: end;
+  }
+
+  .invitation-layout-coastal-dawn .theme-couple-card {
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: 8px !important;
+  }
+
+  .invitation-layout-coastal-dawn .theme-couple-card:last-child {
+    margin-top: 56px;
+  }
+
+  .invitation-layout-coastal-dawn .theme-events-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .invitation-layout-coastal-dawn .theme-event-card {
+    display: grid;
+    grid-template-columns: minmax(150px, 0.45fr) minmax(0, 1fr);
+    gap: 18px;
+    align-items: center;
+    border-radius: 8px !important;
+  }
+
+  .invitation-layout-coastal-dawn .theme-gallery-grid {
+    grid-template-columns: 1.2fr 0.8fr 1fr;
+    align-items: stretch;
+  }
+
+  .invitation-layout-coastal-dawn .theme-gallery-item {
+    border-radius: 8px !important;
+  }
+
+  .invitation-layout-coastal-dawn .theme-gallery-item:nth-child(2) {
+    transform: translateY(28px);
+  }
+
+  .invitation-layout-coastal-dawn .theme-envelope-section .theme-section-panel {
+    border-radius: 8px !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(220, 239, 240, 0.95)) !important;
+  }
+
+  .invitation-layout-coastal-dawn .theme-wishes-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .invitation-layout-coastal-dawn .theme-wish-card:nth-child(odd) {
+    transform: translateY(14px);
+  }
+
+  .invitation-layout-coastal-dawn .theme-reveal {
+    transform: translateY(36px);
+    transition-duration: 780ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .invitation-layout-coastal-dawn .theme-reveal.is-visible {
+    transform: translateY(0);
+  }
+
+  @keyframes theme-cover-rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .invitation-layout-modern-minimal .theme-gallery-grid,
+    .invitation-layout-coastal-dawn .theme-gallery-grid,
+    .invitation-layout-coastal-dawn .theme-wishes-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .invitation-layout-modern-minimal .theme-gallery-item:nth-child(1),
+    .invitation-layout-coastal-dawn .theme-gallery-item:nth-child(2),
+    .invitation-layout-coastal-dawn .theme-wish-card:nth-child(odd) {
+      transform: none;
+    }
+
+    .invitation-layout-coastal-dawn .theme-cover-copy,
+    .invitation-layout-coastal-dawn .theme-hero-copy {
+      margin-left: auto;
+      text-align: center !important;
+    }
+
+    .invitation-layout-coastal-dawn .theme-couple-grid,
+    .invitation-layout-coastal-dawn .theme-event-card {
+      grid-template-columns: 1fr;
+    }
+
+    .invitation-layout-coastal-dawn .theme-couple-card:last-child {
+      margin-top: 0;
+    }
+
+    .invitation-layout-nusantara-heritage .theme-couple-grid::before {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .invitation-page .theme-cover-copy,
+    .invitation-page .theme-reveal {
+      animation: none;
+      opacity: 1;
+      transform: none;
+      transition: none;
+      clip-path: none;
+    }
+  }
 }
