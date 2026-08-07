@@ -104,9 +104,20 @@
   }
 
   .invitation-page {
+    --theme-page: #f8f3ea;
+    --theme-band: #ffffff;
+    --theme-panel: #ffffff;
+    --theme-soft-panel: #f8f3ea;
+    --theme-ink: #17201b;
+    --theme-muted: rgba(23, 32, 27, 0.62);
+    --theme-accent: #668c64;
+    --theme-accent-strong: #3f6f4b;
+    --theme-highlight: #b9853c;
+    --theme-danger: #b65a63;
+    --theme-border: rgba(23, 32, 27, 0.12);
     min-height: 100vh;
-    color: #17201b;
-    background: #f8f3ea;
+    color: var(--theme-ink);
+    background: var(--theme-page);
   }
 
   .invitation-page .theme-cover-title,
@@ -115,11 +126,33 @@
   }
 
   .invitation-theme-elegant-classic {
-    background: #f8f3ea;
+    --theme-page: #f8f3ea;
+    --theme-band: #fffaf1;
+    --theme-panel: #ffffff;
+    --theme-soft-panel: #f7efe1;
+    --theme-ink: #17201b;
+    --theme-muted: rgba(23, 32, 27, 0.62);
+    --theme-accent: #b9853c;
+    --theme-accent-strong: #111514;
+    --theme-highlight: #b9853c;
+    --theme-danger: #9f4e56;
+    --theme-border: rgba(185, 133, 60, 0.24);
+    background: var(--theme-page);
   }
 
   .invitation-theme-modern-minimal {
-    background: #f7f8f6;
+    --theme-page: #f7f8f6;
+    --theme-band: #eef3f1;
+    --theme-panel: #ffffff;
+    --theme-soft-panel: #e8f0ee;
+    --theme-ink: #243b3a;
+    --theme-muted: rgba(36, 59, 58, 0.62);
+    --theme-accent: #477b7b;
+    --theme-accent-strong: #243b3a;
+    --theme-highlight: #6f9c9a;
+    --theme-danger: #bd686c;
+    --theme-border: rgba(71, 123, 123, 0.22);
+    background: var(--theme-page);
   }
 
   .invitation-theme-modern-minimal .theme-cover-overlay {
@@ -142,6 +175,17 @@
   }
 
   .invitation-theme-floral-garden {
+    --theme-page: #fff7f3;
+    --theme-band: #fff0ec;
+    --theme-panel: rgba(255, 247, 243, 0.96);
+    --theme-soft-panel: #f5e6df;
+    --theme-ink: #344236;
+    --theme-muted: rgba(52, 66, 54, 0.64);
+    --theme-accent: #d46f6b;
+    --theme-accent-strong: #496c54;
+    --theme-highlight: #d46f6b;
+    --theme-danger: #b75d67;
+    --theme-border: rgba(212, 111, 107, 0.24);
     background: linear-gradient(180deg, #fff7f3, #eef7ed 42%, #fffaf5);
   }
 
@@ -158,6 +202,17 @@
   }
 
   .invitation-theme-islamic-soft {
+    --theme-page: #eef5ee;
+    --theme-band: #f8f5ec;
+    --theme-panel: rgba(255, 252, 244, 0.96);
+    --theme-soft-panel: #e5efe8;
+    --theme-ink: #203a34;
+    --theme-muted: rgba(32, 58, 52, 0.64);
+    --theme-accent: #2f5d51;
+    --theme-accent-strong: #1f463d;
+    --theme-highlight: #c19a55;
+    --theme-danger: #9e5960;
+    --theme-border: rgba(47, 93, 81, 0.24);
     background: linear-gradient(180deg, #eef5ee, #faf7ef);
   }
 
@@ -175,7 +230,18 @@
   }
 
   .invitation-theme-nusantara-heritage {
-    background: #f5eee2;
+    --theme-page: #f5eee2;
+    --theme-band: #efe1cf;
+    --theme-panel: #fff8ec;
+    --theme-soft-panel: #ead8bd;
+    --theme-ink: #301818;
+    --theme-muted: rgba(48, 24, 24, 0.66);
+    --theme-accent: #8f2f2f;
+    --theme-accent-strong: #3b1718;
+    --theme-highlight: #c79a45;
+    --theme-danger: #8f2f2f;
+    --theme-border: rgba(199, 154, 69, 0.34);
+    background: var(--theme-page);
   }
 
   .invitation-theme-nusantara-heritage .theme-cover-overlay {
@@ -188,5 +254,76 @@
 
   .invitation-theme-nusantara-heritage .theme-section-panel {
     border-color: rgba(199, 154, 69, 0.28);
+  }
+
+  .invitation-page .theme-section-panel {
+    background: var(--theme-panel) !important;
+    border-color: var(--theme-border) !important;
+  }
+
+  .invitation-page section.bg-white,
+  .invitation-page footer.bg-white {
+    background: var(--theme-band) !important;
+  }
+
+  .invitation-page .bg-linen {
+    background: var(--theme-soft-panel) !important;
+  }
+
+  .invitation-page .text-ink {
+    color: var(--theme-ink) !important;
+  }
+
+  .invitation-page .text-gold,
+  .invitation-page .text-leaf {
+    color: var(--theme-accent) !important;
+  }
+
+  .invitation-page .text-rose {
+    color: var(--theme-danger) !important;
+  }
+
+  .invitation-page .text-ink\/55,
+  .invitation-page .text-ink\/60,
+  .invitation-page .text-ink\/65,
+  .invitation-page .text-ink\/70 {
+    color: var(--theme-muted) !important;
+  }
+
+  .invitation-page .bg-leaf {
+    background: var(--theme-accent) !important;
+  }
+
+  .invitation-page .border-ink\/10,
+  .invitation-page .border-ink\/15 {
+    border-color: var(--theme-border) !important;
+  }
+
+  .invitation-page .hover\:border-leaf:hover {
+    border-color: var(--theme-accent) !important;
+  }
+
+  .invitation-page .hover\:text-leaf:hover {
+    color: var(--theme-accent) !important;
+  }
+
+  .invitation-theme-modern-minimal .theme-cover-title,
+  .invitation-theme-modern-minimal .theme-hero-title {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .invitation-theme-floral-garden .theme-cover-title,
+  .invitation-theme-floral-garden .theme-hero-title {
+    font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+  }
+
+  .invitation-theme-islamic-soft .theme-cover-title,
+  .invitation-theme-islamic-soft .theme-hero-title {
+    font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  }
+
+  .invitation-theme-nusantara-heritage .theme-cover-title,
+  .invitation-theme-nusantara-heritage .theme-hero-title {
+    letter-spacing: 0.02em;
   }
 }

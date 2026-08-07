@@ -1,6 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{vue,js}"],
+  safelist: [
+    "invitation-theme-elegant-classic",
+    "invitation-theme-modern-minimal",
+    "invitation-theme-floral-garden",
+    "invitation-theme-islamic-soft",
+    "invitation-theme-nusantara-heritage"
+  ],
   theme: {
     extend: {
       colors: {
