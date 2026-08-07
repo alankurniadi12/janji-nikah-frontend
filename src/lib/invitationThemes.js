@@ -40,6 +40,14 @@ export const invitationThemes = [
     description: "Aksen motif kain, komposisi royal, dan warna maroon-emas untuk rasa budaya yang kuat.",
     swatches: ["#3b1718", "#f5eee2", "#c79a45"],
     previewClass: "theme-preview-nusantara-heritage"
+  },
+  {
+    key: "coastal-dawn",
+    name: "Coastal Dawn",
+    category: "Outdoor resort",
+    description: "Nuansa pantai pagi, komposisi lapang, dan aksen koral untuk akad outdoor atau intimate wedding.",
+    swatches: ["#f6fbfa", "#1f5f6f", "#e78f72"],
+    previewClass: "theme-preview-coastal-dawn"
   }
 ];
 

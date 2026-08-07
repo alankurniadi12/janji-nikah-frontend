@@ -6,7 +6,8 @@ export default {
     "invitation-theme-modern-minimal",
     "invitation-theme-floral-garden",
     "invitation-theme-islamic-soft",
-    "invitation-theme-nusantara-heritage"
+    "invitation-theme-nusantara-heritage",
+    "invitation-theme-coastal-dawn"
   ],
   theme: {
     extend: {

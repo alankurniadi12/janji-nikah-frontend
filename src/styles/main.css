@@ -103,6 +103,28 @@
     border: 1px solid rgba(245, 238, 226, 0.55);
   }
 
+  .theme-preview-coastal-dawn {
+    background: linear-gradient(160deg, #f6fbfa 0%, #d8eef0 48%, #1f5f6f 48%, #153f4a 100%);
+  }
+
+  .theme-preview-coastal-dawn::before {
+    left: 10%;
+    right: 10%;
+    bottom: 18%;
+    height: 1px;
+    background: rgba(231, 143, 114, 0.85);
+    box-shadow: 0 -18px 0 rgba(255, 255, 255, 0.32), 0 18px 0 rgba(246, 251, 250, 0.22);
+  }
+
+  .theme-preview-coastal-dawn::after {
+    right: 16%;
+    top: 16%;
+    width: 26%;
+    height: 26%;
+    border-radius: 999px;
+    background: rgba(231, 143, 114, 0.78);
+  }
+
   .invitation-page {
     --theme-page: #f8f3ea;
     --theme-band: #ffffff;
@@ -256,6 +278,43 @@
     border-color: rgba(199, 154, 69, 0.28);
   }
 
+  .invitation-theme-coastal-dawn {
+    --theme-page: #f6fbfa;
+    --theme-band: #eaf6f4;
+    --theme-panel: rgba(255, 255, 255, 0.96);
+    --theme-soft-panel: #dceff0;
+    --theme-ink: #163d45;
+    --theme-muted: rgba(22, 61, 69, 0.64);
+    --theme-accent: #1f6f7d;
+    --theme-accent-strong: #143f4a;
+    --theme-highlight: #e78f72;
+    --theme-danger: #c76567;
+    --theme-border: rgba(31, 111, 125, 0.2);
+    background: linear-gradient(180deg, #f6fbfa, #e7f5f3 44%, #fff7f2);
+  }
+
+  .invitation-theme-coastal-dawn .theme-cover-overlay {
+    background: linear-gradient(180deg, rgba(20, 63, 74, 0.18), rgba(20, 63, 74, 0.72));
+  }
+
+  .invitation-theme-coastal-dawn .theme-hero {
+    background: linear-gradient(135deg, #143f4a, #1f6f7d 64%, #e78f72);
+  }
+
+  .invitation-theme-coastal-dawn .theme-hero-image {
+    opacity: 0.28;
+    mix-blend-mode: soft-light;
+  }
+
+  .invitation-theme-coastal-dawn .theme-ornament {
+    border-top: 1px solid rgba(246, 251, 250, 0.48);
+    border-bottom: 1px solid rgba(231, 143, 114, 0.52);
+  }
+
+  .invitation-theme-coastal-dawn .theme-section-panel {
+    box-shadow: 0 18px 45px rgba(31, 111, 125, 0.1);
+  }
+
   .invitation-page .theme-section-panel {
     background: var(--theme-panel) !important;
     border-color: var(--theme-border) !important;
@@ -325,5 +384,11 @@
   .invitation-theme-nusantara-heritage .theme-cover-title,
   .invitation-theme-nusantara-heritage .theme-hero-title {
     letter-spacing: 0.02em;
+  }
+
+  .invitation-theme-coastal-dawn .theme-cover-title,
+  .invitation-theme-coastal-dawn .theme-hero-title {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-weight: 800;
   }
 }

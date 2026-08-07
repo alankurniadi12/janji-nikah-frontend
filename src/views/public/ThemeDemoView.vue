@@ -51,7 +51,7 @@ async function loadThemes() {
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <section class="max-w-3xl">
         <p class="text-sm font-bold uppercase tracking-widest text-gold">Demo tema</p>
-        <h1 class="mt-3 text-3xl font-bold text-ink sm:text-4xl">5 tema awal untuk undangan digital yang siap dipakai.</h1>
+        <h1 class="mt-3 text-3xl font-bold text-ink sm:text-4xl">{{ visibleThemes.length }} tema awal untuk undangan digital yang siap dipakai.</h1>
         <p class="mt-4 leading-7 text-ink/65">
           Semua tema memakai data undangan yang sama. Perbedaannya ada di arah visual, komposisi, warna, dan nuansa membaca tamu.
         </p>
