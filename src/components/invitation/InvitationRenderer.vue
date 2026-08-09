@@ -98,6 +98,7 @@ const emit = defineEmits([
 
 const rootRef = ref(null);
 let revealObserver = null;
+let revealFallbackTimer = null;
 
 const themeClass = computed(() => getThemeClass(props.selectedTheme.key));
 const layoutClass = computed(() => `invitation-layout-${props.selectedTheme.key}`);
@@ -182,6 +183,8 @@ function scrollToSection(sectionId) {
 function disconnectRevealObserver() {
   revealObserver?.disconnect();
   revealObserver = null;
+  window.clearTimeout(revealFallbackTimer);
+  revealFallbackTimer = null;
 }
 
 async function setupRevealObserver() {
@@ -212,6 +215,9 @@ async function setupRevealObserver() {
   );
 
   revealItems.forEach((item) => revealObserver.observe(item));
+  revealFallbackTimer = window.setTimeout(() => {
+    revealItems.forEach((item) => item.classList.add("is-visible"));
+  }, 900);
 }
 
 onMounted(setupRevealObserver);
