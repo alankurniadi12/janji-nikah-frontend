@@ -256,7 +256,7 @@ async function focusWishForm() {
       </section>
     </main>
 
-    <main v-else-if="!isActive" class="flex min-h-screen items-center justify-center px-4">
+    <main v-else-if="!isActive && !isPreview" class="flex min-h-screen items-center justify-center px-4">
       <section class="w-full max-w-md rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
         <p class="text-sm font-bold uppercase tracking-widest text-gold">Undangan tidak aktif</p>
         <h1 class="mt-3 text-2xl font-bold text-ink">{{ coupleNames }}</h1>
