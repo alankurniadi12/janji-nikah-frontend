@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { CalendarDays, Gift, Loader2, MapPin, Music2 } from "@lucide/vue";
+import { CalendarDays, Gift, Heart, Image, Loader2, MapPin, MessageCircle, Music2 } from "@lucide/vue";
 
 import { getThemeClass } from "@/lib/invitationThemes";
 import { assetUrl } from "@/utils/assets";
@@ -103,6 +103,7 @@ const themeClass = computed(() => getThemeClass(props.selectedTheme.key));
 const layoutClass = computed(() => `invitation-layout-${props.selectedTheme.key}`);
 const showContent = computed(() => props.opened || props.isDemo);
 const showCover = computed(() => !props.opened || props.isDemo);
+const showStageNav = computed(() => props.selectedTheme.key === "golden-bloom-stage" && showContent.value);
 const coupleNames = computed(() => {
   if (props.invitation.coupleNames) {
     return props.invitation.coupleNames;
@@ -169,6 +170,13 @@ function rsvpStatusClass(status) {
 
 function canEditWish(wish) {
   return Boolean(props.guest?.id && wish.guestId === props.guest.id);
+}
+
+function scrollToSection(sectionId) {
+  document.getElementById(sectionId)?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
 }
 
 function disconnectRevealObserver() {
@@ -256,7 +264,7 @@ watch(showContent, () => {
     </section>
 
     <section v-if="showContent" class="theme-content-flow">
-      <header class="theme-reveal theme-hero relative overflow-hidden bg-ink px-4 py-20 text-center text-white">
+      <header id="theme-section-opening" class="theme-reveal theme-hero relative overflow-hidden bg-ink px-4 py-20 text-center text-white">
         <img
           v-if="invitation.mainPhotoUrl"
           :src="assetUrl(invitation.mainPhotoUrl)"
@@ -282,7 +290,7 @@ watch(showContent, () => {
         </div>
       </header>
 
-      <section class="theme-reveal theme-couple-section mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+      <section id="theme-section-couple" class="theme-reveal theme-couple-section mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
         <div class="theme-couple-grid grid gap-4 md:grid-cols-2">
           <article class="theme-section-panel theme-couple-card rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
             <p class="text-sm font-bold uppercase tracking-widest text-gold">Pengantin pria</p>
@@ -297,7 +305,7 @@ watch(showContent, () => {
         </div>
       </section>
 
-      <section class="theme-reveal theme-events-section bg-white px-4 py-12">
+      <section id="theme-section-events" class="theme-reveal theme-events-section bg-white px-4 py-12">
         <div class="mx-auto max-w-5xl">
           <p class="text-center text-sm font-bold uppercase tracking-widest text-gold">Detail acara</p>
           <div class="theme-events-grid mt-8 grid gap-4 md:grid-cols-2">
@@ -332,7 +340,7 @@ watch(showContent, () => {
         </div>
       </section>
 
-      <section v-if="galleryUrls.length || demoGalleryCount" class="theme-reveal theme-gallery-section mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+      <section v-if="galleryUrls.length || demoGalleryCount" id="theme-section-gallery" class="theme-reveal theme-gallery-section mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <p class="text-center text-sm font-bold uppercase tracking-widest text-gold">Galeri</p>
         <div class="theme-gallery-grid mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <img
@@ -351,7 +359,7 @@ watch(showContent, () => {
         </div>
       </section>
 
-      <section v-if="envelopeMethods.length" class="theme-reveal theme-envelope-section bg-white px-4 py-12">
+      <section v-if="envelopeMethods.length" id="theme-section-gift" class="theme-reveal theme-envelope-section bg-white px-4 py-12">
         <div class="theme-section-panel mx-auto max-w-3xl rounded-lg border border-ink/10 bg-linen p-6 text-center shadow-soft">
           <Gift class="mx-auto h-8 w-8 text-rose" />
           <h2 class="mt-4 text-2xl font-bold text-ink">Amplop digital</h2>
@@ -369,7 +377,7 @@ watch(showContent, () => {
         </div>
       </section>
 
-      <section class="theme-reveal theme-rsvp-section mx-auto max-w-3xl px-4 py-12 text-center">
+      <section id="theme-section-rsvp" class="theme-reveal theme-rsvp-section mx-auto max-w-3xl px-4 py-12 text-center">
         <h2 class="text-2xl font-bold text-ink">RSVP dan ucapan</h2>
         <p v-if="!guest && !isDemo" class="mt-3 text-sm leading-6 text-ink/60">
           RSVP dan ucapan tersedia melalui link personal tamu.
@@ -489,6 +497,33 @@ watch(showContent, () => {
         Dibuat dengan
         <RouterLink class="font-bold text-leaf hover:text-ink" to="/">Janji Nikah</RouterLink>
       </footer>
+
+      <nav
+        v-if="showStageNav"
+        class="theme-stage-nav"
+        aria-label="Navigasi undangan"
+      >
+        <button type="button" @click="scrollToSection('theme-section-opening')">
+          <Heart class="h-4 w-4" />
+          Awal
+        </button>
+        <button type="button" @click="scrollToSection('theme-section-events')">
+          <CalendarDays class="h-4 w-4" />
+          Acara
+        </button>
+        <button v-if="galleryUrls.length || demoGalleryCount" type="button" @click="scrollToSection('theme-section-gallery')">
+          <Image class="h-4 w-4" />
+          Galeri
+        </button>
+        <button type="button" @click="scrollToSection('theme-section-rsvp')">
+          <MessageCircle class="h-4 w-4" />
+          RSVP
+        </button>
+        <button v-if="envelopeMethods.length" type="button" @click="scrollToSection('theme-section-gift')">
+          <Gift class="h-4 w-4" />
+          Gift
+        </button>
+      </nav>
     </section>
   </div>
 </template>

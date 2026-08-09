@@ -7,7 +7,8 @@ export default {
     "invitation-theme-floral-garden",
     "invitation-theme-islamic-soft",
     "invitation-theme-nusantara-heritage",
-    "invitation-theme-coastal-dawn"
+    "invitation-theme-coastal-dawn",
+    "invitation-theme-golden-bloom-stage"
   ],
   theme: {
     extend: {

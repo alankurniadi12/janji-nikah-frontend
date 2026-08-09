@@ -48,6 +48,14 @@ export const invitationThemes = [
     description: "Nuansa pantai pagi, komposisi lapang, dan aksen koral untuk akad outdoor atau intimate wedding.",
     swatches: ["#f6fbfa", "#1f5f6f", "#e78f72"],
     previewClass: "theme-preview-coastal-dawn"
+  },
+  {
+    key: "golden-bloom-stage",
+    name: "Golden Bloom Stage",
+    category: "Cinematic floral",
+    description: "Ornamen bunga emas, section seperti panggung, galeri emosional, dan navigasi cepat untuk undangan yang terasa mewah.",
+    swatches: ["#fff9ed", "#5b3b1f", "#c49a45", "#7e5b4f"],
+    previewClass: "theme-preview-golden-bloom-stage"
   }
 ];
 
