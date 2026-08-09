@@ -29,6 +29,8 @@ onMounted(() => {
 const invitation = computed(() => adminStore.currentInvitation);
 const canUnlock = computed(() => invitation.value?.permissions?.canUnlock || invitation.value?.status === "locked");
 const mainPhotoUrl = computed(() => assetUrl(invitation.value?.mainPhotoUrl || ""));
+const groomPhotoUrl = computed(() => assetUrl(invitation.value?.groom?.photoUrl || ""));
+const bridePhotoUrl = computed(() => assetUrl(invitation.value?.bride?.photoUrl || ""));
 const galleryPhotoUrls = computed(() => (invitation.value?.galleryPhotoUrls || []).map(assetUrl).filter(Boolean));
 const publicPath = computed(() => invitation.value?.links?.publicPath || "");
 const previewPath = computed(() => invitation.value?.links?.previewPath || "");
@@ -252,6 +254,19 @@ function rsvpLabel(status) {
                 </div>
               </div>
               <div class="space-y-4">
+                <div class="rounded-md border border-ink/10 p-4">
+                  <p class="text-sm text-ink/55">Foto pengantin</p>
+                  <div class="mt-3 grid grid-cols-2 gap-3">
+                    <div class="overflow-hidden rounded-md border border-ink/10 bg-linen">
+                      <img v-if="groomPhotoUrl" :src="groomPhotoUrl" alt="Foto pengantin pria" class="aspect-[3/4] w-full object-cover" />
+                      <p v-else class="flex aspect-[3/4] items-center justify-center p-3 text-center text-xs font-semibold text-ink/45">Pria belum ada</p>
+                    </div>
+                    <div class="overflow-hidden rounded-md border border-ink/10 bg-linen">
+                      <img v-if="bridePhotoUrl" :src="bridePhotoUrl" alt="Foto pengantin wanita" class="aspect-[3/4] w-full object-cover" />
+                      <p v-else class="flex aspect-[3/4] items-center justify-center p-3 text-center text-xs font-semibold text-ink/45">Wanita belum ada</p>
+                    </div>
+                  </div>
+                </div>
                 <div class="rounded-md border border-ink/10 p-4">
                   <p class="text-sm text-ink/55">Tema</p>
                   <p class="mt-1 font-bold text-ink">{{ invitation.theme?.name || invitation.themeId || "-" }}</p>

@@ -293,11 +293,23 @@ watch(showContent, () => {
       <section id="theme-section-couple" class="theme-reveal theme-couple-section mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
         <div class="theme-couple-grid grid gap-4 md:grid-cols-2">
           <article class="theme-section-panel theme-couple-card rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
+            <img
+              v-if="invitation.groom?.photoUrl"
+              :src="assetUrl(invitation.groom.photoUrl)"
+              alt="Foto pengantin pria"
+              class="theme-couple-photo"
+            />
             <p class="text-sm font-bold uppercase tracking-widest text-gold">Pengantin pria</p>
             <h2 class="mt-3 text-3xl font-bold text-ink">{{ invitation.groom.fullName }}</h2>
             <p class="mt-3 whitespace-pre-line text-sm leading-6 text-ink/60">{{ invitation.groom.parentsName }}</p>
           </article>
           <article class="theme-section-panel theme-couple-card rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
+            <img
+              v-if="invitation.bride?.photoUrl"
+              :src="assetUrl(invitation.bride.photoUrl)"
+              alt="Foto pengantin wanita"
+              class="theme-couple-photo"
+            />
             <p class="text-sm font-bold uppercase tracking-widest text-gold">Pengantin wanita</p>
             <h2 class="mt-3 text-3xl font-bold text-ink">{{ invitation.bride.fullName }}</h2>
             <p class="mt-3 whitespace-pre-line text-sm leading-6 text-ink/60">{{ invitation.bride.parentsName }}</p>
@@ -505,7 +517,7 @@ watch(showContent, () => {
       >
         <button type="button" @click="scrollToSection('theme-section-opening')">
           <Heart class="h-4 w-4" />
-          Awal
+          Opening
         </button>
         <button type="button" @click="scrollToSection('theme-section-events')">
           <CalendarDays class="h-4 w-4" />

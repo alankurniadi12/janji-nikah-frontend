@@ -10,6 +10,7 @@ import {
   previewInvitation,
   publishInvitation,
   updateInvitation,
+  uploadCouplePhoto,
   uploadGalleryPhoto,
   uploadMainPhoto
 } from "@/services/invitationService";
@@ -136,6 +137,20 @@ export const useInvitationStore = defineStore("invitations", {
         return this.current;
       } catch (error) {
         this.error = getApiErrorMessage(error, "Foto utama belum bisa diunggah.");
+        throw error;
+      } finally {
+        this.uploading = false;
+      }
+    },
+    async replaceCouplePhoto(id, role, file) {
+      this.uploading = true;
+      this.error = "";
+
+      try {
+        this.current = await uploadCouplePhoto(id, role, file);
+        return this.current;
+      } catch (error) {
+        this.error = getApiErrorMessage(error, "Foto pengantin belum bisa diunggah.");
         throw error;
       } finally {
         this.uploading = false;

@@ -47,6 +47,19 @@ export async function uploadMainPhoto(id, file) {
   return response.data.data.invitation;
 }
 
+export async function uploadCouplePhoto(id, role, file) {
+  const formData = new FormData();
+  formData.append("photo", file);
+
+  const response = await api.post(`/member/invitations/${id}/photos/couple/${role}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+
+  return response.data.data.invitation;
+}
+
 export async function uploadGalleryPhoto(id, file) {
   const formData = new FormData();
   formData.append("photo", file);

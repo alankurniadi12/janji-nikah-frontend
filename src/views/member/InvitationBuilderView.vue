@@ -247,6 +247,14 @@ async function uploadMain(event) {
   await uploadPhoto(event, "main");
 }
 
+async function uploadGroomPhoto(event) {
+  await uploadPhoto(event, "groom");
+}
+
+async function uploadBridePhoto(event) {
+  await uploadPhoto(event, "bride");
+}
+
 async function uploadGallery(event) {
   await uploadPhoto(event, "gallery");
 }
@@ -266,6 +274,12 @@ async function uploadPhoto(event, type) {
     if (type === "main") {
       await invitationStore.replaceMainPhoto(route.params.id, file);
       toastStore.show("Foto utama berhasil diunggah.");
+      return;
+    }
+
+    if (type === "groom" || type === "bride") {
+      await invitationStore.replaceCouplePhoto(route.params.id, type, file);
+      toastStore.show(type === "groom" ? "Foto pengantin pria berhasil diunggah." : "Foto pengantin wanita berhasil diunggah.");
       return;
     }
 
@@ -834,6 +848,68 @@ function fieldError(key) {
                 <p v-if="invitationStore.uploading" class="mt-2 text-sm font-semibold text-leaf">Mengunggah foto...</p>
                 <p v-else-if="fieldError('mainPhotoUrl')" class="mt-2 text-sm font-semibold text-rose">{{ fieldError("mainPhotoUrl") }}</p>
               </label>
+            </div>
+          </div>
+
+          <div>
+            <h2 class="text-lg font-bold text-ink">Foto pengantin</h2>
+            <p class="mt-1 text-sm text-ink/55">
+              Optional, dipakai untuk menampilkan profil pengantin pria dan wanita di tema undangan.
+            </p>
+            <div class="mt-4 grid gap-4 md:grid-cols-2">
+              <article class="rounded-md border border-ink/10 bg-white p-4">
+                <p class="text-sm font-bold text-ink">Pengantin pria</p>
+                <div class="mt-3 grid gap-3 sm:grid-cols-[140px_1fr] sm:items-start">
+                  <div class="aspect-[3/4] overflow-hidden rounded-md border border-ink/10 bg-linen">
+                    <img
+                      v-if="invitation.groom?.photoUrl"
+                      :src="assetUrl(invitation.groom.photoUrl)"
+                      alt="Foto pengantin pria"
+                      class="h-full w-full object-cover"
+                    />
+                    <div v-else class="flex h-full items-center justify-center text-ink/35">
+                      <ImagePlus class="h-7 w-7" />
+                    </div>
+                  </div>
+                  <label class="block">
+                    <span class="text-sm font-semibold text-ink">Upload / ganti foto pria</span>
+                    <input
+                      class="focus-ring mt-2 block w-full rounded-md border border-ink/15 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-mint file:px-3 file:py-2 file:text-sm file:font-semibold file:text-leaf"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      :disabled="!isMainDataEditable || invitationStore.uploading"
+                      @change="uploadGroomPhoto"
+                    />
+                  </label>
+                </div>
+              </article>
+
+              <article class="rounded-md border border-ink/10 bg-white p-4">
+                <p class="text-sm font-bold text-ink">Pengantin wanita</p>
+                <div class="mt-3 grid gap-3 sm:grid-cols-[140px_1fr] sm:items-start">
+                  <div class="aspect-[3/4] overflow-hidden rounded-md border border-ink/10 bg-linen">
+                    <img
+                      v-if="invitation.bride?.photoUrl"
+                      :src="assetUrl(invitation.bride.photoUrl)"
+                      alt="Foto pengantin wanita"
+                      class="h-full w-full object-cover"
+                    />
+                    <div v-else class="flex h-full items-center justify-center text-ink/35">
+                      <ImagePlus class="h-7 w-7" />
+                    </div>
+                  </div>
+                  <label class="block">
+                    <span class="text-sm font-semibold text-ink">Upload / ganti foto wanita</span>
+                    <input
+                      class="focus-ring mt-2 block w-full rounded-md border border-ink/15 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-mint file:px-3 file:py-2 file:text-sm file:font-semibold file:text-leaf"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      :disabled="!isMainDataEditable || invitationStore.uploading"
+                      @change="uploadBridePhoto"
+                    />
+                  </label>
+                </div>
+              </article>
             </div>
           </div>
 

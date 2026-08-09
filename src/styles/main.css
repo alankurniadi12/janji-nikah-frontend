@@ -476,6 +476,15 @@
     animation: theme-cover-rise 900ms ease both;
   }
 
+  .invitation-page .theme-couple-photo {
+    width: min(100%, 220px);
+    aspect-ratio: 3 / 4;
+    margin: 0 auto 1.25rem;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 18px 40px rgba(23, 32, 27, 0.12);
+  }
+
   .invitation-layout-elegant-classic .theme-section-panel {
     position: relative;
     border-radius: 2px !important;
@@ -594,6 +603,10 @@
 
   .invitation-layout-islamic-soft .theme-gallery-item {
     border-radius: 999px 999px 8px 8px !important;
+  }
+
+  .invitation-layout-islamic-soft .theme-couple-photo {
+    border-radius: 999px 999px 8px 8px;
   }
 
   .invitation-layout-islamic-soft .theme-reveal {
@@ -820,14 +833,16 @@
   }
 
   .invitation-layout-golden-bloom-stage .theme-section-panel,
-  .invitation-layout-golden-bloom-stage .theme-wish-card {
+  .invitation-layout-golden-bloom-stage .theme-couple-card,
+  .invitation-layout-golden-bloom-stage .theme-event-card {
     position: relative;
     overflow: hidden;
     border-radius: 999px 999px 12px 12px !important;
   }
 
   .invitation-layout-golden-bloom-stage .theme-section-panel::before,
-  .invitation-layout-golden-bloom-stage .theme-wish-card::before {
+  .invitation-layout-golden-bloom-stage .theme-couple-card::before,
+  .invitation-layout-golden-bloom-stage .theme-event-card::before {
     position: absolute;
     inset: 12px;
     content: "";
@@ -842,6 +857,12 @@
     flex-direction: column;
     justify-content: center;
     padding-top: 4rem !important;
+  }
+
+  .invitation-layout-golden-bloom-stage .theme-couple-photo {
+    border-radius: 999px 999px 12px 12px;
+    outline: 1px solid rgba(196, 154, 69, 0.38);
+    outline-offset: 6px;
   }
 
   .invitation-layout-golden-bloom-stage .theme-couple-card:first-child {
@@ -898,6 +919,11 @@
 
   .invitation-layout-golden-bloom-stage .theme-wishes-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .invitation-layout-golden-bloom-stage .theme-wish-card {
+    border-radius: 8px !important;
+    background: rgba(255, 252, 244, 0.96) !important;
   }
 
   .invitation-layout-golden-bloom-stage .theme-reveal {
