@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { CalendarDays, Gift, Heart, Image, Loader2, MapPin, MessageCircle, Music2 } from "@lucide/vue";
+import { CalendarDays, CalendarPlus, Copy, Gift, Heart, Image, Loader2, MapPin, MessageCircle, Music2 } from "@lucide/vue";
 
 import { getThemeClass } from "@/lib/invitationThemes";
 import { assetUrl } from "@/utils/assets";
@@ -97,8 +97,11 @@ const emit = defineEmits([
 ]);
 
 const rootRef = ref(null);
+const now = ref(Date.now());
+const copiedEnvelopeKey = ref("");
 let revealObserver = null;
 let revealFallbackTimer = null;
+let countdownTimer = null;
 
 const themeClass = computed(() => getThemeClass(props.selectedTheme.key));
 const layoutClass = computed(() => `invitation-layout-${props.selectedTheme.key}`);
@@ -133,6 +136,32 @@ const loveStoryItems = computed(() =>
 );
 const dressCode = computed(() => props.invitation.dressCode || { enabled: false, note: "", colors: [] });
 const showDressCode = computed(() => Boolean(dressCode.value.enabled && dressCode.value.colors?.length));
+const sortedEvents = computed(() =>
+  [...(props.invitation.events || [])].sort((left, right) => eventStartDate(left).getTime() - eventStartDate(right).getTime())
+);
+const countdownEvent = computed(() => {
+  const upcomingEvent = sortedEvents.value.find((eventItem) => eventStartDate(eventItem).getTime() > now.value);
+  return upcomingEvent || sortedEvents.value[0] || null;
+});
+const countdownParts = computed(() => {
+  if (!countdownEvent.value) {
+    return null;
+  }
+
+  const remainingMs = Math.max(0, eventStartDate(countdownEvent.value).getTime() - now.value);
+  const totalSeconds = Math.floor(remainingMs / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return [
+    { label: "Hari", value: days },
+    { label: "Jam", value: hours },
+    { label: "Menit", value: minutes },
+    { label: "Detik", value: seconds }
+  ];
+});
 
 function wishName(wish) {
   return wish.displayName || wish.name || "Tamu";
@@ -174,6 +203,109 @@ function rsvpStatusClass(status) {
   return "border-ink/10 bg-white text-ink/50";
 }
 
+function eventStartDate(eventItem) {
+  const datePart = String(eventItem?.date || "").slice(0, 10);
+  const timePart = normalizeTime(eventItem?.startTime) || "00:00";
+  const date = new Date(`${datePart}T${timePart}:00`);
+
+  if (!Number.isNaN(date.getTime())) {
+    return date;
+  }
+
+  const fallbackDate = new Date(eventItem?.date);
+  return Number.isNaN(fallbackDate.getTime()) ? new Date(0) : fallbackDate;
+}
+
+function eventEndDate(eventItem) {
+  const datePart = String(eventItem?.date || "").slice(0, 10);
+  const timePart = normalizeTime(eventItem?.endTime);
+
+  if (timePart) {
+    const date = new Date(`${datePart}T${timePart}:00`);
+
+    if (!Number.isNaN(date.getTime())) {
+      return date;
+    }
+  }
+
+  return new Date(eventStartDate(eventItem).getTime() + 2 * 60 * 60 * 1000);
+}
+
+function normalizeTime(value) {
+  const normalized = String(value || "").trim().replace(".", ":");
+  const match = normalized.match(/^(\d{1,2}):(\d{2})$/);
+
+  if (!match) {
+    return "";
+  }
+
+  const hours = Number.parseInt(match[1], 10);
+  const minutes = Number.parseInt(match[2], 10);
+
+  if (hours > 23 || minutes > 59) {
+    return "";
+  }
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function eventTypeLabel(type) {
+  const labels = {
+    akad: "Akad",
+    resepsi: "Resepsi"
+  };
+
+  return labels[String(type || "").toLowerCase()] || type || "Acara";
+}
+
+function calendarDataUri(eventItem) {
+  const title = `${eventTypeLabel(eventItem.type)} ${coupleNames.value}`;
+  const start = toIcsDate(eventStartDate(eventItem));
+  const end = toIcsDate(eventEndDate(eventItem));
+  const location = escapeIcsText(eventItem.address || "");
+  const description = escapeIcsText(`Undangan pernikahan ${coupleNames.value}`);
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Janji Nikah//Invitation//ID",
+    "BEGIN:VEVENT",
+    `UID:${start}-${slugifyCalendarText(title)}@janjinikah.local`,
+    `DTSTAMP:${toIcsDate(new Date())}`,
+    `DTSTART:${start}`,
+    `DTEND:${end}`,
+    `SUMMARY:${escapeIcsText(title)}`,
+    `DESCRIPTION:${description}`,
+    `LOCATION:${location}`,
+    "END:VEVENT",
+    "END:VCALENDAR"
+  ].join("\r\n");
+
+  return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+}
+
+function calendarFileName(eventItem) {
+  return `${slugifyCalendarText(eventTypeLabel(eventItem.type))}-${slugifyCalendarText(coupleNames.value)}.ics`;
+}
+
+function toIcsDate(date) {
+  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+}
+
+function escapeIcsText(value) {
+  return String(value || "")
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\n/g, "\\n");
+}
+
+function slugifyCalendarText(value) {
+  return String(value || "acara")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "acara";
+}
+
 function storyDateLabel(value) {
   if (!value) {
     return "";
@@ -195,6 +327,28 @@ function scrollToSection(sectionId) {
     behavior: "smooth",
     block: "start"
   });
+}
+
+async function copyEnvelopeNumber(method) {
+  const text = method.accountNumber || "";
+
+  if (!text) {
+    return;
+  }
+
+  const key = `${method.providerName}-${method.accountNumber}`;
+
+  try {
+    await navigator.clipboard.writeText(text);
+    copiedEnvelopeKey.value = key;
+    window.setTimeout(() => {
+      if (copiedEnvelopeKey.value === key) {
+        copiedEnvelopeKey.value = "";
+      }
+    }, 1800);
+  } catch {
+    copiedEnvelopeKey.value = "";
+  }
 }
 
 function disconnectRevealObserver() {
@@ -237,8 +391,21 @@ async function setupRevealObserver() {
   }, 900);
 }
 
-onMounted(setupRevealObserver);
-onBeforeUnmount(disconnectRevealObserver);
+function startCountdownTimer() {
+  window.clearInterval(countdownTimer);
+  countdownTimer = window.setInterval(() => {
+    now.value = Date.now();
+  }, 1000);
+}
+
+onMounted(() => {
+  setupRevealObserver();
+  startCountdownTimer();
+});
+onBeforeUnmount(() => {
+  disconnectRevealObserver();
+  window.clearInterval(countdownTimer);
+});
 watch(showContent, () => {
   setupRevealObserver();
 });
@@ -340,6 +507,24 @@ watch(showContent, () => {
         </div>
       </section>
 
+      <section
+        v-if="countdownParts"
+        id="theme-section-countdown"
+        class="theme-reveal theme-countdown-section mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8"
+      >
+        <div class="theme-section-panel rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
+          <p class="text-sm font-bold uppercase tracking-widest text-gold">Menuju hari bahagia</p>
+          <h2 class="mt-4 text-2xl font-bold text-ink">{{ eventTypeLabel(countdownEvent.type) }}</h2>
+          <p class="mt-2 text-sm font-semibold text-ink/55">{{ formatEventDate(countdownEvent.date) }}</p>
+          <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div v-for="part in countdownParts" :key="part.label" class="rounded-md border border-ink/10 bg-linen p-4">
+              <p class="text-3xl font-bold text-ink">{{ String(part.value).padStart(2, "0") }}</p>
+              <p class="mt-1 text-xs font-bold uppercase tracking-widest text-ink/45">{{ part.label }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="theme-section-events" class="theme-reveal theme-events-section bg-white px-4 py-12">
         <div class="mx-auto max-w-5xl">
           <p class="text-center text-sm font-bold uppercase tracking-widest text-gold">Detail acara</p>
@@ -369,6 +554,14 @@ watch(showContent, () => {
                 rel="noreferrer"
               >
                 Buka Maps
+              </a>
+              <a
+                class="ml-2 mt-5 inline-flex items-center gap-2 rounded-md border border-ink/15 px-3 py-2 text-sm font-semibold text-ink hover:border-leaf hover:text-leaf"
+                :href="calendarDataUri(eventItem)"
+                :download="calendarFileName(eventItem)"
+              >
+                <CalendarPlus class="h-4 w-4" />
+                Tambah Kalender
               </a>
             </article>
           </div>
@@ -453,6 +646,14 @@ watch(showContent, () => {
               <p class="text-sm font-bold text-ink">{{ method.providerName }}</p>
               <p class="mt-1 text-lg font-bold text-leaf">{{ method.accountNumber }}</p>
               <p class="mt-1 text-sm text-ink/55">a.n. {{ method.accountHolder }}</p>
+              <button
+                class="focus-ring mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-3 text-sm font-bold text-ink hover:border-leaf hover:text-leaf"
+                type="button"
+                @click="copyEnvelopeNumber(method)"
+              >
+                <Copy class="h-4 w-4" />
+                {{ copiedEnvelopeKey === `${method.providerName}-${method.accountNumber}` ? "Tersalin" : "Salin Nomor" }}
+              </button>
             </div>
           </div>
         </div>
