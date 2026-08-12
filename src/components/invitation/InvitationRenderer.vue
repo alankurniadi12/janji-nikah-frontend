@@ -136,6 +136,8 @@ const loveStoryItems = computed(() =>
 );
 const dressCode = computed(() => props.invitation.dressCode || { enabled: false, note: "", colors: [] });
 const showDressCode = computed(() => Boolean(dressCode.value.enabled && dressCode.value.colors?.length));
+const quote = computed(() => props.invitation.quote || { enabled: false, text: "", source: "" });
+const showQuote = computed(() => Boolean(quote.value.enabled && quote.value.text));
 const sortedEvents = computed(() =>
   [...(props.invitation.events || [])].sort((left, right) => eventStartDate(left).getTime() - eventStartDate(right).getTime())
 );
@@ -478,6 +480,20 @@ watch(showContent, () => {
           </button>
         </div>
       </header>
+
+      <section
+        v-if="showQuote"
+        id="theme-section-quote"
+        class="theme-reveal theme-quote-section mx-auto max-w-4xl px-4 py-12 text-center sm:px-6 lg:px-8"
+      >
+        <div class="theme-section-panel rounded-lg border border-ink/10 bg-white p-6 shadow-soft">
+          <p class="text-sm font-bold uppercase tracking-widest text-gold">Quote</p>
+          <blockquote class="mx-auto mt-4 max-w-3xl whitespace-pre-line text-lg font-semibold leading-8 text-ink sm:text-xl sm:leading-9">
+            {{ quote.text }}
+          </blockquote>
+          <p v-if="quote.source" class="mt-4 text-sm font-bold text-leaf">{{ quote.source }}</p>
+        </div>
+      </section>
 
       <section id="theme-section-couple" class="theme-reveal theme-couple-section mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
         <div class="theme-couple-grid grid gap-4 md:grid-cols-2">

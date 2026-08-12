@@ -32,6 +32,11 @@ const galleryLimit = 10;
 const loveStoryLimit = 5;
 const loveStoryDescriptionLimit = 500;
 const dressCodeColorLimit = 5;
+const quoteTextLimit = 500;
+const quoteSourceLimit = 80;
+const defaultQuoteText =
+  "Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan-pasangan dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang.";
+const defaultQuoteSource = "QS. Ar-Rum: 21";
 
 const steps = [
   { key: "couple", label: "Pengantin" },
@@ -63,6 +68,11 @@ const form = reactive({
     enabled: false,
     note: "",
     colors: []
+  },
+  quote: {
+    enabled: false,
+    text: "",
+    source: ""
   },
   musicEnabled: false,
   themeId: "",
@@ -148,6 +158,9 @@ function syncForm(source) {
   form.dressCode.enabled = Boolean(source.dressCode?.enabled);
   form.dressCode.note = source.dressCode?.note || "";
   form.dressCode.colors = source.dressCode?.colors?.length ? [...source.dressCode.colors] : [];
+  form.quote.enabled = Boolean(source.quote?.enabled);
+  form.quote.text = source.quote?.text || "";
+  form.quote.source = source.quote?.source || "";
   form.themeId = source.themeId || "";
   form.musicEnabled = Boolean(source.musicId);
   form.musicId = source.musicId || "";
@@ -246,6 +259,20 @@ function requestRemoveDressCodeColor(index) {
   };
 }
 
+function syncDefaultQuote() {
+  if (!form.quote.enabled) {
+    return;
+  }
+
+  if (!form.quote.text.trim()) {
+    form.quote.text = defaultQuoteText;
+  }
+
+  if (!form.quote.source.trim()) {
+    form.quote.source = defaultQuoteSource;
+  }
+}
+
 function addEnvelopeMethod() {
   form.envelope.methods.push({
     type: "bank",
@@ -290,6 +317,11 @@ function buildPayload() {
       enabled: form.dressCode.enabled,
       note: form.dressCode.note,
       colors: form.dressCode.enabled ? [...form.dressCode.colors] : []
+    },
+    quote: {
+      enabled: form.quote.enabled,
+      text: form.quote.text,
+      source: form.quote.source
     },
     themeId: form.themeId || null,
     musicId: form.musicEnabled ? form.musicId || null : null,
@@ -675,6 +707,12 @@ function collectValidationErrors({ onlyStep = "" } = {}) {
     form.dressCode.colors.forEach((color, index) => {
       if (!color) add(`dressCode.colors.${index}`, `Warna dress code ${index + 1}`, "details");
     });
+  }
+
+  if (form.quote.enabled) {
+    if (!form.quote.text?.trim()) add("quote.text", "Isi quote", "details");
+    if (form.quote.text.length > quoteTextLimit) add("quote.text", `Quote maksimal ${quoteTextLimit} karakter`, "details");
+    if (form.quote.source.length > quoteSourceLimit) add("quote.source", `Sumber quote maksimal ${quoteSourceLimit} karakter`, "details");
   }
 
   if (!invitation.value?.mainPhotoUrl) {
@@ -1253,6 +1291,64 @@ function fieldError(key) {
                     Tambahkan 1-5 warna dress code.
                   </p>
                 </div>
+              </div>
+            </section>
+
+            <section class="rounded-md border border-ink/10 p-4 lg:col-span-2">
+              <h2 class="text-lg font-bold text-ink">Quote</h2>
+              <label class="mt-4 flex items-start gap-3 rounded-md border border-ink/10 bg-linen p-4">
+                <input
+                  v-model="form.quote.enabled"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 rounded border-ink/20 text-leaf"
+                  :disabled="!isMainDataEditable"
+                  @change="syncDefaultQuote"
+                />
+                <span>
+                  <span class="block text-sm font-bold text-ink">Aktifkan quote</span>
+                  <span class="mt-1 block text-sm leading-6 text-ink/60">Optional. Saat diaktifkan, default memakai terjemahan QS. Ar-Rum: 21 dan bisa diedit.</span>
+                </span>
+              </label>
+
+              <div v-if="form.quote.enabled" class="mt-4 grid gap-4 lg:grid-cols-[1fr_220px]">
+                <label class="block text-sm font-semibold text-ink">
+                  Isi quote
+                  <textarea
+                    v-model.trim="form.quote.text"
+                    class="focus-ring mt-2 min-h-32 w-full rounded-md border px-3 py-2 text-sm"
+                    :class="fieldClass('quote.text')"
+                    :data-invalid="Boolean(fieldError('quote.text'))"
+                    :maxlength="quoteTextLimit"
+                    :disabled="!isMainDataEditable"
+                  />
+                  <span
+                    class="mt-1 block text-right text-xs font-semibold"
+                    :class="form.quote.text.length >= quoteTextLimit ? 'text-rose' : 'text-ink/45'"
+                  >
+                    {{ form.quote.text.length }}/{{ quoteTextLimit }}
+                  </span>
+                  <span v-if="fieldError('quote.text')" class="mt-1 block text-xs font-semibold text-rose">{{ fieldError("quote.text") }}</span>
+                </label>
+
+                <label class="block text-sm font-semibold text-ink">
+                  Sumber
+                  <input
+                    v-model.trim="form.quote.source"
+                    class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                    :class="fieldClass('quote.source')"
+                    :data-invalid="Boolean(fieldError('quote.source'))"
+                    :maxlength="quoteSourceLimit"
+                    placeholder="QS. Ar-Rum: 21"
+                    :disabled="!isMainDataEditable"
+                  />
+                  <span
+                    class="mt-1 block text-right text-xs font-semibold"
+                    :class="form.quote.source.length >= quoteSourceLimit ? 'text-rose' : 'text-ink/45'"
+                  >
+                    {{ form.quote.source.length }}/{{ quoteSourceLimit }}
+                  </span>
+                  <span v-if="fieldError('quote.source')" class="mt-1 block text-xs font-semibold text-rose">{{ fieldError("quote.source") }}</span>
+                </label>
               </div>
             </section>
           </div>

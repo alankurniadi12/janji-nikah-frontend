@@ -34,6 +34,7 @@ const bridePhotoUrl = computed(() => assetUrl(invitation.value?.bride?.photoUrl 
 const galleryPhotoUrls = computed(() => (invitation.value?.galleryPhotoUrls || []).map(assetUrl).filter(Boolean));
 const loveStory = computed(() => invitation.value?.loveStory || []);
 const dressCode = computed(() => invitation.value?.dressCode || { enabled: false, note: "", colors: [] });
+const quote = computed(() => invitation.value?.quote || { enabled: false, text: "", source: "" });
 const publicPath = computed(() => invitation.value?.links?.publicPath || "");
 const previewPath = computed(() => invitation.value?.links?.previewPath || "");
 const statusMessage = computed(() => {
@@ -243,7 +244,7 @@ function rsvpLabel(status) {
           </article>
 
           <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-            <h2 class="text-lg font-bold text-ink">Cerita dan dress code</h2>
+            <h2 class="text-lg font-bold text-ink">Cerita, quote, dan dress code</h2>
             <div class="mt-4 grid gap-4 lg:grid-cols-2">
               <section class="rounded-md border border-ink/10 p-4">
                 <p class="text-sm font-bold text-ink">Cerita cinta</p>
@@ -274,6 +275,12 @@ function rsvpLabel(status) {
                     :style="{ backgroundColor: color }"
                   />
                 </div>
+              </section>
+              <section class="rounded-md border border-ink/10 p-4 lg:col-span-2">
+                <p class="text-sm font-bold text-ink">Quote</p>
+                <p class="mt-2 text-sm text-ink/55">{{ quote.enabled ? "Aktif" : "Nonaktif" }}</p>
+                <blockquote v-if="quote.text" class="mt-3 whitespace-pre-line rounded-md bg-linen p-3 text-sm leading-6 text-ink/65">{{ quote.text }}</blockquote>
+                <p v-if="quote.source" class="mt-2 text-xs font-semibold text-leaf">{{ quote.source }}</p>
               </section>
             </div>
           </article>

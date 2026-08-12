@@ -63,6 +63,11 @@ const sampleInvitation = {
     note: "Kami akan senang jika tamu berkenan memakai warna pastel atau earth tone.",
     colors: ["#f5d7c4", "#d8bfa3", "#8f9f7a"]
   },
+  quote: {
+    enabled: true,
+    text: "Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan-pasangan dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang.",
+    source: "QS. Ar-Rum: 21"
+  },
   wishes: [
     {
       name: "Dian",
