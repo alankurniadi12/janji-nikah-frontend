@@ -6,6 +6,8 @@ export async function getPublicInvitation(username, slug, params = {}) {
 }
 
 export async function getPublicHostDashboard(username, slug, token) {
-  const response = await api.get(`/public/invitations/${username}/${slug}/host/${token}`);
+  const response = await api.get(`/public/invitations/${username}/${slug}/host/${token}`, {
+    params: { _: Date.now() }
+  });
   return response.data.data;
 }
