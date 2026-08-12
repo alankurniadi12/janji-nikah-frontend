@@ -485,6 +485,30 @@
     box-shadow: 0 18px 40px rgba(23, 32, 27, 0.12);
   }
 
+  .invitation-page .theme-calendar-action,
+  .invitation-page .theme-copy-action {
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.74);
+    transition: border-color 180ms ease, color 180ms ease, background 180ms ease, transform 180ms ease;
+  }
+
+  .invitation-page .theme-calendar-action:hover,
+  .invitation-page .theme-copy-action:hover {
+    transform: translateY(-1px);
+  }
+
+  .invitation-page .theme-countdown-item {
+    min-height: 112px;
+  }
+
+  .invitation-page .theme-love-story-photo {
+    box-shadow: 0 18px 36px rgba(23, 32, 27, 0.1);
+  }
+
+  .invitation-page .theme-dress-code-swatch {
+    position: relative;
+  }
+
   .invitation-layout-elegant-classic .theme-section-panel {
     position: relative;
     border-radius: 2px !important;
@@ -500,6 +524,32 @@
 
   .invitation-layout-elegant-classic .theme-gallery-grid {
     gap: 18px;
+  }
+
+  .invitation-layout-elegant-classic .theme-countdown-section .theme-section-panel {
+    background: #fffaf2 !important;
+  }
+
+  .invitation-layout-elegant-classic .theme-countdown-item {
+    border-radius: 2px !important;
+    background: #111514 !important;
+  }
+
+  .invitation-layout-elegant-classic .theme-countdown-item p:first-child {
+    color: #f8f4ea !important;
+  }
+
+  .invitation-layout-elegant-classic .theme-countdown-item p:last-child {
+    color: rgba(248, 244, 234, 0.58) !important;
+  }
+
+  .invitation-layout-elegant-classic .theme-love-story-grid {
+    gap: 18px;
+  }
+
+  .invitation-layout-elegant-classic .theme-love-story-photo,
+  .invitation-layout-elegant-classic .theme-dress-code-swatch {
+    border-radius: 2px !important;
   }
 
   .invitation-layout-elegant-classic .theme-reveal {
@@ -518,7 +568,9 @@
   }
 
   .invitation-layout-modern-minimal .theme-couple-grid,
-  .invitation-layout-modern-minimal .theme-events-grid {
+  .invitation-layout-modern-minimal .theme-events-grid,
+  .invitation-layout-modern-minimal .theme-countdown-grid,
+  .invitation-layout-modern-minimal .theme-love-story-grid {
     gap: 1px;
     overflow: hidden;
     border: 1px solid var(--theme-border);
@@ -528,6 +580,23 @@
   .invitation-layout-modern-minimal .theme-section-panel {
     border-radius: 0 !important;
     border-width: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .invitation-layout-modern-minimal .theme-countdown-section .theme-section-panel,
+  .invitation-layout-modern-minimal .theme-dress-code-section .theme-section-panel {
+    border-width: 1px !important;
+  }
+
+  .invitation-layout-modern-minimal .theme-countdown-item,
+  .invitation-layout-modern-minimal .theme-love-story-card {
+    border-radius: 0 !important;
+    border-width: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .invitation-layout-modern-minimal .theme-dress-code-swatch {
+    border-radius: 999px !important;
     box-shadow: none !important;
   }
 
@@ -574,8 +643,22 @@
   }
 
   .invitation-layout-floral-garden .theme-section-panel,
-  .invitation-layout-floral-garden .theme-wish-card {
+  .invitation-layout-floral-garden .theme-wish-card,
+  .invitation-layout-floral-garden .theme-countdown-item,
+  .invitation-layout-floral-garden .theme-love-story-photo {
     border-radius: 8px 8px 36px 8px !important;
+  }
+
+  .invitation-layout-floral-garden .theme-love-story-card:nth-child(odd) {
+    transform: rotate(-0.8deg);
+  }
+
+  .invitation-layout-floral-garden .theme-love-story-card:nth-child(even) {
+    transform: rotate(0.8deg);
+  }
+
+  .invitation-layout-floral-garden .theme-dress-code-swatch {
+    border-radius: 999px 999px 999px 8px !important;
   }
 
   .invitation-layout-floral-garden .theme-reveal {
@@ -597,8 +680,21 @@
     padding-top: 56px !important;
   }
 
-  .invitation-layout-islamic-soft .theme-events-grid .theme-section-panel {
+  .invitation-layout-islamic-soft .theme-events-grid .theme-section-panel,
+  .invitation-layout-islamic-soft .theme-love-story-card {
     border-radius: 80px 80px 8px 8px !important;
+  }
+
+  .invitation-layout-islamic-soft .theme-countdown-grid {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .invitation-layout-islamic-soft .theme-countdown-item,
+  .invitation-layout-islamic-soft .theme-love-story-photo,
+  .invitation-layout-islamic-soft .theme-dress-code-swatch {
+    border-radius: 999px 999px 8px 8px !important;
   }
 
   .invitation-layout-islamic-soft .theme-gallery-item {
@@ -647,8 +743,26 @@
   }
 
   .invitation-layout-nusantara-heritage .theme-section-panel,
-  .invitation-layout-nusantara-heritage .theme-wish-card {
+  .invitation-layout-nusantara-heritage .theme-wish-card,
+  .invitation-layout-nusantara-heritage .theme-countdown-item,
+  .invitation-layout-nusantara-heritage .theme-love-story-photo,
+  .invitation-layout-nusantara-heritage .theme-dress-code-swatch {
     border-radius: 2px !important;
+  }
+
+  .invitation-layout-nusantara-heritage .theme-countdown-section .theme-section-panel,
+  .invitation-layout-nusantara-heritage .theme-dress-code-section .theme-section-panel {
+    background:
+      repeating-linear-gradient(45deg, rgba(199, 154, 69, 0.08) 0 6px, transparent 6px 14px),
+      #fffaf2 !important;
+  }
+
+  .invitation-layout-nusantara-heritage .theme-love-story-grid {
+    position: relative;
+  }
+
+  .invitation-layout-nusantara-heritage .theme-love-story-card {
+    border-left: 4px solid rgba(199, 154, 69, 0.62) !important;
   }
 
   .invitation-layout-nusantara-heritage .theme-reveal {
@@ -717,12 +831,28 @@
     grid-template-columns: 1fr;
   }
 
-  .invitation-layout-coastal-dawn .theme-event-card {
+  .invitation-layout-coastal-dawn .theme-event-card,
+  .invitation-layout-coastal-dawn .theme-love-story-card {
     display: grid;
     grid-template-columns: minmax(150px, 0.45fr) minmax(0, 1fr);
     gap: 18px;
     align-items: center;
     border-radius: 8px !important;
+  }
+
+  .invitation-layout-coastal-dawn .theme-love-story-photo {
+    margin-bottom: 0 !important;
+    min-height: 100%;
+    border-radius: 8px !important;
+  }
+
+  .invitation-layout-coastal-dawn .theme-countdown-section .theme-section-panel {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(246, 251, 250, 0.96)) !important;
+  }
+
+  .invitation-layout-coastal-dawn .theme-countdown-item {
+    border-radius: 8px !important;
+    background: rgba(220, 239, 240, 0.76) !important;
   }
 
   .invitation-layout-coastal-dawn .theme-gallery-grid {
@@ -738,9 +868,14 @@
     transform: translateY(28px);
   }
 
-  .invitation-layout-coastal-dawn .theme-envelope-section .theme-section-panel {
+  .invitation-layout-coastal-dawn .theme-envelope-section .theme-section-panel,
+  .invitation-layout-coastal-dawn .theme-dress-code-section .theme-section-panel {
     border-radius: 8px !important;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(220, 239, 240, 0.95)) !important;
+  }
+
+  .invitation-layout-coastal-dawn .theme-dress-code-swatch {
+    border-radius: 999px !important;
   }
 
   .invitation-layout-coastal-dawn .theme-wishes-grid {
@@ -834,7 +969,8 @@
 
   .invitation-layout-golden-bloom-stage .theme-section-panel,
   .invitation-layout-golden-bloom-stage .theme-couple-card,
-  .invitation-layout-golden-bloom-stage .theme-event-card {
+  .invitation-layout-golden-bloom-stage .theme-event-card,
+  .invitation-layout-golden-bloom-stage .theme-love-story-card {
     position: relative;
     overflow: hidden;
     border-radius: 999px 999px 12px 12px !important;
@@ -842,7 +978,8 @@
 
   .invitation-layout-golden-bloom-stage .theme-section-panel::before,
   .invitation-layout-golden-bloom-stage .theme-couple-card::before,
-  .invitation-layout-golden-bloom-stage .theme-event-card::before {
+  .invitation-layout-golden-bloom-stage .theme-event-card::before,
+  .invitation-layout-golden-bloom-stage .theme-love-story-card::before {
     position: absolute;
     inset: 12px;
     content: "";
@@ -870,6 +1007,8 @@
   }
 
   .invitation-layout-golden-bloom-stage .theme-events-section,
+  .invitation-layout-golden-bloom-stage .theme-countdown-section,
+  .invitation-layout-golden-bloom-stage .theme-dress-code-section,
   .invitation-layout-golden-bloom-stage .theme-envelope-section,
   .invitation-layout-golden-bloom-stage .theme-wishes-section {
     background:
@@ -891,6 +1030,29 @@
     gap: 22px;
     min-height: 230px;
     border-radius: 12px !important;
+  }
+
+  .invitation-layout-golden-bloom-stage .theme-countdown-grid {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .invitation-layout-golden-bloom-stage .theme-countdown-item {
+    border-radius: 12px !important;
+    background: rgba(255, 249, 237, 0.92) !important;
+    outline: 1px solid rgba(196, 154, 69, 0.26);
+    outline-offset: 4px;
+  }
+
+  .invitation-layout-golden-bloom-stage .theme-love-story-photo {
+    border-radius: 999px 999px 12px 12px !important;
+  }
+
+  .invitation-layout-golden-bloom-stage .theme-dress-code-swatch {
+    border-radius: 999px 999px 12px 12px !important;
+    outline: 1px solid rgba(196, 154, 69, 0.32);
+    outline-offset: 4px;
   }
 
   .invitation-layout-golden-bloom-stage .theme-gallery-section {
@@ -994,6 +1156,8 @@
 
   @media (max-width: 767px) {
     .invitation-layout-modern-minimal .theme-gallery-grid,
+    .invitation-layout-modern-minimal .theme-countdown-grid,
+    .invitation-layout-modern-minimal .theme-love-story-grid,
     .invitation-layout-coastal-dawn .theme-gallery-grid,
     .invitation-layout-coastal-dawn .theme-wishes-grid,
     .invitation-layout-golden-bloom-stage .theme-gallery-grid,
@@ -1016,7 +1180,8 @@
     }
 
     .invitation-layout-coastal-dawn .theme-couple-grid,
-    .invitation-layout-coastal-dawn .theme-event-card {
+    .invitation-layout-coastal-dawn .theme-event-card,
+    .invitation-layout-coastal-dawn .theme-love-story-card {
       grid-template-columns: 1fr;
     }
 

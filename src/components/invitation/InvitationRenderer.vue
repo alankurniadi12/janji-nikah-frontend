@@ -516,8 +516,8 @@ watch(showContent, () => {
           <p class="text-sm font-bold uppercase tracking-widest text-gold">Menuju hari bahagia</p>
           <h2 class="mt-4 text-2xl font-bold text-ink">{{ eventTypeLabel(countdownEvent.type) }}</h2>
           <p class="mt-2 text-sm font-semibold text-ink/55">{{ formatEventDate(countdownEvent.date) }}</p>
-          <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div v-for="part in countdownParts" :key="part.label" class="rounded-md border border-ink/10 bg-linen p-4">
+          <div class="theme-countdown-grid mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div v-for="part in countdownParts" :key="part.label" class="theme-countdown-item rounded-md border border-ink/10 bg-linen p-4">
               <p class="text-3xl font-bold text-ink">{{ String(part.value).padStart(2, "0") }}</p>
               <p class="mt-1 text-xs font-bold uppercase tracking-widest text-ink/45">{{ part.label }}</p>
             </div>
@@ -556,7 +556,7 @@ watch(showContent, () => {
                 Buka Maps
               </a>
               <a
-                class="ml-2 mt-5 inline-flex items-center gap-2 rounded-md border border-ink/15 px-3 py-2 text-sm font-semibold text-ink hover:border-leaf hover:text-leaf"
+                class="theme-calendar-action ml-2 mt-5 inline-flex items-center gap-2 rounded-md border border-ink/15 px-3 py-2 text-sm font-semibold text-ink hover:border-leaf hover:text-leaf"
                 :href="calendarDataUri(eventItem)"
                 :download="calendarFileName(eventItem)"
               >
@@ -574,17 +574,17 @@ watch(showContent, () => {
         class="theme-reveal theme-love-story-section mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8"
       >
         <p class="text-center text-sm font-bold uppercase tracking-widest text-gold">Cerita cinta</p>
-        <div class="mt-8 grid gap-4 md:grid-cols-2">
+        <div class="theme-love-story-grid mt-8 grid gap-4 md:grid-cols-2">
           <article
             v-for="(item, index) in loveStoryItems"
             :key="`${item.title}-${item.date}-${index}`"
-            class="theme-section-panel rounded-lg border border-ink/10 bg-white p-6 shadow-soft"
+            class="theme-section-panel theme-love-story-card rounded-lg border border-ink/10 bg-white p-6 shadow-soft"
           >
             <img
               v-if="item.photoUrl"
               :src="assetUrl(item.photoUrl)"
               alt="Foto cerita cinta"
-              class="mb-5 aspect-[4/3] w-full rounded-md object-cover"
+              class="theme-love-story-photo mb-5 aspect-[4/3] w-full rounded-md object-cover"
             />
             <p class="text-sm font-bold text-leaf">{{ index + 1 }}</p>
             <h2 class="mt-3 text-2xl font-bold text-ink">{{ item.title }}</h2>
@@ -603,11 +603,11 @@ watch(showContent, () => {
           <p class="text-sm font-bold uppercase tracking-widest text-gold">Dress code</p>
           <h2 class="mt-4 text-2xl font-bold text-ink">Warna yang disarankan</h2>
           <p v-if="dressCode.note" class="mx-auto mt-3 max-w-xl text-sm leading-7 text-ink/65">{{ dressCode.note }}</p>
-          <div class="mt-6 flex flex-wrap justify-center gap-3">
+          <div class="theme-dress-code-swatches mt-6 flex flex-wrap justify-center gap-3">
             <span
               v-for="color in dressCode.colors"
               :key="color"
-              class="h-12 w-12 rounded-md border border-ink/10 shadow-soft"
+              class="theme-dress-code-swatch h-12 w-12 rounded-md border border-ink/10 shadow-soft"
               :style="{ backgroundColor: color }"
             />
           </div>
@@ -647,7 +647,7 @@ watch(showContent, () => {
               <p class="mt-1 text-lg font-bold text-leaf">{{ method.accountNumber }}</p>
               <p class="mt-1 text-sm text-ink/55">a.n. {{ method.accountHolder }}</p>
               <button
-                class="focus-ring mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-3 text-sm font-bold text-ink hover:border-leaf hover:text-leaf"
+                class="focus-ring theme-copy-action mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-3 text-sm font-bold text-ink hover:border-leaf hover:text-leaf"
                 type="button"
                 @click="copyEnvelopeNumber(method)"
               >
