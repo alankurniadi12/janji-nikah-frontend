@@ -46,6 +46,23 @@ const sampleInvitation = {
       accountHolder: "Amara Kirana"
     }
   ],
+  loveStory: [
+    {
+      title: "Pertama bertemu",
+      date: "2021-06-12",
+      description: "Pertemuan sederhana setelah acara kampus menjadi awal dari percakapan panjang yang terus berlanjut sampai hari ini."
+    },
+    {
+      title: "Lamaran keluarga",
+      date: "2025-12-20",
+      description: "Dua keluarga bertemu dalam suasana hangat untuk merestui langkah Raka dan Amara menuju pernikahan."
+    }
+  ],
+  dressCode: {
+    enabled: true,
+    note: "Kami akan senang jika tamu berkenan memakai warna pastel atau earth tone.",
+    colors: ["#f5d7c4", "#d8bfa3", "#8f9f7a"]
+  },
   wishes: [
     {
       name: "Dian",

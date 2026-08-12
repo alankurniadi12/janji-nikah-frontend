@@ -128,6 +128,11 @@ const envelopeMethods = computed(() => {
 });
 const galleryUrls = computed(() => props.invitation.galleryPhotoUrls || []);
 const demoGalleryCount = computed(() => (props.isDemo && !galleryUrls.value.length ? 3 : 0));
+const loveStoryItems = computed(() =>
+  (props.invitation.loveStory || []).filter((item) => item?.title || item?.description)
+);
+const dressCode = computed(() => props.invitation.dressCode || { enabled: false, note: "", colors: [] });
+const showDressCode = computed(() => Boolean(dressCode.value.enabled && dressCode.value.colors?.length));
 
 function wishName(wish) {
   return wish.displayName || wish.name || "Tamu";
@@ -167,6 +172,18 @@ function rsvpStatusClass(status) {
   }
 
   return "border-ink/10 bg-white text-ink/50";
+}
+
+function storyDateLabel(value) {
+  if (!value) {
+    return "";
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return formatEventDate(value);
+  }
+
+  return value;
 }
 
 function canEditWish(wish) {
@@ -354,6 +371,46 @@ watch(showContent, () => {
                 Buka Maps
               </a>
             </article>
+          </div>
+        </div>
+      </section>
+
+      <section
+        v-if="loveStoryItems.length"
+        id="theme-section-love-story"
+        class="theme-reveal theme-love-story-section mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8"
+      >
+        <p class="text-center text-sm font-bold uppercase tracking-widest text-gold">Cerita cinta</p>
+        <div class="mt-8 grid gap-4 md:grid-cols-2">
+          <article
+            v-for="(item, index) in loveStoryItems"
+            :key="`${item.title}-${item.date}-${index}`"
+            class="theme-section-panel rounded-lg border border-ink/10 bg-white p-6 shadow-soft"
+          >
+            <p class="text-sm font-bold text-leaf">{{ index + 1 }}</p>
+            <h2 class="mt-3 text-2xl font-bold text-ink">{{ item.title }}</h2>
+            <p v-if="item.date" class="mt-2 text-sm font-semibold text-gold">{{ storyDateLabel(item.date) }}</p>
+            <p class="mt-4 whitespace-pre-line text-sm leading-7 text-ink/65">{{ item.description }}</p>
+          </article>
+        </div>
+      </section>
+
+      <section
+        v-if="showDressCode"
+        id="theme-section-dress-code"
+        class="theme-reveal theme-dress-code-section bg-white px-4 py-12"
+      >
+        <div class="theme-section-panel mx-auto max-w-3xl rounded-lg border border-ink/10 bg-linen p-6 text-center shadow-soft">
+          <p class="text-sm font-bold uppercase tracking-widest text-gold">Dress code</p>
+          <h2 class="mt-4 text-2xl font-bold text-ink">Warna yang disarankan</h2>
+          <p v-if="dressCode.note" class="mx-auto mt-3 max-w-xl text-sm leading-7 text-ink/65">{{ dressCode.note }}</p>
+          <div class="mt-6 flex flex-wrap justify-center gap-3">
+            <span
+              v-for="color in dressCode.colors"
+              :key="color"
+              class="h-12 w-12 rounded-md border border-ink/10 shadow-soft"
+              :style="{ backgroundColor: color }"
+            />
           </div>
         </div>
       </section>

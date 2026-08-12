@@ -30,6 +30,7 @@ const pendingDelete = ref(null);
 const validationErrors = reactive({});
 const galleryLimit = 10;
 const loveStoryLimit = 5;
+const loveStoryDescriptionLimit = 800;
 const dressCodeColorLimit = 5;
 
 const steps = [
@@ -1101,11 +1102,11 @@ function fieldError(key) {
                   </label>
                   <p v-if="fieldError(`loveStory.${index}.title`)" class="mt-1 text-xs font-semibold text-rose">{{ fieldError(`loveStory.${index}.title`) }}</p>
                   <label class="mt-4 block text-sm font-semibold text-ink">
-                    Tanggal / tahun
+                    Tanggal
                     <input
-                      v-model.trim="item.date"
+                      v-model="item.date"
+                      type="date"
                       class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
-                      placeholder="2021 / 12 Juni 2021"
                       :disabled="!isMainDataEditable"
                     />
                   </label>
@@ -1116,10 +1117,16 @@ function fieldError(key) {
                       class="focus-ring mt-2 min-h-28 w-full rounded-md border px-3 py-2 text-sm"
                       :class="fieldClass(`loveStory.${index}.description`)"
                       :data-invalid="Boolean(fieldError(`loveStory.${index}.description`))"
-                      maxlength="240"
+                      :maxlength="loveStoryDescriptionLimit"
                       :disabled="!isMainDataEditable"
                     />
                   </label>
+                  <div
+                    class="mt-1 flex justify-end text-xs font-semibold"
+                    :class="item.description.length >= loveStoryDescriptionLimit ? 'text-rose' : 'text-ink/45'"
+                  >
+                    {{ item.description.length }}/{{ loveStoryDescriptionLimit }}
+                  </div>
                   <p v-if="fieldError(`loveStory.${index}.description`)" class="mt-1 text-xs font-semibold text-rose">{{ fieldError(`loveStory.${index}.description`) }}</p>
                 </article>
               </div>
