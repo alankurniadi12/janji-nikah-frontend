@@ -249,6 +249,12 @@ function rsvpLabel(status) {
                 <p class="text-sm font-bold text-ink">Cerita cinta</p>
                 <div v-if="loveStory.length" class="mt-3 divide-y divide-ink/10">
                   <div v-for="item in loveStory" :key="`${item.title}-${item.date}`" class="py-3 text-sm">
+                    <img
+                      v-if="item.photoUrl"
+                      :src="assetUrl(item.photoUrl)"
+                      alt="Foto cerita cinta"
+                      class="mb-3 aspect-[4/3] w-full rounded-md object-cover"
+                    />
                     <p class="font-bold text-ink">{{ item.title }}</p>
                     <p v-if="item.date" class="mt-1 text-xs font-semibold text-ink/45">{{ item.date }}</p>
                     <p class="mt-2 leading-6 text-ink/60">{{ item.description }}</p>

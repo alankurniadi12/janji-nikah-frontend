@@ -387,6 +387,12 @@ watch(showContent, () => {
             :key="`${item.title}-${item.date}-${index}`"
             class="theme-section-panel rounded-lg border border-ink/10 bg-white p-6 shadow-soft"
           >
+            <img
+              v-if="item.photoUrl"
+              :src="assetUrl(item.photoUrl)"
+              alt="Foto cerita cinta"
+              class="mb-5 aspect-[4/3] w-full rounded-md object-cover"
+            />
             <p class="text-sm font-bold text-leaf">{{ index + 1 }}</p>
             <h2 class="mt-3 text-2xl font-bold text-ink">{{ item.title }}</h2>
             <p v-if="item.date" class="mt-2 text-sm font-semibold text-gold">{{ storyDateLabel(item.date) }}</p>

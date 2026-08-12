@@ -30,7 +30,7 @@ const pendingDelete = ref(null);
 const validationErrors = reactive({});
 const galleryLimit = 10;
 const loveStoryLimit = 5;
-const loveStoryDescriptionLimit = 800;
+const loveStoryDescriptionLimit = 500;
 const dressCodeColorLimit = 5;
 
 const steps = [
@@ -142,7 +142,8 @@ function syncForm(source) {
   form.loveStory = (source.loveStory || []).map((item) => ({
     title: item.title || "",
     date: item.date || "",
-    description: item.description || ""
+    description: item.description || "",
+    photoUrl: item.photoUrl || ""
   }));
   form.dressCode.enabled = Boolean(source.dressCode?.enabled);
   form.dressCode.note = source.dressCode?.note || "";
@@ -202,7 +203,8 @@ function addLoveStoryItem() {
   form.loveStory.push({
     title: "",
     date: "",
-    description: ""
+    description: "",
+    photoUrl: ""
   });
 }
 
@@ -334,6 +336,32 @@ async function uploadBridePhoto(event) {
 
 async function uploadGallery(event) {
   await uploadPhoto(event, "gallery");
+}
+
+async function uploadLoveStoryPhoto(event, index) {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+
+  if (!file) {
+    return;
+  }
+
+  error.value = "";
+  clearValidationErrors();
+
+  try {
+    const saved = await saveInvitation();
+
+    if (!saved) {
+      return;
+    }
+
+    const updated = await invitationStore.replaceLoveStoryPhoto(route.params.id, index, file);
+    syncForm(updated);
+    toastStore.show("Foto cerita cinta berhasil diunggah.");
+  } catch (requestError) {
+    error.value = getApiErrorMessage(requestError, "Foto cerita cinta belum bisa diunggah.");
+  }
 }
 
 async function uploadPhoto(event, type) {
@@ -1110,6 +1138,30 @@ function fieldError(key) {
                       :disabled="!isMainDataEditable"
                     />
                   </label>
+                  <div class="mt-4 grid gap-3 sm:grid-cols-[140px_1fr] sm:items-start">
+                    <div class="aspect-[4/3] overflow-hidden rounded-md border border-ink/10 bg-linen">
+                      <img
+                        v-if="item.photoUrl"
+                        :src="assetUrl(item.photoUrl)"
+                        alt="Foto cerita cinta"
+                        class="h-full w-full object-cover"
+                      />
+                      <div v-else class="flex h-full items-center justify-center text-ink/35">
+                        <ImagePlus class="h-7 w-7" />
+                      </div>
+                    </div>
+                    <label class="block">
+                      <span class="text-sm font-semibold text-ink">Foto cerita</span>
+                      <input
+                        class="focus-ring mt-2 block w-full rounded-md border border-ink/15 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-mint file:px-3 file:py-2 file:text-sm file:font-semibold file:text-leaf"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        :disabled="!isMainDataEditable || invitationStore.uploading"
+                        @change="uploadLoveStoryPhoto($event, index)"
+                      />
+                      <p class="mt-2 text-xs leading-5 text-ink/50">Satu foto untuk bagian cerita ini.</p>
+                    </label>
+                  </div>
                   <label class="mt-4 block text-sm font-semibold text-ink">
                     Cerita singkat
                     <textarea

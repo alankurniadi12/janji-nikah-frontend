@@ -73,6 +73,19 @@ export async function uploadGalleryPhoto(id, file) {
   return response.data.data.invitation;
 }
 
+export async function uploadLoveStoryPhoto(id, storyIndex, file) {
+  const formData = new FormData();
+  formData.append("photo", file);
+
+  const response = await api.post(`/member/invitations/${id}/photos/love-story/${storyIndex}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+
+  return response.data.data.invitation;
+}
+
 export async function deleteGalleryPhoto(id, photoId) {
   const response = await api.delete(`/member/invitations/${id}/photos/gallery/${photoId}`);
   return response.data.data.invitation;
