@@ -134,6 +134,15 @@ watch(currentSnapshot, () => {
   }
 });
 
+watch(
+  () => form.quote.enabled,
+  (enabled) => {
+    if (enabled) {
+      syncDefaultQuote();
+    }
+  }
+);
+
 function syncForm(source) {
   form.title = source.title || "";
   form.slug = source.slug || "";
@@ -299,6 +308,7 @@ function requestRemoveEnvelopeMethod(index) {
 
 function buildPayload() {
   const title = createInvitationTitle(form.groom.fullName, form.bride.fullName);
+  const quoteEnabled = form.quote.enabled;
 
   return {
     title,
@@ -319,9 +329,9 @@ function buildPayload() {
       colors: form.dressCode.enabled ? [...form.dressCode.colors] : []
     },
     quote: {
-      enabled: form.quote.enabled,
-      text: form.quote.text,
-      source: form.quote.source
+      enabled: quoteEnabled,
+      text: quoteEnabled ? form.quote.text || defaultQuoteText : form.quote.text,
+      source: quoteEnabled ? form.quote.source || defaultQuoteSource : form.quote.source
     },
     themeId: form.themeId || null,
     musicId: form.musicEnabled ? form.musicId || null : null,
@@ -710,7 +720,6 @@ function collectValidationErrors({ onlyStep = "" } = {}) {
   }
 
   if (form.quote.enabled) {
-    if (!form.quote.text?.trim()) add("quote.text", "Isi quote", "details");
     if (form.quote.text.length > quoteTextLimit) add("quote.text", `Quote maksimal ${quoteTextLimit} karakter`, "details");
     if (form.quote.source.length > quoteSourceLimit) add("quote.source", `Sumber quote maksimal ${quoteSourceLimit} karakter`, "details");
   }
