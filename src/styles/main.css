@@ -969,8 +969,7 @@
 
   .invitation-layout-golden-bloom-stage .theme-section-panel,
   .invitation-layout-golden-bloom-stage .theme-couple-card,
-  .invitation-layout-golden-bloom-stage .theme-event-card,
-  .invitation-layout-golden-bloom-stage .theme-love-story-card {
+  .invitation-layout-golden-bloom-stage .theme-event-card {
     position: relative;
     overflow: hidden;
     border-radius: 999px 999px 12px 12px !important;
@@ -978,8 +977,7 @@
 
   .invitation-layout-golden-bloom-stage .theme-section-panel::before,
   .invitation-layout-golden-bloom-stage .theme-couple-card::before,
-  .invitation-layout-golden-bloom-stage .theme-event-card::before,
-  .invitation-layout-golden-bloom-stage .theme-love-story-card::before {
+  .invitation-layout-golden-bloom-stage .theme-event-card::before {
     position: absolute;
     inset: 12px;
     content: "";
@@ -1045,8 +1043,24 @@
     outline-offset: 4px;
   }
 
+  .invitation-layout-golden-bloom-stage .theme-love-story-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px !important;
+    padding: clamp(1.25rem, 3vw, 2rem) !important;
+  }
+
+  .invitation-layout-golden-bloom-stage .theme-love-story-card::before {
+    position: absolute;
+    inset: 12px;
+    content: "";
+    pointer-events: none;
+    border: 1px solid rgba(196, 154, 69, 0.28);
+    border-radius: 8px;
+  }
+
   .invitation-layout-golden-bloom-stage .theme-love-story-photo {
-    border-radius: 999px 999px 12px 12px !important;
+    border-radius: 8px !important;
   }
 
   .invitation-layout-golden-bloom-stage .theme-dress-code-swatch {
