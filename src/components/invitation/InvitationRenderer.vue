@@ -140,8 +140,7 @@ const sortedEvents = computed(() =>
   [...(props.invitation.events || [])].sort((left, right) => eventStartDate(left).getTime() - eventStartDate(right).getTime())
 );
 const countdownEvent = computed(() => {
-  const upcomingEvent = sortedEvents.value.find((eventItem) => eventStartDate(eventItem).getTime() > now.value);
-  return upcomingEvent || sortedEvents.value[0] || null;
+  return sortedEvents.value.find((eventItem) => eventStartDate(eventItem).getTime() > now.value) || null;
 });
 const countdownParts = computed(() => {
   if (!countdownEvent.value) {
