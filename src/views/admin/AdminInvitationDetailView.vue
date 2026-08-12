@@ -32,6 +32,8 @@ const mainPhotoUrl = computed(() => assetUrl(invitation.value?.mainPhotoUrl || "
 const groomPhotoUrl = computed(() => assetUrl(invitation.value?.groom?.photoUrl || ""));
 const bridePhotoUrl = computed(() => assetUrl(invitation.value?.bride?.photoUrl || ""));
 const galleryPhotoUrls = computed(() => (invitation.value?.galleryPhotoUrls || []).map(assetUrl).filter(Boolean));
+const loveStory = computed(() => invitation.value?.loveStory || []);
+const dressCode = computed(() => invitation.value?.dressCode || { enabled: false, note: "", colors: [] });
 const publicPath = computed(() => invitation.value?.links?.publicPath || "");
 const previewPath = computed(() => invitation.value?.links?.previewPath || "");
 const statusMessage = computed(() => {
@@ -238,6 +240,36 @@ function rsvpLabel(status) {
             <p v-else class="mt-4 rounded-md bg-linen p-5 text-center text-sm font-semibold text-ink/55">
               Data acara belum diisi.
             </p>
+          </article>
+
+          <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+            <h2 class="text-lg font-bold text-ink">Cerita dan dress code</h2>
+            <div class="mt-4 grid gap-4 lg:grid-cols-2">
+              <section class="rounded-md border border-ink/10 p-4">
+                <p class="text-sm font-bold text-ink">Cerita cinta</p>
+                <div v-if="loveStory.length" class="mt-3 divide-y divide-ink/10">
+                  <div v-for="item in loveStory" :key="`${item.title}-${item.date}`" class="py-3 text-sm">
+                    <p class="font-bold text-ink">{{ item.title }}</p>
+                    <p v-if="item.date" class="mt-1 text-xs font-semibold text-ink/45">{{ item.date }}</p>
+                    <p class="mt-2 leading-6 text-ink/60">{{ item.description }}</p>
+                  </div>
+                </div>
+                <p v-else class="mt-3 rounded-md bg-linen p-4 text-sm font-semibold text-ink/55">Belum ada cerita cinta.</p>
+              </section>
+              <section class="rounded-md border border-ink/10 p-4">
+                <p class="text-sm font-bold text-ink">Dress code</p>
+                <p class="mt-2 text-sm text-ink/55">{{ dressCode.enabled ? "Aktif" : "Nonaktif" }}</p>
+                <p v-if="dressCode.note" class="mt-3 rounded-md bg-linen p-3 text-sm leading-6 text-ink/65">{{ dressCode.note }}</p>
+                <div v-if="dressCode.colors?.length" class="mt-3 flex flex-wrap gap-2">
+                  <span
+                    v-for="color in dressCode.colors"
+                    :key="color"
+                    class="h-9 w-9 rounded-md border border-ink/10"
+                    :style="{ backgroundColor: color }"
+                  />
+                </div>
+              </section>
+            </div>
           </article>
 
           <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">

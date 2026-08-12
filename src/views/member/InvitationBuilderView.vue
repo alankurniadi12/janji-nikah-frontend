@@ -28,11 +28,15 @@ const showCreditEmpty = ref(false);
 const savedSnapshot = ref("");
 const pendingDelete = ref(null);
 const validationErrors = reactive({});
+const galleryLimit = 10;
+const loveStoryLimit = 5;
+const dressCodeColorLimit = 5;
 
 const steps = [
   { key: "couple", label: "Pengantin" },
   { key: "events", label: "Acara" },
   { key: "photos", label: "Foto" },
+  { key: "details", label: "Cerita" },
   { key: "music", label: "Musik" },
   { key: "theme", label: "Tema" },
   { key: "envelope", label: "Amplop" },
@@ -53,6 +57,12 @@ const form = reactive({
     motherName: ""
   },
   events: [],
+  loveStory: [],
+  dressCode: {
+    enabled: false,
+    note: "",
+    colors: []
+  },
   musicEnabled: false,
   themeId: "",
   musicId: "",
@@ -77,7 +87,9 @@ const invitation = computed(() => invitationStore.current);
 const isMainDataEditable = computed(() =>
   ["draft", "active"].includes(invitation.value?.status)
 );
-const canAddGallery = computed(() => (invitation.value?.galleryPhotoUrls?.length || 0) < 5);
+const canAddGallery = computed(() => (invitation.value?.galleryPhotoUrls?.length || 0) < galleryLimit);
+const canAddLoveStory = computed(() => form.loveStory.length < loveStoryLimit);
+const canAddDressCodeColor = computed(() => form.dressCode.colors.length < dressCodeColorLimit);
 const publicPath = computed(() => {
   if (!auth.user?.username || !invitation.value?.slug) {
     return "";
@@ -126,6 +138,14 @@ function syncForm(source) {
     address: event.address || "",
     googleMapsUrl: event.googleMapsUrl || ""
   }));
+  form.loveStory = (source.loveStory || []).map((item) => ({
+    title: item.title || "",
+    date: item.date || "",
+    description: item.description || ""
+  }));
+  form.dressCode.enabled = Boolean(source.dressCode?.enabled);
+  form.dressCode.note = source.dressCode?.note || "";
+  form.dressCode.colors = source.dressCode?.colors?.length ? [...source.dressCode.colors] : [];
   form.themeId = source.themeId || "";
   form.musicEnabled = Boolean(source.musicId);
   form.musicId = source.musicId || "";
@@ -173,6 +193,56 @@ function requestRemoveEvent(index) {
   };
 }
 
+function addLoveStoryItem() {
+  if (!canAddLoveStory.value) {
+    return;
+  }
+
+  form.loveStory.push({
+    title: "",
+    date: "",
+    description: ""
+  });
+}
+
+function removeLoveStoryItem(index) {
+  form.loveStory.splice(index, 1);
+}
+
+function requestRemoveLoveStoryItem(index) {
+  pendingDelete.value = {
+    type: "loveStory",
+    index,
+    title: "Hapus cerita cinta?",
+    message: "Apakah kamu yakin ingin menghapus bagian cerita cinta ini?",
+    detail: form.loveStory[index]?.title || `Cerita ${index + 1}`,
+    confirmLabel: "Ya, Hapus Cerita"
+  };
+}
+
+function addDressCodeColor() {
+  if (!canAddDressCodeColor.value) {
+    return;
+  }
+
+  form.dressCode.colors.push("#f5d7c4");
+}
+
+function removeDressCodeColor(index) {
+  form.dressCode.colors.splice(index, 1);
+}
+
+function requestRemoveDressCodeColor(index) {
+  pendingDelete.value = {
+    type: "dressCodeColor",
+    index,
+    title: "Hapus warna dress code?",
+    message: "Apakah kamu yakin ingin menghapus warna dress code ini?",
+    detail: form.dressCode.colors[index] || `Warna ${index + 1}`,
+    confirmLabel: "Ya, Hapus Warna"
+  };
+}
+
 function addEnvelopeMethod() {
   form.envelope.methods.push({
     type: "bank",
@@ -212,6 +282,12 @@ function buildPayload() {
       parentsName: joinParentsName(form.bride.fatherName, form.bride.motherName)
     },
     events: form.events.map((event) => ({ ...event })),
+    loveStory: form.loveStory.map((item) => ({ ...item })),
+    dressCode: {
+      enabled: form.dressCode.enabled,
+      note: form.dressCode.note,
+      colors: form.dressCode.enabled ? [...form.dressCode.colors] : []
+    },
     themeId: form.themeId || null,
     musicId: form.musicEnabled ? form.musicId || null : null,
     envelope: {
@@ -325,6 +401,18 @@ async function confirmDelete() {
 
   if (pendingDelete.value.type === "event") {
     removeEvent(pendingDelete.value.index);
+    pendingDelete.value = null;
+    return;
+  }
+
+  if (pendingDelete.value.type === "loveStory") {
+    removeLoveStoryItem(pendingDelete.value.index);
+    pendingDelete.value = null;
+    return;
+  }
+
+  if (pendingDelete.value.type === "dressCodeColor") {
+    removeDressCodeColor(pendingDelete.value.index);
     pendingDelete.value = null;
     return;
   }
@@ -539,6 +627,26 @@ function collectValidationErrors({ onlyStep = "" } = {}) {
     if (!eventItem.startTime) add(`events.${index}.startTime`, `Jam mulai acara ${number}`, "events");
     if (!eventItem.address?.trim()) add(`events.${index}.address`, `Alamat acara ${number}`, "events");
   });
+
+  form.loveStory.forEach((item, index) => {
+    const hasAnyValue = item.title?.trim() || item.date?.trim() || item.description?.trim();
+    const number = index + 1;
+
+    if (!hasAnyValue) {
+      return;
+    }
+
+    if (!item.title?.trim()) add(`loveStory.${index}.title`, `Judul cerita cinta ${number}`, "details");
+    if (!item.description?.trim()) add(`loveStory.${index}.description`, `Isi cerita cinta ${number}`, "details");
+  });
+
+  if (form.dressCode.enabled) {
+    if (!form.dressCode.colors.length) add("dressCode.colors", "Minimal satu warna dress code", "details");
+
+    form.dressCode.colors.forEach((color, index) => {
+      if (!color) add(`dressCode.colors.${index}`, `Warna dress code ${index + 1}`, "details");
+    });
+  }
 
   if (!invitation.value?.mainPhotoUrl) {
     add("mainPhotoUrl", "Foto utama", "photos");
@@ -915,7 +1023,7 @@ function fieldError(key) {
 
           <div>
             <h2 class="text-lg font-bold text-ink">Galeri</h2>
-            <p class="mt-1 text-sm text-ink/55">Maksimal 5 foto galeri.</p>
+            <p class="mt-1 text-sm text-ink/55">Optional, maksimal {{ galleryLimit }} foto galeri.</p>
             <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <div
                 v-for="url in invitation.galleryPhotoUrls"
@@ -948,6 +1056,146 @@ function fieldError(key) {
                 />
               </label>
             </div>
+          </div>
+        </section>
+
+        <section v-else-if="activeStep === 'details'" class="space-y-6">
+          <div class="grid gap-5 lg:grid-cols-2">
+            <section class="rounded-md border border-ink/10 p-4">
+              <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                <div>
+                  <h2 class="text-lg font-bold text-ink">Cerita cinta</h2>
+                  <p class="mt-1 text-sm leading-6 text-ink/55">
+                    Optional, isi sebagai timeline singkat jika calon pengantin ingin cerita perjalanan mereka tampil nanti.
+                  </p>
+                </div>
+                <AppButton type="button" variant="secondary" :disabled="!isMainDataEditable || !canAddLoveStory" @click="addLoveStoryItem">
+                  <Plus class="h-4 w-4" />
+                  Tambah
+                </AppButton>
+              </div>
+
+              <div v-if="form.loveStory.length" class="mt-4 space-y-4">
+                <article v-for="(item, index) in form.loveStory" :key="index" class="rounded-md border border-ink/10 p-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <h3 class="font-bold text-ink">Cerita {{ index + 1 }}</h3>
+                    <button
+                      class="focus-ring rounded-md p-2 text-rose hover:bg-rose/10"
+                      type="button"
+                      :disabled="!isMainDataEditable"
+                      @click="requestRemoveLoveStoryItem(index)"
+                    >
+                      <Trash2 class="h-4 w-4" />
+                    </button>
+                  </div>
+                  <label class="mt-4 block text-sm font-semibold text-ink">
+                    Judul
+                    <input
+                      v-model.trim="item.title"
+                      class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                      :class="fieldClass(`loveStory.${index}.title`)"
+                      :data-invalid="Boolean(fieldError(`loveStory.${index}.title`))"
+                      placeholder="Pertama Bertemu"
+                      :disabled="!isMainDataEditable"
+                    />
+                  </label>
+                  <p v-if="fieldError(`loveStory.${index}.title`)" class="mt-1 text-xs font-semibold text-rose">{{ fieldError(`loveStory.${index}.title`) }}</p>
+                  <label class="mt-4 block text-sm font-semibold text-ink">
+                    Tanggal / tahun
+                    <input
+                      v-model.trim="item.date"
+                      class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                      placeholder="2021 / 12 Juni 2021"
+                      :disabled="!isMainDataEditable"
+                    />
+                  </label>
+                  <label class="mt-4 block text-sm font-semibold text-ink">
+                    Cerita singkat
+                    <textarea
+                      v-model.trim="item.description"
+                      class="focus-ring mt-2 min-h-28 w-full rounded-md border px-3 py-2 text-sm"
+                      :class="fieldClass(`loveStory.${index}.description`)"
+                      :data-invalid="Boolean(fieldError(`loveStory.${index}.description`))"
+                      maxlength="240"
+                      :disabled="!isMainDataEditable"
+                    />
+                  </label>
+                  <p v-if="fieldError(`loveStory.${index}.description`)" class="mt-1 text-xs font-semibold text-rose">{{ fieldError(`loveStory.${index}.description`) }}</p>
+                </article>
+              </div>
+              <p v-else class="mt-4 rounded-md border border-dashed border-ink/20 p-5 text-sm font-semibold text-ink/55">
+                Belum ada cerita cinta. Bagian ini boleh dikosongkan.
+              </p>
+            </section>
+
+            <section class="rounded-md border border-ink/10 p-4">
+              <h2 class="text-lg font-bold text-ink">Dress code</h2>
+              <label class="mt-4 flex items-start gap-3 rounded-md border border-ink/10 bg-linen p-4">
+                <input
+                  v-model="form.dressCode.enabled"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 rounded border-ink/20 text-leaf"
+                  :disabled="!isMainDataEditable"
+                />
+                <span>
+                  <span class="block text-sm font-bold text-ink">Aktifkan dress code</span>
+                  <span class="mt-1 block text-sm leading-6 text-ink/60">Optional, tampil nanti hanya jika diaktifkan dan ada warna.</span>
+                </span>
+              </label>
+
+              <div v-if="form.dressCode.enabled" class="mt-4 space-y-4" :data-invalid="Boolean(validationErrors['dressCode.colors'])">
+                <label class="block text-sm font-semibold text-ink">
+                  Catatan
+                  <textarea
+                    v-model.trim="form.dressCode.note"
+                    class="focus-ring mt-2 min-h-24 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
+                    maxlength="180"
+                    placeholder="Contoh: Kenakan warna pastel atau earth tone."
+                    :disabled="!isMainDataEditable"
+                  />
+                </label>
+                <div>
+                  <div class="flex items-center justify-between gap-3">
+                    <p class="text-sm font-semibold text-ink">Warna</p>
+                    <AppButton type="button" variant="secondary" :disabled="!isMainDataEditable || !canAddDressCodeColor" @click="addDressCodeColor">
+                      <Plus class="h-4 w-4" />
+                      Warna
+                    </AppButton>
+                  </div>
+                  <p v-if="fieldError('dressCode.colors')" class="mt-2 rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">
+                    {{ fieldError("dressCode.colors") }}
+                  </p>
+                  <div v-if="form.dressCode.colors.length" class="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div v-for="(color, index) in form.dressCode.colors" :key="index" class="flex items-center gap-3 rounded-md border border-ink/10 p-3">
+                      <input
+                        v-model="form.dressCode.colors[index]"
+                        type="color"
+                        class="h-10 w-12 shrink-0 rounded-md border border-ink/15 bg-white p-1"
+                        :disabled="!isMainDataEditable"
+                      />
+                      <input
+                        v-model.trim="form.dressCode.colors[index]"
+                        class="focus-ring h-10 min-w-0 flex-1 rounded-md border px-3 text-sm"
+                        :class="fieldClass(`dressCode.colors.${index}`)"
+                        :data-invalid="Boolean(fieldError(`dressCode.colors.${index}`))"
+                        :disabled="!isMainDataEditable"
+                      />
+                      <button
+                        class="focus-ring rounded-md p-2 text-rose hover:bg-rose/10"
+                        type="button"
+                        :disabled="!isMainDataEditable"
+                        @click="requestRemoveDressCodeColor(index)"
+                      >
+                        <Trash2 class="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <p v-else class="mt-3 rounded-md border border-dashed border-ink/20 p-5 text-sm font-semibold text-ink/55">
+                    Tambahkan 1-5 warna dress code.
+                  </p>
+                </div>
+              </div>
+            </section>
           </div>
         </section>
 
