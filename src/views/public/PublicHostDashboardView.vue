@@ -1,16 +1,20 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { CalendarDays, CheckCircle2, Clock3, Loader2, MessageSquareText, Users, XCircle } from "@lucide/vue";
+import { CalendarDays, CheckCircle2, Clock3, Copy, Loader2, MessageSquareText, Users, XCircle } from "@lucide/vue";
 
+import whatsappIconUrl from "@/assets/ic-whatsapp.png";
 import { getApiErrorMessage } from "@/lib/api";
 import { getPublicHostDashboard } from "@/services/publicInvitationService";
+import { useToastStore } from "@/stores/toasts";
 import { formatDate } from "@/utils/formatters";
 
 const route = useRoute();
 const router = useRouter();
+const toastStore = useToastStore();
 const loading = ref(true);
 const error = ref("");
+const actionError = ref("");
 const dashboard = ref(null);
 
 onMounted(loadDashboard);
@@ -59,6 +63,47 @@ function rsvpClass(status) {
   if (status === "attending") return "border-leaf/20 bg-leaf/10 text-leaf";
   if (status === "not_attending") return "border-rose/20 bg-rose/10 text-rose";
   return "border-ink/10 bg-white text-ink/50";
+}
+
+function absoluteLink(link) {
+  if (!link) {
+    return "";
+  }
+
+  return new URL(link, window.location.origin).toString();
+}
+
+async function copyText(text, message) {
+  actionError.value = "";
+
+  if (!text) {
+    actionError.value = "Link tamu belum tersedia.";
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    toastStore.show(message);
+  } catch {
+    actionError.value = "Browser belum mengizinkan copy otomatis. Salin teks secara manual dari link yang tampil.";
+  }
+}
+
+async function copyGuestLink(guest) {
+  await copyText(absoluteLink(guest.link), "Link tamu berhasil disalin.");
+}
+
+async function copyGuestWhatsapp(guest) {
+  const link = absoluteLink(guest.link);
+
+  if (!link) {
+    actionError.value = "Link tamu belum tersedia.";
+    return;
+  }
+
+  const message = `Assalamu'alaikum ${guest.name},\n\nKami mengundang Anda untuk hadir di acara pernikahan ${coupleNames.value}.\n\nBuka undangan:\n${link}`;
+
+  await copyText(message, "Pesan WhatsApp berhasil disalin.");
 }
 </script>
 
@@ -144,15 +189,37 @@ function rsvpClass(status) {
             <CalendarDays class="h-5 w-5 text-leaf" />
             <h2 class="text-lg font-bold text-ink">Daftar kehadiran</h2>
           </div>
+          <p v-if="actionError" class="mt-4 rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">{{ actionError }}</p>
           <div v-if="guests.length" class="mt-4 divide-y divide-ink/10">
-            <div v-for="guest in guests" :key="guest.id" class="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
+            <div v-for="guest in guests" :key="guest.id" class="grid gap-3 py-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
+              <div class="min-w-0">
                 <p class="font-semibold text-ink">{{ guest.name }}</p>
                 <p class="text-xs text-ink/45">{{ guest.openedAt ? `Dibuka ${formatDate(guest.openedAt)}` : "Belum membuka undangan" }}</p>
+                <p v-if="guest.link" class="mt-1 break-all text-xs text-ink/45">{{ absoluteLink(guest.link) }}</p>
               </div>
               <span class="inline-flex w-max rounded-full border px-3 py-1 text-xs font-bold" :class="rsvpClass(guest.rsvpStatus)">
                 {{ rsvpLabel(guest.rsvpStatus) }}
               </span>
+              <div class="flex flex-wrap gap-2 sm:justify-end">
+                <button
+                  class="focus-ring rounded-md p-2 text-ink/60 hover:bg-mint hover:text-leaf"
+                  type="button"
+                  title="Salin link"
+                  aria-label="Salin link tamu"
+                  @click="copyGuestLink(guest)"
+                >
+                  <Copy class="h-4 w-4" />
+                </button>
+                <button
+                  class="focus-ring rounded-md p-1.5 text-ink/60 hover:bg-mint hover:text-leaf"
+                  type="button"
+                  title="Salin pesan WhatsApp"
+                  aria-label="Salin pesan WhatsApp"
+                  @click="copyGuestWhatsapp(guest)"
+                >
+                  <img :src="whatsappIconUrl" alt="" class="h-5 w-5" />
+                </button>
+              </div>
             </div>
           </div>
           <p v-else class="mt-4 rounded-md border border-dashed border-ink/15 p-5 text-sm font-semibold text-ink/50">
