@@ -10,7 +10,7 @@ defineProps({
 </script>
 
 <template>
-  <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold" :class="invitationStatusTone(status)">
+  <span class="inline-flex w-fit shrink-0 items-center justify-self-start rounded-full border px-2.5 py-1 text-xs font-bold" :class="invitationStatusTone(status)">
     {{ invitationStatusLabel(status) }}
   </span>
 </template>
