@@ -21,7 +21,7 @@ import StatCard from "@/components/StatCard.vue";
 import TransactionStatusBadge from "@/components/TransactionStatusBadge.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useMemberDashboardStore } from "@/stores/memberDashboard";
-import { formatCurrency, formatDate, formatDateTime, transactionStatusLabel } from "@/utils/formatters";
+import { formatCurrency, formatDate, transactionStatusLabel } from "@/utils/formatters";
 
 const auth = useAuthStore();
 const memberDashboard = useMemberDashboardStore();
@@ -48,6 +48,7 @@ const latestTransaction = computed(() => dashboard.value?.latestTransaction);
 const pendingTransactions = computed(() => dashboard.value?.pendingTransactions?.items || []);
 const pendingTransactionTotal = computed(() => dashboard.value?.pendingTransactions?.total || 0);
 const recentInvitations = computed(() => dashboard.value?.recentInvitations || []);
+const compactRecentInvitations = computed(() => recentInvitations.value.slice(0, 3));
 const unreadNotifications = computed(() => dashboard.value?.notifications?.unread || 0);
 const waitingPaymentCount = computed(() => pendingTransactions.value.filter((transaction) => transaction.status === "waiting_payment").length);
 const waitingVerificationCount = computed(() =>
@@ -318,28 +319,27 @@ function paymentTimeLeft(transaction) {
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 class="text-lg font-bold text-ink">Undangan terbaru</h2>
-              <p class="mt-1 text-sm text-ink/55">Draft dan undangan live yang terakhir diperbarui.</p>
+              <p class="mt-1 text-sm text-ink/55">Ringkasan singkat 3 undangan terbaru.</p>
             </div>
             <RouterLink class="text-sm font-semibold text-leaf hover:text-ink" to="/app/invitations">Lihat semua</RouterLink>
           </div>
 
-          <div v-if="recentInvitations.length" class="mt-4 divide-y divide-ink/10">
+          <div v-if="compactRecentInvitations.length" class="mt-4 divide-y divide-ink/10">
             <div
-              v-for="invitation in recentInvitations"
+              v-for="invitation in compactRecentInvitations"
               :key="invitation.id"
-              class="grid gap-3 py-4 lg:grid-cols-[minmax(0,1fr)_170px_120px] lg:items-center"
+              class="grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_110px_130px] sm:items-center"
             >
               <div class="min-w-0">
                 <p class="truncate font-semibold text-ink">
                   {{ invitation.title || `${invitation.groom?.fullName || "-"} & ${invitation.bride?.fullName || "-"}` }}
                 </p>
-                <p class="mt-1 truncate text-xs text-ink/45">/{{ auth.user?.username }}/{{ invitation.slug }}</p>
-              </div>
-              <div>
-                <p class="text-xs font-bold uppercase tracking-widest text-ink/40">Update</p>
-                <p class="mt-1 text-sm font-semibold text-ink/60">{{ formatDateTime(invitation.updatedAt) }}</p>
               </div>
               <InvitationStatusBadge :status="invitation.status" />
+              <div>
+                <p class="text-xs font-bold uppercase tracking-widest text-ink/40 sm:hidden">Dibuat</p>
+                <p class="text-sm font-semibold text-ink/60">{{ formatDate(invitation.createdAt) }}</p>
+              </div>
             </div>
           </div>
 
