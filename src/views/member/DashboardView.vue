@@ -1,13 +1,27 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from "vue";
-import { ArrowRight, Bell, CalendarClock, Clock3, CreditCard, FilePlus2, Loader2, WalletCards } from "@lucide/vue";
+import {
+  AlertCircle,
+  ArrowRight,
+  Bell,
+  CheckCircle2,
+  Clock3,
+  CreditCard,
+  FilePlus2,
+  Loader2,
+  PencilLine,
+  Send,
+  Ticket,
+  WalletCards
+} from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
+import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
 import StatCard from "@/components/StatCard.vue";
 import TransactionStatusBadge from "@/components/TransactionStatusBadge.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useMemberDashboardStore } from "@/stores/memberDashboard";
-import { formatCurrency, formatDate, transactionStatusLabel } from "@/utils/formatters";
+import { formatCurrency, formatDate, formatDateTime, transactionStatusLabel } from "@/utils/formatters";
 
 const auth = useAuthStore();
 const memberDashboard = useMemberDashboardStore();
@@ -28,12 +42,96 @@ onUnmounted(() => {
 });
 
 const dashboard = computed(() => memberDashboard.dashboard);
+const invitations = computed(() => dashboard.value?.invitations || {});
+const actions = computed(() => dashboard.value?.actions || {});
 const latestTransaction = computed(() => dashboard.value?.latestTransaction);
 const pendingTransactions = computed(() => dashboard.value?.pendingTransactions?.items || []);
 const pendingTransactionTotal = computed(() => dashboard.value?.pendingTransactions?.total || 0);
+const recentInvitations = computed(() => dashboard.value?.recentInvitations || []);
+const unreadNotifications = computed(() => dashboard.value?.notifications?.unread || 0);
+const waitingPaymentCount = computed(() => pendingTransactions.value.filter((transaction) => transaction.status === "waiting_payment").length);
+const waitingVerificationCount = computed(() =>
+  pendingTransactions.value.filter((transaction) => transaction.status === "waiting_verification").length
+);
 const hiddenPendingTransactionCount = computed(() =>
   Math.max(0, pendingTransactionTotal.value - pendingTransactions.value.length)
 );
+const draftUsagePercentage = computed(() => {
+  if (!actions.value.draftLimit) {
+    return 0;
+  }
+
+  return Math.min(100, Math.round(((invitations.value.draft || 0) / actions.value.draftLimit) * 100));
+});
+const publishCapacityLabel = computed(() => {
+  const creditBalance = dashboard.value?.creditBalance || 0;
+  return `${creditBalance} undangan bisa dipublish`;
+});
+const nextAction = computed(() => {
+  if (waitingPaymentCount.value) {
+    return {
+      title: "Selesaikan pembayaran",
+      description: `${waitingPaymentCount.value} transaksi masih menunggu transfer.`,
+      to: "/app/transactions",
+      label: "Bayar Sekarang",
+      tone: "gold",
+      icon: Clock3
+    };
+  }
+
+  if (waitingVerificationCount.value) {
+    return {
+      title: "Menunggu verifikasi admin",
+      description: `${waitingVerificationCount.value} bukti pembayaran sedang dicek.`,
+      to: "/app/transactions",
+      label: "Cek Transaksi",
+      tone: "leaf",
+      icon: CheckCircle2
+    };
+  }
+
+  if (!dashboard.value?.creditBalance) {
+    return {
+      title: "Kredit belum tersedia",
+      description: "Beli kredit dulu sebelum publish undangan klien.",
+      to: "/app/credits/buy",
+      label: "Beli Kredit",
+      tone: "rose",
+      icon: CreditCard
+    };
+  }
+
+  if (!actions.value.canCreateInvitation) {
+    return {
+      title: "Draft sudah penuh",
+      description: `Batas ${actions.value.draftLimit} draft terpakai semua.`,
+      to: "/app/invitations",
+      label: "Kelola Draft",
+      tone: "rose",
+      icon: AlertCircle
+    };
+  }
+
+  if (invitations.value.draft) {
+    return {
+      title: "Lanjutkan draft",
+      description: `${invitations.value.draft} draft bisa diselesaikan sebelum publish.`,
+      to: "/app/invitations",
+      label: "Buka Draft",
+      tone: "leaf",
+      icon: PencilLine
+    };
+  }
+
+  return {
+    title: "Siap buat undangan baru",
+    description: "Mulai draft baru untuk calon pengantin berikutnya.",
+    to: "/app/invitations/new",
+    label: "Buat Undangan",
+    tone: "leaf",
+    icon: FilePlus2
+  };
+});
 
 function paymentTimeLeft(transaction) {
   if (transaction.status !== "waiting_payment" || !transaction.expiresAt) {
@@ -50,6 +148,25 @@ function paymentTimeLeft(transaction) {
     isExpired: totalSeconds <= 0
   };
 }
+
+function invitationRoute(invitation) {
+  if (["active", "locked"].includes(invitation.status)) {
+    return { name: "member-invitation-guests", params: { id: invitation.id } };
+  }
+
+  return { name: "member-invitation-detail", params: { id: invitation.id } };
+}
+
+function invitationActionLabel(invitation) {
+  const labels = {
+    draft: "Lanjutkan",
+    active: "Kelola Tamu",
+    locked: "Kelola Tamu",
+    expired: "Lihat"
+  };
+
+  return labels[invitation.status] || "Buka";
+}
 </script>
 
 <template>
@@ -59,11 +176,11 @@ function paymentTimeLeft(transaction) {
         <p class="text-sm font-bold uppercase tracking-widest text-gold">Dashboard member</p>
         <h1 class="mt-2 text-3xl font-bold text-ink">Halo, {{ auth.user?.name }}</h1>
         <p class="mt-2 max-w-2xl leading-7 text-ink/65">
-          Pantau kredit, draft, undangan aktif, dan transaksi terakhir dari satu tempat.
+          Ringkasan kerja member: kredit, pembayaran, draft, undangan live, dan update terbaru.
         </p>
       </div>
       <div class="flex flex-col gap-3 sm:flex-row">
-        <AppButton to="/app/invitations/new">
+        <AppButton to="/app/invitations/new" :disabled="dashboard && !actions.canCreateInvitation">
           <FilePlus2 class="h-4 w-4" />
           Buat Undangan
         </AppButton>
@@ -84,11 +201,85 @@ function paymentTimeLeft(transaction) {
     </p>
 
     <template v-else-if="dashboard">
-      <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section class="mt-8 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+          <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex items-start gap-3">
+              <div
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-md"
+                :class="{
+                  'bg-mint text-leaf': nextAction.tone === 'leaf',
+                  'bg-gold/10 text-gold': nextAction.tone === 'gold',
+                  'bg-rose/10 text-rose': nextAction.tone === 'rose'
+                }"
+              >
+                <component :is="nextAction.icon" class="h-5 w-5" />
+              </div>
+              <div>
+                <p class="text-sm font-bold uppercase tracking-widest text-gold">Langkah berikutnya</p>
+                <h2 class="mt-2 text-2xl font-bold text-ink">{{ nextAction.title }}</h2>
+                <p class="mt-2 max-w-xl text-sm leading-6 text-ink/60">{{ nextAction.description }}</p>
+              </div>
+            </div>
+            <AppButton :to="nextAction.to">
+              {{ nextAction.label }}
+              <ArrowRight class="h-4 w-4" />
+            </AppButton>
+          </div>
+
+          <div class="mt-5 grid gap-3 md:grid-cols-3">
+            <div class="rounded-md border border-ink/10 bg-linen/70 p-4">
+              <p class="text-xs font-bold uppercase tracking-widest text-ink/40">Kapasitas publish</p>
+              <p class="mt-2 text-lg font-bold text-ink">{{ publishCapacityLabel }}</p>
+            </div>
+            <div class="rounded-md border border-ink/10 bg-linen/70 p-4">
+              <p class="text-xs font-bold uppercase tracking-widest text-ink/40">Draft terpakai</p>
+              <p class="mt-2 text-lg font-bold text-ink">{{ invitations.draft || 0 }}/{{ actions.draftLimit }}</p>
+            </div>
+            <div class="rounded-md border border-ink/10 bg-linen/70 p-4">
+              <p class="text-xs font-bold uppercase tracking-widest text-ink/40">Notifikasi</p>
+              <p class="mt-2 text-lg font-bold text-ink">{{ unreadNotifications }} belum dibaca</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-md bg-mint text-leaf">
+              <Ticket class="h-5 w-5" />
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-ink">Ringkasan undangan</h2>
+              <p class="text-sm text-ink/55">{{ invitations.total || 0 }} undangan tersimpan.</p>
+            </div>
+          </div>
+
+          <div class="mt-5 space-y-3 text-sm">
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Live sekarang</span>
+              <span class="font-semibold text-ink">{{ invitations.live || 0 }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Aktif editable</span>
+              <span class="font-semibold text-ink">{{ invitations.active || 0 }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Terkunci</span>
+              <span class="font-semibold text-ink">{{ invitations.locked || 0 }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Akan expired 7 hari</span>
+              <span class="font-semibold text-rose">{{ invitations.expiringSoon || 0 }}</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Sisa kredit" :value="dashboard.creditBalance" tone="leaf" />
-        <StatCard label="Undangan aktif" :value="dashboard.invitations.active" tone="gold" />
-        <StatCard label="Draft" :value="dashboard.invitations.draft" tone="rose" />
-        <StatCard label="Expired" :value="dashboard.invitations.expired" tone="ink" />
+        <StatCard label="Undangan live" :value="invitations.live || 0" tone="gold" />
+        <StatCard label="Draft" :value="invitations.draft || 0" tone="rose" />
+        <StatCard label="Transaksi pending" :value="pendingTransactionTotal" tone="ink" />
       </div>
 
       <section
@@ -147,8 +338,86 @@ function paymentTimeLeft(transaction) {
         </p>
       </section>
 
-      <div class="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+      <section class="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-bold text-ink">Undangan terbaru</h2>
+              <p class="mt-1 text-sm text-ink/55">Draft dan undangan live yang terakhir diperbarui.</p>
+            </div>
+            <RouterLink class="text-sm font-semibold text-leaf hover:text-ink" to="/app/invitations">Lihat semua</RouterLink>
+          </div>
+
+          <div v-if="recentInvitations.length" class="mt-4 divide-y divide-ink/10">
+            <div
+              v-for="invitation in recentInvitations"
+              :key="invitation.id"
+              class="grid gap-3 py-4 lg:grid-cols-[1fr_120px_130px] lg:items-center"
+            >
+              <div class="min-w-0">
+                <p class="truncate font-semibold text-ink">
+                  {{ invitation.title || `${invitation.groom?.fullName || "-"} & ${invitation.bride?.fullName || "-"}` }}
+                </p>
+                <p class="mt-1 truncate text-xs text-ink/45">/{{ auth.user?.username }}/{{ invitation.slug }}</p>
+                <p class="mt-1 text-xs text-ink/45">Update {{ formatDateTime(invitation.updatedAt) }}</p>
+              </div>
+              <InvitationStatusBadge :status="invitation.status" />
+              <RouterLink
+                class="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-ink/15 px-3 py-2 text-sm font-bold text-ink transition hover:border-leaf hover:text-leaf"
+                :to="invitationRoute(invitation)"
+              >
+                {{ invitationActionLabel(invitation) }}
+              </RouterLink>
+            </div>
+          </div>
+
+          <div v-else class="mt-5 rounded-md border border-dashed border-ink/20 p-5">
+            <p class="text-sm font-semibold text-ink">Belum ada undangan.</p>
+            <p class="mt-1 text-sm text-ink/55">Buat draft pertama untuk mulai mengerjakan pesanan klien.</p>
+            <AppButton to="/app/invitations/new" class="mt-4">
+              <FilePlus2 class="h-4 w-4" />
+              Buat Undangan
+            </AppButton>
+          </div>
+        </article>
+
+        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-md bg-rose/10 text-rose">
+              <PencilLine class="h-5 w-5" />
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-ink">Status draft</h2>
+              <p class="text-sm text-ink/55">{{ invitations.draft || 0 }} dari {{ actions.draftLimit }} slot terpakai.</p>
+            </div>
+          </div>
+
+          <div class="mt-5 h-2 overflow-hidden rounded-full bg-ink/10">
+            <div class="h-full bg-leaf" :style="{ width: `${draftUsagePercentage}%` }" />
+          </div>
+
+          <p v-if="!actions.canCreateInvitation" class="mt-4 rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">
+            Batas draft sudah penuh. Hapus atau publish salah satu draft sebelum membuat undangan baru.
+          </p>
+          <p v-else class="mt-4 text-sm leading-6 text-ink/60">
+            Masih ada {{ actions.draftLimit - (invitations.draft || 0) }} slot draft untuk pesanan baru.
+          </p>
+
+          <div class="mt-5 grid gap-3 text-sm">
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Sudah publish total</span>
+              <span class="font-semibold text-ink">{{ invitations.publishedTotal || 0 }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Expired</span>
+              <span class="font-semibold text-ink">{{ invitations.expired || 0 }}</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <div class="flex items-center gap-3">
             <div class="flex h-10 w-10 items-center justify-center rounded-md bg-mint text-leaf">
               <WalletCards class="h-5 w-5" />
@@ -159,7 +428,11 @@ function paymentTimeLeft(transaction) {
             </div>
           </div>
 
-          <div v-if="latestTransaction" class="mt-5 rounded-md border border-ink/10 bg-linen p-4">
+          <RouterLink
+            v-if="latestTransaction"
+            class="focus-ring mt-5 block rounded-md border border-ink/10 bg-linen p-4 transition hover:border-leaf/40 hover:bg-mint/40"
+            :to="{ name: 'member-transaction-detail', params: { id: latestTransaction.id } }"
+          >
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p class="text-sm font-semibold text-ink">{{ latestTransaction.creditAmount }} kredit</p>
@@ -170,15 +443,15 @@ function paymentTimeLeft(transaction) {
                 <p class="mt-1 text-sm font-semibold text-leaf">{{ transactionStatusLabel(latestTransaction.status) }}</p>
               </div>
             </div>
-          </div>
+          </RouterLink>
 
           <div v-else class="mt-5 rounded-md border border-dashed border-ink/20 p-5">
             <p class="text-sm font-semibold text-ink">Belum ada transaksi.</p>
             <p class="mt-1 text-sm text-ink/55">Mulai dari pembelian kredit pertama untuk publish undangan.</p>
           </div>
-        </section>
+        </article>
 
-        <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <div class="flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
               <div class="flex h-10 w-10 items-center justify-center rounded-md bg-rose/10 text-rose">
@@ -186,7 +459,7 @@ function paymentTimeLeft(transaction) {
               </div>
               <div>
                 <h2 class="text-lg font-bold text-ink">Notifikasi</h2>
-                <p class="text-sm text-ink/55">{{ dashboard.notifications.unread }} belum dibaca</p>
+                <p class="text-sm text-ink/55">{{ unreadNotifications }} belum dibaca</p>
               </div>
             </div>
           </div>
@@ -214,29 +487,12 @@ function paymentTimeLeft(transaction) {
             </div>
 
             <div v-if="!memberDashboard.notifications.length" class="rounded-md border border-dashed border-ink/20 p-5">
-              <CalendarClock class="h-5 w-5 text-gold" />
+              <Send class="h-5 w-5 text-gold" />
               <p class="mt-3 text-sm font-semibold text-ink">Belum ada notifikasi.</p>
               <p class="mt-1 text-sm text-ink/55">Update transaksi dan undangan akan tampil di sini.</p>
             </div>
           </div>
-        </section>
-      </div>
-
-      <section class="mt-6 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-        <h2 class="text-lg font-bold text-ink">Status draft</h2>
-        <p class="mt-2 text-sm leading-6 text-ink/60">
-          Member bisa menyimpan maksimal {{ dashboard.actions.draftLimit }} draft. Saat ini ada
-          {{ dashboard.invitations.draft }} draft.
-        </p>
-        <div class="mt-4 h-2 overflow-hidden rounded-full bg-ink/10">
-          <div
-            class="h-full bg-leaf"
-            :style="{ width: `${Math.min(100, (dashboard.invitations.draft / dashboard.actions.draftLimit) * 100)}%` }"
-          />
-        </div>
-        <p v-if="!dashboard.actions.canCreateInvitation" class="mt-3 text-sm font-semibold text-rose">
-          Batas draft sudah penuh. Hapus atau publish salah satu draft sebelum membuat undangan baru.
-        </p>
+        </article>
       </section>
     </template>
   </section>
