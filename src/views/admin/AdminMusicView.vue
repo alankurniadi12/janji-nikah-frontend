@@ -13,7 +13,7 @@ import { assetUrl } from "@/utils/assets";
 
 const adminStore = useAdminStore();
 const toastStore = useToastStore();
-const form = reactive({ title: "", artist: "", file: null });
+const form = reactive({ title: "", artist: "", duration: 0, file: null });
 const fileInput = ref(null);
 const error = ref("");
 const deleteDialog = reactive({
@@ -31,9 +31,10 @@ const deleteDetail = computed(() => {
   return `${deleteDialog.item.title}${deleteDialog.item.artist ? ` · ${deleteDialog.item.artist}` : ""}`;
 });
 
-function selectFile(event) {
+async function selectFile(event) {
   const [file] = event.target.files || [];
   form.file = file || null;
+  form.duration = file ? await readAudioDuration(file) : 0;
 }
 
 async function upload() {
@@ -46,7 +47,7 @@ async function upload() {
 
   try {
     await adminStore.uploadMusic({ ...form });
-    Object.assign(form, { title: "", artist: "", file: null });
+    Object.assign(form, { title: "", artist: "", duration: 0, file: null });
     if (fileInput.value) fileInput.value.value = "";
     toastStore.show("Musik berhasil diupload.");
   } catch (requestError) {
@@ -89,6 +90,25 @@ async function confirmDelete() {
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Musik belum bisa dihapus.");
   }
+}
+
+function readAudioDuration(file) {
+  return new Promise((resolve) => {
+    const audio = document.createElement("audio");
+    const objectUrl = URL.createObjectURL(file);
+
+    audio.preload = "metadata";
+    audio.src = objectUrl;
+
+    audio.onloadedmetadata = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(Math.round(audio.duration || 0));
+    };
+    audio.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(0);
+    };
+  });
 }
 </script>
 

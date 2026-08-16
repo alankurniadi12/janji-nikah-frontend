@@ -1,7 +1,7 @@
 <script setup>
-import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { Copy, ExternalLink, ImagePlus, Loader2, Plus, Trash2 } from "@lucide/vue";
+import { Copy, ExternalLink, ImagePlus, Loader2, Pause, Play, Plus, Trash2 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
@@ -27,6 +27,8 @@ const showPublishConfirm = ref(false);
 const showCreditEmpty = ref(false);
 const savedSnapshot = ref("");
 const pendingDelete = ref(null);
+const musicPreviewAudio = ref(null);
+const playingMusicId = ref("");
 const validationErrors = reactive({});
 const galleryLimit = 10;
 const loveStoryLimit = 5;
@@ -94,6 +96,10 @@ onMounted(async () => {
   }
 });
 
+onBeforeUnmount(() => {
+  stopMusicPreview();
+});
+
 const invitation = computed(() => invitationStore.current);
 const isMainDataEditable = computed(() =>
   ["draft", "active"].includes(invitation.value?.status)
@@ -143,6 +149,22 @@ watch(
   }
 );
 
+watch(
+  () => form.musicEnabled,
+  (enabled) => {
+    if (!enabled) {
+      form.musicId = "";
+      stopMusicPreview();
+    }
+  }
+);
+
+watch(activeStep, (step) => {
+  if (step !== "music") {
+    stopMusicPreview();
+  }
+});
+
 function syncForm(source) {
   form.title = source.title || "";
   form.slug = source.slug || "";
@@ -181,6 +203,65 @@ function syncForm(source) {
     accountHolder: method.accountHolder || ""
   }));
   savedSnapshot.value = currentSnapshot.value;
+}
+
+function selectMusic(music) {
+  if (!isMainDataEditable.value) {
+    return;
+  }
+
+  form.musicId = music.id;
+}
+
+async function toggleMusicPreview(music) {
+  if (!music?.fileUrl || !musicPreviewAudio.value) {
+    return;
+  }
+
+  const audio = musicPreviewAudio.value;
+
+  if (playingMusicId.value === music.id && !audio.paused) {
+    audio.pause();
+    playingMusicId.value = "";
+    return;
+  }
+
+  audio.pause();
+  audio.src = assetUrl(music.fileUrl);
+  audio.currentTime = 0;
+  playingMusicId.value = music.id;
+
+  try {
+    await audio.play();
+  } catch {
+    playingMusicId.value = "";
+  }
+}
+
+function stopMusicPreview() {
+  if (!musicPreviewAudio.value) {
+    return;
+  }
+
+  musicPreviewAudio.value.pause();
+  musicPreviewAudio.value.currentTime = 0;
+  playingMusicId.value = "";
+}
+
+function onMusicPreviewEnded() {
+  playingMusicId.value = "";
+}
+
+function formatMusicDuration(duration) {
+  const totalSeconds = Number(duration);
+
+  if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) {
+    return "Durasi belum tersedia";
+  }
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, "0");
+  return `${minutes}:${seconds}`;
 }
 
 function toDateInput(value) {
@@ -1379,19 +1460,42 @@ function fieldError(key) {
               </span>
             </span>
           </label>
-          <div v-if="form.musicEnabled" class="space-y-2">
-            <label class="block text-sm font-semibold text-ink" for="musicId">Lagu undangan</label>
-            <select
-              id="musicId"
-              v-model="form.musicId"
-              class="focus-ring h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
-              :disabled="!isMainDataEditable"
-            >
-              <option value="">Pilih musik</option>
-              <option v-for="music in catalogStore.music" :key="music.id" :value="music.id">
-                {{ music.title }}{{ music.artist ? ` · ${music.artist}` : "" }}
-              </option>
-            </select>
+          <div v-if="form.musicEnabled" class="space-y-3">
+            <p class="text-sm font-semibold text-ink">Lagu undangan</p>
+            <div v-if="catalogStore.music.length" class="grid gap-3">
+              <article
+                v-for="music in catalogStore.music"
+                :key="music.id"
+                class="grid gap-3 rounded-md border bg-white p-4 transition md:grid-cols-[1fr_120px_110px] md:items-center"
+                :class="form.musicId === music.id ? 'border-leaf bg-mint/40 shadow-soft' : 'border-ink/10 hover:border-leaf/40'"
+              >
+                <button
+                  type="button"
+                  class="focus-ring rounded-md text-left"
+                  :disabled="!isMainDataEditable"
+                  @click="selectMusic(music)"
+                >
+                  <span class="block font-bold text-ink">{{ music.title }}</span>
+                  <span class="mt-1 block text-sm text-ink/55">{{ music.artist || "Tanpa penyanyi" }}</span>
+                  <span v-if="form.musicId === music.id" class="mt-2 inline-flex rounded-full bg-leaf px-2 py-0.5 text-xs font-bold text-white">
+                    Dipilih
+                  </span>
+                </button>
+
+                <p class="text-sm font-semibold text-ink/65">{{ formatMusicDuration(music.duration) }}</p>
+
+                <button
+                  type="button"
+                  class="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-3 text-sm font-semibold text-ink transition hover:border-leaf hover:text-leaf disabled:cursor-not-allowed disabled:opacity-60"
+                  :disabled="!music.fileUrl"
+                  @click="toggleMusicPreview(music)"
+                >
+                  <Pause v-if="playingMusicId === music.id" class="h-4 w-4" />
+                  <Play v-else class="h-4 w-4" />
+                  {{ playingMusicId === music.id ? "Pause" : "Play" }}
+                </button>
+              </article>
+            </div>
           </div>
           <p v-else class="rounded-md bg-mint/60 px-3 py-2 text-sm font-semibold text-ink/70">
             Undangan akan tampil tanpa musik.
@@ -1399,6 +1503,7 @@ function fieldError(key) {
           <p v-if="!catalogStore.music.length" class="rounded-md bg-gold/10 px-3 py-2 text-sm font-semibold text-ink">
             Belum ada musik aktif dari admin.
           </p>
+          <audio ref="musicPreviewAudio" class="hidden" preload="none" @ended="onMusicPreviewEnded" />
         </section>
 
         <section v-else-if="activeStep === 'theme'" class="space-y-4">

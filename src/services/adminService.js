@@ -108,6 +108,7 @@ export async function uploadMusic(payload) {
   const formData = new FormData();
   formData.append("title", payload.title);
   formData.append("artist", payload.artist || "");
+  formData.append("duration", payload.duration || "");
   formData.append("file", payload.file);
 
   const response = await api.post("/admin/music/upload", formData, {
