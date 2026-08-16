@@ -313,6 +313,42 @@ function paymentTimeLeft(transaction) {
 
       <section class="mt-6">
         <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-md bg-mint text-leaf">
+              <WalletCards class="h-5 w-5" />
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-ink">Transaksi terakhir</h2>
+              <p class="text-sm text-ink/55">Status pembelian kredit terbaru.</p>
+            </div>
+          </div>
+
+          <RouterLink
+            v-if="latestTransaction"
+            class="focus-ring mt-5 block rounded-md border border-ink/10 bg-linen p-4 transition hover:border-leaf/40 hover:bg-mint/40"
+            :to="{ name: 'member-transaction-detail', params: { id: latestTransaction.id } }"
+          >
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm font-semibold text-ink">{{ latestTransaction.creditAmount }} kredit</p>
+                <p class="mt-1 text-sm text-ink/55">{{ formatDate(latestTransaction.createdAt) }}</p>
+              </div>
+              <div class="text-left sm:text-right">
+                <p class="font-bold text-ink">{{ formatCurrency(latestTransaction.totalAmount) }}</p>
+                <p class="mt-1 text-sm font-semibold text-leaf">{{ transactionStatusLabel(latestTransaction.status) }}</p>
+              </div>
+            </div>
+          </RouterLink>
+
+          <div v-else class="mt-5 rounded-md border border-dashed border-ink/20 p-5">
+            <p class="text-sm font-semibold text-ink">Belum ada transaksi.</p>
+            <p class="mt-1 text-sm text-ink/55">Mulai dari pembelian kredit pertama untuk publish undangan.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="mt-6">
+        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 class="text-lg font-bold text-ink">Undangan terbaru</h2>
@@ -344,42 +380,6 @@ function paymentTimeLeft(transaction) {
               <FilePlus2 class="h-4 w-4" />
               Buat Undangan
             </AppButton>
-          </div>
-        </article>
-      </section>
-
-      <section class="mt-6">
-        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-md bg-mint text-leaf">
-              <WalletCards class="h-5 w-5" />
-            </div>
-            <div>
-              <h2 class="text-lg font-bold text-ink">Transaksi terakhir</h2>
-              <p class="text-sm text-ink/55">Status pembelian kredit terbaru.</p>
-            </div>
-          </div>
-
-          <RouterLink
-            v-if="latestTransaction"
-            class="focus-ring mt-5 block rounded-md border border-ink/10 bg-linen p-4 transition hover:border-leaf/40 hover:bg-mint/40"
-            :to="{ name: 'member-transaction-detail', params: { id: latestTransaction.id } }"
-          >
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p class="text-sm font-semibold text-ink">{{ latestTransaction.creditAmount }} kredit</p>
-                <p class="mt-1 text-sm text-ink/55">{{ formatDate(latestTransaction.createdAt) }}</p>
-              </div>
-              <div class="text-left sm:text-right">
-                <p class="font-bold text-ink">{{ formatCurrency(latestTransaction.totalAmount) }}</p>
-                <p class="mt-1 text-sm font-semibold text-leaf">{{ transactionStatusLabel(latestTransaction.status) }}</p>
-              </div>
-            </div>
-          </RouterLink>
-
-          <div v-else class="mt-5 rounded-md border border-dashed border-ink/20 p-5">
-            <p class="text-sm font-semibold text-ink">Belum ada transaksi.</p>
-            <p class="mt-1 text-sm text-ink/55">Mulai dari pembelian kredit pertama untuk publish undangan.</p>
           </div>
         </article>
       </section>
