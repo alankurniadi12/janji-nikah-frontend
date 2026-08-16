@@ -1,10 +1,11 @@
 <script setup>
-import { onMounted, reactive } from "vue";
+import { computed, onMounted, reactive } from "vue";
 import { useRouter } from "vue-router";
-import { ChevronRight, Loader2, RotateCcw, Search } from "@lucide/vue";
+import { AlertCircle, CalendarClock, ChevronRight, FileCheck2, Loader2, RotateCcw, Search } from "@lucide/vue";
 
 import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
+import StatCard from "@/components/StatCard.vue";
 import { useAdminStore } from "@/stores/admin";
 import { formatDate, formatDateTime } from "@/utils/formatters";
 
@@ -14,6 +15,14 @@ const filters = reactive({
   q: "",
   status: "",
   memberStatus: ""
+});
+const summary = computed(() => adminStore.invitationSummary || {});
+const liveRate = computed(() => {
+  if (!summary.value.total) {
+    return "0%";
+  }
+
+  return `${Math.round(((summary.value.live || 0) / summary.value.total) * 100)}%`;
 });
 
 onMounted(load);
@@ -49,6 +58,74 @@ function normalizedFilters() {
 <template>
   <section>
     <AdminPageHeader eyebrow="Undangan" title="Inspeksi undangan" description="Lihat semua undangan, buka detail operasional, dan proses aksi sensitif dari halaman detail." />
+
+    <template v-if="adminStore.invitationSummary">
+      <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Total undangan" :value="summary.total || 0" tone="ink" />
+        <StatCard label="Undangan live" :value="summary.live || 0" tone="leaf" />
+        <StatCard label="Draft" :value="summary.draft || 0" tone="gold" />
+        <StatCard label="Nonaktif / expired" :value="summary.inactive || 0" tone="rose" />
+      </div>
+
+      <section class="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-md bg-mint text-leaf">
+              <FileCheck2 class="h-5 w-5" />
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-ink">Kondisi undangan</h2>
+              <p class="text-sm text-ink/55">Ringkasan status seluruh undangan.</p>
+            </div>
+          </div>
+
+          <div class="mt-5 space-y-3 text-sm">
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Aktif dan masih editable</span>
+              <span class="font-semibold text-ink">{{ summary.active || 0 }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Terkunci tapi masih live</span>
+              <span class="font-semibold text-ink">{{ summary.locked || 0 }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Sudah pernah publish</span>
+              <span class="font-semibold text-ink">{{ summary.publishedTotal || 0 }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Rasio undangan live</span>
+              <span class="font-semibold text-leaf">{{ liveRate }}</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-md bg-linen text-gold">
+              <CalendarClock class="h-5 w-5" />
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-ink">Aktivitas publish</h2>
+              <p class="text-sm text-ink/55">Pantau publish terbaru dan masa aktif undangan.</p>
+            </div>
+          </div>
+
+          <div class="mt-5 grid gap-3 sm:grid-cols-2">
+            <div class="rounded-md border border-ink/10 bg-linen/60 p-4">
+              <p class="text-xs font-bold uppercase tracking-widest text-ink/40">Publish bulan ini</p>
+              <p class="mt-2 text-2xl font-bold text-ink">{{ summary.publishedThisMonth || 0 }}</p>
+            </div>
+            <div class="rounded-md border border-rose/15 bg-rose/5 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <p class="text-xs font-bold uppercase tracking-widest text-rose/70">Akan expired dalam 7 hari</p>
+                <AlertCircle class="h-4 w-4 text-rose" />
+              </div>
+              <p class="mt-2 text-2xl font-bold text-ink">{{ summary.expiringSoon || 0 }}</p>
+            </div>
+          </div>
+        </article>
+      </section>
+    </template>
 
     <form class="mt-6 grid gap-3 rounded-lg border border-ink/10 bg-white p-4 shadow-soft lg:grid-cols-[minmax(0,1fr)_170px_170px_auto_auto] lg:items-end" @submit.prevent="load">
       <label class="block text-sm font-semibold text-ink">

@@ -131,7 +131,7 @@ export async function deleteMusic(id) {
 
 export async function getAdminInvitations(params = {}) {
   const response = await api.get("/admin/invitations", { params });
-  return response.data.data.invitations;
+  return response.data.data;
 }
 
 export async function getAdminInvitation(id) {
