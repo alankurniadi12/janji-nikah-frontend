@@ -99,7 +99,7 @@ async function confirmStatusChange() {
         >
           <div>
             <p class="font-bold text-ink">{{ member.name }}</p>
-            <p class="mt-1 text-sm text-ink/55">{{ member.email }} · @{{ member.username }}</p>
+            <p class="mt-1 text-sm text-ink/55">@{{ member.username || "-" }}</p>
           </div>
           <p class="text-sm font-bold text-ink">{{ member.creditBalance }} kredit</p>
           <div>
