@@ -328,7 +328,7 @@ function paymentTimeLeft(transaction) {
             <div
               v-for="invitation in compactRecentInvitations"
               :key="invitation.id"
-              class="grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_110px_130px] sm:items-center"
+              class="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 py-3"
             >
               <div class="min-w-0">
                 <p class="truncate font-semibold text-ink">
@@ -336,10 +336,7 @@ function paymentTimeLeft(transaction) {
                 </p>
               </div>
               <InvitationStatusBadge :status="invitation.status" />
-              <div>
-                <p class="text-xs font-bold uppercase tracking-widest text-ink/40 sm:hidden">Dibuat</p>
-                <p class="text-sm font-semibold text-ink/60">{{ formatDate(invitation.createdAt) }}</p>
-              </div>
+              <p class="whitespace-nowrap text-sm font-semibold text-ink/60">Dibuat {{ formatDate(invitation.createdAt) }}</p>
             </div>
           </div>
 
