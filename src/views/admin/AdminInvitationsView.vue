@@ -7,7 +7,7 @@ import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
 import StatCard from "@/components/StatCard.vue";
 import { useAdminStore } from "@/stores/admin";
-import { formatCurrency, formatDate, formatDateTime } from "@/utils/formatters";
+import { formatCompactCurrency, formatCurrency, formatDate, formatDateTime } from "@/utils/formatters";
 
 const router = useRouter();
 const adminStore = useAdminStore();
@@ -65,7 +65,7 @@ function normalizedFilters() {
         <StatCard label="Undangan live" :value="summary.live || 0" tone="leaf" />
         <StatCard label="Draft" :value="summary.draft || 0" tone="gold" />
         <StatCard label="Nonaktif / expired" :value="summary.inactive || 0" tone="rose" />
-        <StatCard label="Estimasi omzet jasa" :value="formatCurrency(summary.serviceRevenue?.serviceTotal || 0)" tone="rose" />
+        <StatCard label="Estimasi omzet jasa" :value="formatCompactCurrency(summary.serviceRevenue?.serviceTotal || 0)" tone="rose" />
       </div>
 
       <section class="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">

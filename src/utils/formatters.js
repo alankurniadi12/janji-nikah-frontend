@@ -6,6 +6,32 @@ export function formatCurrency(value) {
   }).format(Number(value || 0));
 }
 
+export function formatCompactCurrency(value) {
+  const amount = Number(value || 0);
+  const absoluteAmount = Math.abs(amount);
+  const sign = amount < 0 ? "-" : "";
+
+  if (absoluteAmount >= 1_000_000_000) {
+    return `${sign}Rp ${formatCompactNumber(absoluteAmount / 1_000_000_000)} M`;
+  }
+
+  if (absoluteAmount >= 1_000_000) {
+    return `${sign}Rp ${formatCompactNumber(absoluteAmount / 1_000_000)} jt`;
+  }
+
+  if (absoluteAmount >= 1_000) {
+    return `${sign}Rp ${formatCompactNumber(absoluteAmount / 1_000)} rb`;
+  }
+
+  return `${sign}Rp ${Math.round(absoluteAmount)}`;
+}
+
+function formatCompactNumber(value) {
+  return new Intl.NumberFormat("id-ID", {
+    maximumFractionDigits: value >= 100 ? 0 : 1
+  }).format(value);
+}
+
 export function formatDate(value) {
   if (!value) {
     return "-";

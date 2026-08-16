@@ -19,7 +19,7 @@ import StatCard from "@/components/StatCard.vue";
 import TransactionStatusBadge from "@/components/TransactionStatusBadge.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useMemberDashboardStore } from "@/stores/memberDashboard";
-import { formatCurrency, formatDate, transactionStatusLabel } from "@/utils/formatters";
+import { formatCompactCurrency, formatCurrency, formatDate, transactionStatusLabel } from "@/utils/formatters";
 
 const auth = useAuthStore();
 const memberDashboard = useMemberDashboardStore();
@@ -258,7 +258,7 @@ function paymentTimeLeft(transaction) {
       </section>
 
       <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Estimasi omzet jasa" :value="formatCurrency(revenue.serviceTotal || 0)" tone="leaf" />
+        <StatCard label="Estimasi omzet jasa" :value="formatCompactCurrency(revenue.serviceTotal || 0)" tone="leaf" />
         <StatCard label="Sisa kredit" :value="dashboard.creditBalance" tone="gold" />
         <StatCard label="Undangan live" :value="invitations.live || 0" tone="rose" />
         <StatCard label="Transaksi pending" :value="pendingTransactionTotal" tone="ink" />

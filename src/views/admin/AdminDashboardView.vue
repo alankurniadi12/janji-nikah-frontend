@@ -6,7 +6,7 @@ import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import AppButton from "@/components/AppButton.vue";
 import StatCard from "@/components/StatCard.vue";
 import { useAdminStore } from "@/stores/admin";
-import { formatCurrency, formatDateTime, transactionStatusLabel, transactionStatusTone } from "@/utils/formatters";
+import { formatCompactCurrency, formatCurrency, formatDateTime, transactionStatusLabel, transactionStatusTone } from "@/utils/formatters";
 
 const adminStore = useAdminStore();
 
@@ -74,7 +74,7 @@ const actionRows = computed(() => [
     <template v-else-if="adminStore.dashboard">
       <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Revenue bulan ini" :value="formatCurrency(dashboard.revenue.thisMonth)" tone="leaf" />
-        <StatCard label="Estimasi omzet member" :value="formatCurrency(dashboard.revenue.memberServiceTotal || 0)" tone="gold" />
+        <StatCard label="Estimasi omzet member" :value="formatCompactCurrency(dashboard.revenue.memberServiceTotal || 0)" tone="gold" />
         <StatCard label="Verifikasi pembayaran" :value="dashboard.transactions.waitingVerification" tone="gold" />
         <StatCard label="Kredit dipakai bulan ini" :value="dashboard.credits.usedThisMonth" tone="rose" />
         <StatCard label="Member aktif" :value="dashboard.members.active" tone="ink" />
