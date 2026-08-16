@@ -29,6 +29,7 @@ const savedSnapshot = ref("");
 const pendingDelete = ref(null);
 const musicPreviewAudio = ref(null);
 const playingMusicId = ref("");
+const musicDurations = reactive({});
 const validationErrors = reactive({});
 const galleryLimit = 10;
 const loveStoryLimit = 5;
@@ -162,8 +163,20 @@ watch(
 watch(activeStep, (step) => {
   if (step !== "music") {
     stopMusicPreview();
+    return;
   }
+
+  loadMissingMusicDurations();
 });
+
+watch(
+  () => catalogStore.music.map((music) => `${music.id}:${music.duration || 0}`).join("|"),
+  () => {
+    if (activeStep.value === "music") {
+      loadMissingMusicDurations();
+    }
+  }
+);
 
 function syncForm(source) {
   form.title = source.title || "";
@@ -262,6 +275,45 @@ function formatMusicDuration(duration) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, "0");
   return `${minutes}:${seconds}`;
+}
+
+function displayMusicDuration(music) {
+  if (musicDurations[music.id] === -1) {
+    return "Membaca durasi...";
+  }
+
+  return formatMusicDuration(musicDurations[music.id] || music.duration);
+}
+
+function loadMissingMusicDurations() {
+  catalogStore.music.forEach((music) => {
+    const knownDuration = Number(music.duration || musicDurations[music.id]);
+
+    if (knownDuration > 0 || musicDurations[music.id] === -1 || !music.fileUrl) {
+      return;
+    }
+
+    musicDurations[music.id] = -1;
+    readRemoteAudioDuration(music.fileUrl).then((duration) => {
+      musicDurations[music.id] = duration;
+    });
+  });
+}
+
+function readRemoteAudioDuration(fileUrl) {
+  return new Promise((resolve) => {
+    const audio = document.createElement("audio");
+
+    audio.preload = "metadata";
+    audio.src = assetUrl(fileUrl);
+
+    audio.onloadedmetadata = () => {
+      resolve(Math.round(audio.duration || 0));
+    };
+    audio.onerror = () => {
+      resolve(0);
+    };
+  });
 }
 
 function toDateInput(value) {
@@ -1482,7 +1534,7 @@ function fieldError(key) {
                   </span>
                 </button>
 
-                <p class="text-sm font-semibold text-ink/65">{{ formatMusicDuration(music.duration) }}</p>
+                <p class="text-sm font-semibold text-ink/65">{{ displayMusicDuration(music) }}</p>
 
                 <button
                   type="button"

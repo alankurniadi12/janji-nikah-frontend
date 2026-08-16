@@ -15,6 +15,7 @@ const adminStore = useAdminStore();
 const toastStore = useToastStore();
 const form = reactive({ title: "", artist: "", duration: 0, file: null });
 const fileInput = ref(null);
+const durationPromise = ref(null);
 const error = ref("");
 const deleteDialog = reactive({
   open: false,
@@ -34,7 +35,8 @@ const deleteDetail = computed(() => {
 async function selectFile(event) {
   const [file] = event.target.files || [];
   form.file = file || null;
-  form.duration = file ? await readAudioDuration(file) : 0;
+  durationPromise.value = file ? readAudioDuration(file) : null;
+  form.duration = durationPromise.value ? await durationPromise.value : 0;
 }
 
 async function upload() {
@@ -46,8 +48,13 @@ async function upload() {
   }
 
   try {
+    if (durationPromise.value) {
+      form.duration = await durationPromise.value;
+    }
+
     await adminStore.uploadMusic({ ...form });
     Object.assign(form, { title: "", artist: "", duration: 0, file: null });
+    durationPromise.value = null;
     if (fileInput.value) fileInput.value.value = "";
     toastStore.show("Musik berhasil diupload.");
   } catch (requestError) {
