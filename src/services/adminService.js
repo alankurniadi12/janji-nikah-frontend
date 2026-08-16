@@ -123,6 +123,11 @@ export async function setMusicStatus(id, isActive) {
   return response.data.data.music;
 }
 
+export async function deleteMusic(id) {
+  const response = await api.delete(`/admin/music/${id}`);
+  return response.data.data.music;
+}
+
 export async function getAdminInvitations(status = "") {
   const response = await api.get("/admin/invitations", { params: status ? { status } : {} });
   return response.data.data.invitations;

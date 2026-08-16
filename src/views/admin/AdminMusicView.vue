@@ -1,8 +1,10 @@
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
+import { Power, PowerOff, Trash2 } from "@lucide/vue";
 
 import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import AppButton from "@/components/AppButton.vue";
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import StatusPill from "@/components/StatusPill.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useAdminStore } from "@/stores/admin";
@@ -14,8 +16,20 @@ const toastStore = useToastStore();
 const form = reactive({ title: "", artist: "", file: null });
 const fileInput = ref(null);
 const error = ref("");
+const deleteDialog = reactive({
+  open: false,
+  item: null
+});
 
 onMounted(() => adminStore.loadMusic());
+
+const deleteDetail = computed(() => {
+  if (!deleteDialog.item) {
+    return "";
+  }
+
+  return `${deleteDialog.item.title}${deleteDialog.item.artist ? ` · ${deleteDialog.item.artist}` : ""}`;
+});
 
 function selectFile(event) {
   const [file] = event.target.files || [];
@@ -50,6 +64,32 @@ async function setMusicStatus(music) {
     error.value = getApiErrorMessage(requestError, "Status musik belum bisa diubah.");
   }
 }
+
+function openDeleteDialog(music) {
+  deleteDialog.item = music;
+  deleteDialog.open = true;
+}
+
+function closeDeleteDialog() {
+  deleteDialog.open = false;
+  deleteDialog.item = null;
+}
+
+async function confirmDelete() {
+  if (!deleteDialog.item) {
+    return;
+  }
+
+  error.value = "";
+
+  try {
+    await adminStore.deleteMusic(deleteDialog.item.id);
+    closeDeleteDialog();
+    toastStore.show("Musik berhasil dihapus.");
+  } catch (requestError) {
+    error.value = getApiErrorMessage(requestError, "Musik belum bisa dihapus.");
+  }
+}
 </script>
 
 <template>
@@ -76,10 +116,23 @@ async function setMusicStatus(music) {
 
     <p v-if="error || adminStore.error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ error || adminStore.error }}</p>
 
-    <section class="mt-6 overflow-hidden rounded-lg border border-ink/10 bg-white shadow-soft">
-      <article v-for="music in adminStore.music" :key="music.id" class="grid gap-4 border-b border-ink/10 p-5 last:border-b-0 lg:grid-cols-[1fr_260px_110px_150px] lg:items-center">
+    <section class="mt-6 grid gap-3">
+      <article
+        v-for="music in adminStore.music"
+        :key="music.id"
+        class="grid gap-4 rounded-lg border p-5 shadow-soft transition lg:grid-cols-[1fr_260px_130px_260px] lg:items-center"
+        :class="music.isActive ? 'border-leaf/25 bg-leaf/5' : 'border-rose/20 bg-rose/5 opacity-90'"
+      >
         <div>
-          <p class="font-bold text-ink">{{ music.title }}</p>
+          <div class="flex flex-wrap items-center gap-2">
+            <p class="font-bold text-ink">{{ music.title }}</p>
+            <span
+              class="rounded-full px-2 py-0.5 text-xs font-bold"
+              :class="music.isActive ? 'bg-leaf text-white' : 'bg-rose text-white'"
+            >
+              {{ music.isActive ? "Aktif" : "Nonaktif" }}
+            </span>
+          </div>
           <p class="mt-1 text-sm text-ink/55">{{ music.artist || "Tanpa penyanyi" }}</p>
         </div>
         <div class="grid gap-2">
@@ -87,11 +140,30 @@ async function setMusicStatus(music) {
           <a :href="assetUrl(music.fileUrl)" target="_blank" class="text-sm font-semibold text-leaf">Buka file</a>
         </div>
         <StatusPill :active="music.isActive" :label="music.isActive ? 'Aktif' : 'Nonaktif'" />
-        <AppButton type="button" variant="secondary" @click="setMusicStatus(music)">
-          {{ music.isActive ? "Nonaktifkan" : "Aktifkan" }}
-        </AppButton>
+        <div class="flex flex-wrap gap-2 lg:justify-end">
+          <AppButton type="button" :variant="music.isActive ? 'secondary' : 'primary'" @click="setMusicStatus(music)">
+            <PowerOff v-if="music.isActive" class="h-4 w-4" />
+            <Power v-else class="h-4 w-4" />
+            {{ music.isActive ? "Nonaktifkan" : "Aktifkan" }}
+          </AppButton>
+          <AppButton type="button" variant="ghost" @click="openDeleteDialog(music)">
+            <Trash2 class="h-4 w-4" />
+            Hapus
+          </AppButton>
+        </div>
       </article>
-      <p v-if="!adminStore.loading && !adminStore.music.length" class="p-5 text-sm font-semibold text-ink/60">Belum ada musik.</p>
+      <p v-if="!adminStore.loading && !adminStore.music.length" class="rounded-lg border border-ink/10 bg-white p-5 text-sm font-semibold text-ink/60 shadow-soft">Belum ada musik.</p>
     </section>
+
+    <ConfirmDialog
+      :open="deleteDialog.open"
+      title="Hapus musik?"
+      message="Musik akan dihapus dari katalog admin dan pilihan member. Undangan yang memakai musik ini akan dikosongkan pilihan musiknya."
+      :detail="deleteDetail"
+      confirm-label="Hapus musik"
+      :loading="adminStore.saving"
+      @cancel="closeDeleteDialog"
+      @confirm="confirmDelete"
+    />
   </section>
 </template>
