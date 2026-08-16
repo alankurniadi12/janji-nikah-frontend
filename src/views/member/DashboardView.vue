@@ -46,7 +46,7 @@ const latestTransaction = computed(() => dashboard.value?.latestTransaction);
 const pendingTransactions = computed(() => dashboard.value?.pendingTransactions?.items || []);
 const pendingTransactionTotal = computed(() => dashboard.value?.pendingTransactions?.total || 0);
 const recentInvitations = computed(() => dashboard.value?.recentInvitations || []);
-const compactRecentInvitations = computed(() => recentInvitations.value.slice(0, 3));
+const compactRecentInvitations = computed(() => recentInvitations.value.slice(0, 5));
 const waitingPaymentCount = computed(() => pendingTransactions.value.filter((transaction) => transaction.status === "waiting_payment").length);
 const waitingVerificationCount = computed(() =>
   pendingTransactions.value.filter((transaction) => transaction.status === "waiting_verification").length
@@ -352,7 +352,7 @@ function paymentTimeLeft(transaction) {
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 class="text-lg font-bold text-ink">Undangan terbaru</h2>
-              <p class="mt-1 text-sm text-ink/55">Ringkasan singkat 3 undangan terbaru.</p>
+              <p class="mt-1 text-sm text-ink/55">Ringkasan singkat 5 undangan terbaru.</p>
             </div>
             <RouterLink class="text-sm font-semibold text-leaf hover:text-ink" to="/app/invitations">Lihat semua</RouterLink>
           </div>
