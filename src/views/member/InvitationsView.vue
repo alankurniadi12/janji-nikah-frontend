@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import { ArrowRight, ExternalLink, FilePlus2, Loader2, Sparkles, Trash2 } from "@lucide/vue";
+import { ArrowRight, Check, Copy, ExternalLink, FilePlus2, Loader2, Sparkles, Trash2 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
@@ -12,6 +12,7 @@ import { formatDate } from "@/utils/formatters";
 
 const invitationStore = useInvitationStore();
 const draftToDelete = ref(null);
+const catalogLinkCopied = ref(false);
 const filters = ref({
   query: "",
   dateMode: "all",
@@ -96,6 +97,18 @@ async function confirmDeleteDraft() {
   draftToDelete.value = null;
 }
 
+async function copyCatalogLink() {
+  try {
+    await navigator.clipboard.writeText(`${window.location.origin}/demo-tema`);
+    catalogLinkCopied.value = true;
+    window.setTimeout(() => {
+      catalogLinkCopied.value = false;
+    }, 1800);
+  } catch {
+    catalogLinkCopied.value = false;
+  }
+}
+
 function resetFilters() {
   filters.value = {
     query: "",
@@ -162,13 +175,15 @@ function toMonthInput(value) {
               <ExternalLink class="h-4 w-4" />
               Buka Katalog
             </RouterLink>
-            <RouterLink
-              class="focus-ring inline-flex min-h-11 items-center justify-center rounded-md bg-leaf px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink"
-              :to="{ name: 'theme-demo-detail', params: { themeKey: 'elegant-classic' } }"
-              target="_blank"
+            <button
+              class="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-leaf px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink"
+              type="button"
+              @click="copyCatalogLink"
             >
-              Lihat Preview Utama
-            </RouterLink>
+              <Check v-if="catalogLinkCopied" class="h-4 w-4" />
+              <Copy v-else class="h-4 w-4" />
+              {{ catalogLinkCopied ? "Link Tersalin" : "Salin Link Katalog" }}
+            </button>
           </div>
         </div>
         <div class="grid gap-3 sm:grid-cols-3">
