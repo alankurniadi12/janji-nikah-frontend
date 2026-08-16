@@ -147,6 +147,10 @@ export const useAdminStore = defineStore("admin", {
       const music = await this.mutate(() => adminService.createMusic(payload), "Musik belum bisa dibuat.");
       this.music = [music, ...this.music];
     },
+    async uploadMusic(payload) {
+      const music = await this.mutate(() => adminService.uploadMusic(payload), "Musik belum bisa diupload.");
+      this.music = [music, ...this.music];
+    },
     async setMusicStatus(id, isActive) {
       const music = await this.mutate(() => adminService.setMusicStatus(id, isActive), "Status musik belum bisa diubah.");
       this.music = this.music.map((row) => (row.id === id ? music : row));

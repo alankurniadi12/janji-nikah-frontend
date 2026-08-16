@@ -104,6 +104,21 @@ export async function createMusic(payload) {
   return response.data.data.music;
 }
 
+export async function uploadMusic(payload) {
+  const formData = new FormData();
+  formData.append("title", payload.title);
+  formData.append("category", payload.category || "");
+  formData.append("duration", payload.duration || "");
+  formData.append("file", payload.file);
+
+  const response = await api.post("/admin/music/upload", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+  return response.data.data.music;
+}
+
 export async function setMusicStatus(id, isActive) {
   const response = await api.patch(`/admin/music/${id}/status`, { isActive });
   return response.data.data.music;
