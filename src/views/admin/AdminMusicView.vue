@@ -11,7 +11,7 @@ import { assetUrl } from "@/utils/assets";
 
 const adminStore = useAdminStore();
 const toastStore = useToastStore();
-const form = reactive({ title: "", category: "", duration: "", file: null });
+const form = reactive({ title: "", artist: "", file: null });
 const fileInput = ref(null);
 const error = ref("");
 
@@ -32,7 +32,7 @@ async function upload() {
 
   try {
     await adminStore.uploadMusic({ ...form });
-    Object.assign(form, { title: "", category: "", duration: "", file: null });
+    Object.assign(form, { title: "", artist: "", file: null });
     if (fileInput.value) fileInput.value.value = "";
     toastStore.show("Musik berhasil diupload.");
   } catch (requestError) {
@@ -56,18 +56,14 @@ async function setMusicStatus(music) {
   <section>
     <AdminPageHeader eyebrow="Musik" title="Kelola musik" description="Upload musik MP3 dari admin, lalu aktifkan agar bisa dipilih member di builder." />
 
-    <form class="mt-6 grid gap-4 rounded-lg border border-ink/10 bg-white p-5 shadow-soft lg:grid-cols-[1fr_180px_120px_1.2fr_150px] lg:items-end" @submit.prevent="upload">
+    <form class="mt-6 grid gap-4 rounded-lg border border-ink/10 bg-white p-5 shadow-soft lg:grid-cols-[1fr_1fr_1.2fr_150px] lg:items-end" @submit.prevent="upload">
       <label class="grid gap-2 text-sm font-semibold text-ink">
         Judul musik
         <input v-model.trim="form.title" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm font-normal" placeholder="Contoh: Piano Romantis" required />
       </label>
       <label class="grid gap-2 text-sm font-semibold text-ink">
-        Kategori
-        <input v-model.trim="form.category" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm font-normal" placeholder="Akad" />
-      </label>
-      <label class="grid gap-2 text-sm font-semibold text-ink">
-        Durasi
-        <input v-model.number="form.duration" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm font-normal" min="0" placeholder="Detik" type="number" />
+        Penyanyi
+        <input v-model.trim="form.artist" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm font-normal" placeholder="Contoh: Tulus" />
       </label>
       <label class="grid gap-2 text-sm font-semibold text-ink">
         File MP3
@@ -84,7 +80,7 @@ async function setMusicStatus(music) {
       <article v-for="music in adminStore.music" :key="music.id" class="grid gap-4 border-b border-ink/10 p-5 last:border-b-0 lg:grid-cols-[1fr_260px_110px_150px] lg:items-center">
         <div>
           <p class="font-bold text-ink">{{ music.title }}</p>
-          <p class="mt-1 text-sm text-ink/55">{{ music.category || "Tanpa kategori" }} · {{ music.duration || "-" }}</p>
+          <p class="mt-1 text-sm text-ink/55">{{ music.artist || "Tanpa penyanyi" }}</p>
         </div>
         <div class="grid gap-2">
           <audio v-if="music.fileUrl" class="h-10 w-full" controls preload="none" :src="assetUrl(music.fileUrl)" />

@@ -107,8 +107,7 @@ export async function createMusic(payload) {
 export async function uploadMusic(payload) {
   const formData = new FormData();
   formData.append("title", payload.title);
-  formData.append("category", payload.category || "");
-  formData.append("duration", payload.duration || "");
+  formData.append("artist", payload.artist || "");
   formData.append("file", payload.file);
 
   const response = await api.post("/admin/music/upload", formData, {

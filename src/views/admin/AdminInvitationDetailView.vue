@@ -323,7 +323,7 @@ function rsvpLabel(status) {
                     Musik
                   </p>
                   <p class="mt-1 font-bold text-ink">{{ invitation.music?.title || invitation.musicId || "-" }}</p>
-                  <p v-if="invitation.music" class="mt-1 text-sm text-ink/55">{{ invitation.music.category || "Tanpa kategori" }}</p>
+                  <p v-if="invitation.music" class="mt-1 text-sm text-ink/55">{{ invitation.music.artist || "Tanpa penyanyi" }}</p>
                 </div>
                 <div class="rounded-md border border-ink/10 p-4">
                   <p class="text-sm text-ink/55">Galeri</p>

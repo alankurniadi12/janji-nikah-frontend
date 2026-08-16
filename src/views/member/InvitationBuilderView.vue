@@ -1389,7 +1389,7 @@ function fieldError(key) {
             >
               <option value="">Pilih musik</option>
               <option v-for="music in catalogStore.music" :key="music.id" :value="music.id">
-                {{ music.title }}{{ music.category ? ` · ${music.category}` : "" }}
+                {{ music.title }}{{ music.artist ? ` · ${music.artist}` : "" }}
               </option>
             </select>
           </div>
