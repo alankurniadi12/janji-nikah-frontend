@@ -174,11 +174,8 @@ function readRemoteAudioDuration(fileUrl) {
 
 <template>
   <div class="page-shell">
-    <header class="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
+    <header class="mx-auto flex max-w-7xl items-center px-4 py-5 sm:px-6 lg:px-8">
       <RouterLink to="/" class="text-lg font-bold text-ink">Janji Nikah</RouterLink>
-      <RouterLink class="focus-ring rounded-md px-3 py-2 text-sm font-semibold text-leaf hover:bg-mint" to="/login">
-        Masuk
-      </RouterLink>
     </header>
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <section class="max-w-3xl">
