@@ -142,24 +142,6 @@ function paymentTimeLeft(transaction) {
   };
 }
 
-function invitationRoute(invitation) {
-  if (["active", "locked"].includes(invitation.status)) {
-    return { name: "member-invitation-guests", params: { id: invitation.id } };
-  }
-
-  return { name: "member-invitation-detail", params: { id: invitation.id } };
-}
-
-function invitationActionLabel(invitation) {
-  const labels = {
-    draft: "Lanjutkan",
-    active: "Kelola Tamu",
-    locked: "Kelola Tamu",
-    expired: "Lihat"
-  };
-
-  return labels[invitation.status] || "Buka";
-}
 </script>
 
 <template>
@@ -345,22 +327,19 @@ function invitationActionLabel(invitation) {
             <div
               v-for="invitation in recentInvitations"
               :key="invitation.id"
-              class="grid gap-3 py-4 lg:grid-cols-[1fr_120px_130px] lg:items-center"
+              class="grid gap-3 py-4 lg:grid-cols-[minmax(0,1fr)_170px_120px] lg:items-center"
             >
               <div class="min-w-0">
                 <p class="truncate font-semibold text-ink">
                   {{ invitation.title || `${invitation.groom?.fullName || "-"} & ${invitation.bride?.fullName || "-"}` }}
                 </p>
                 <p class="mt-1 truncate text-xs text-ink/45">/{{ auth.user?.username }}/{{ invitation.slug }}</p>
-                <p class="mt-1 text-xs text-ink/45">Update {{ formatDateTime(invitation.updatedAt) }}</p>
+              </div>
+              <div>
+                <p class="text-xs font-bold uppercase tracking-widest text-ink/40">Update</p>
+                <p class="mt-1 text-sm font-semibold text-ink/60">{{ formatDateTime(invitation.updatedAt) }}</p>
               </div>
               <InvitationStatusBadge :status="invitation.status" />
-              <RouterLink
-                class="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-ink/15 px-3 py-2 text-sm font-bold text-ink transition hover:border-leaf hover:text-leaf"
-                :to="invitationRoute(invitation)"
-              >
-                {{ invitationActionLabel(invitation) }}
-              </RouterLink>
             </div>
           </div>
 
