@@ -92,7 +92,7 @@ export const useAdminStore = defineStore("admin", {
     },
     async updateMemberStatus(id, status) {
       const member = await this.mutate(() => adminService.updateMemberStatus(id, status), "Status member belum bisa diubah.");
-      this.members = this.members.map((item) => (item.id === id ? member : item));
+      this.members = this.members.map((item) => (item.id === id ? { ...item, ...member } : item));
       if (this.currentMember?.id === id) {
         this.currentMember = {
           ...this.currentMember,
@@ -103,7 +103,7 @@ export const useAdminStore = defineStore("admin", {
     },
     async adjustMemberCredits(id, payload) {
       const data = await this.mutate(() => adminService.adjustMemberCredits(id, payload), "Kredit member belum bisa diadjust.");
-      this.members = this.members.map((item) => (item.id === id ? data.member : item));
+      this.members = this.members.map((item) => (item.id === id ? { ...item, ...data.member } : item));
       if (this.currentMember?.id === id) {
         this.currentMember = {
           ...this.currentMember,

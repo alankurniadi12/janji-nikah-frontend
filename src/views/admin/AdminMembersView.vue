@@ -9,6 +9,7 @@ import AppButton from "@/components/AppButton.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useAdminStore } from "@/stores/admin";
 import { useToastStore } from "@/stores/toasts";
+import { formatCurrency } from "@/utils/formatters";
 
 const adminStore = useAdminStore();
 const toastStore = useToastStore();
@@ -90,7 +91,7 @@ async function confirmStatusChange() {
         <article
           v-for="member in adminStore.members"
           :key="member.id"
-          class="grid cursor-pointer gap-4 p-5 transition hover:bg-mint/30 lg:grid-cols-[1fr_120px_120px_260px] lg:items-center"
+          class="grid cursor-pointer gap-4 p-5 transition hover:bg-mint/30 lg:grid-cols-[1fr_120px_160px_120px_260px] lg:items-center"
           tabindex="0"
           role="button"
           @click="openDetail(member)"
@@ -101,6 +102,10 @@ async function confirmStatusChange() {
             <p class="mt-1 text-sm text-ink/55">{{ member.email }} · @{{ member.username }}</p>
           </div>
           <p class="text-sm font-bold text-ink">{{ member.creditBalance }} kredit</p>
+          <div>
+            <p class="text-sm font-bold text-leaf">{{ formatCurrency(member.revenue?.serviceTotal || 0) }}</p>
+            <p class="mt-1 text-xs font-semibold text-ink/45">{{ member.revenue?.pricedInvitations || 0 }} undangan</p>
+          </div>
           <p class="text-sm font-semibold capitalize text-ink/65">{{ member.status }}</p>
           <div class="flex flex-wrap gap-2 lg:justify-end">
             <AppButton type="button" variant="secondary" :disabled="adminStore.saving || member.status === 'active'" @click.stop="openStatusDialog(member, 'active')">Active</AppButton>

@@ -72,8 +72,9 @@ const actionRows = computed(() => [
     </div>
 
     <template v-else-if="adminStore.dashboard">
-      <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Revenue bulan ini" :value="formatCurrency(dashboard.revenue.thisMonth)" tone="leaf" />
+        <StatCard label="Estimasi omzet member" :value="formatCurrency(dashboard.revenue.memberServiceTotal || 0)" tone="gold" />
         <StatCard label="Verifikasi pembayaran" :value="dashboard.transactions.waitingVerification" tone="gold" />
         <StatCard label="Kredit dipakai bulan ini" :value="dashboard.credits.usedThisMonth" tone="rose" />
         <StatCard label="Member aktif" :value="dashboard.members.active" tone="ink" />
@@ -123,6 +124,14 @@ const actionRows = computed(() => [
             <div class="flex justify-between gap-4">
               <span class="text-ink/55">Revenue 30 hari</span>
               <span class="font-bold text-ink">{{ formatCurrency(dashboard.revenue.last30Days) }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Estimasi omzet member bulan ini</span>
+              <span class="font-bold text-leaf">{{ formatCurrency(dashboard.revenue.memberServiceThisMonth || 0) }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Undangan bernilai jasa</span>
+              <span class="font-semibold text-ink">{{ dashboard.revenue.memberServicePricedInvitations || 0 }}</span>
             </div>
             <div class="flex justify-between gap-4">
               <span class="text-ink/55">Kredit terjual</span>

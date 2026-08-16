@@ -10,7 +10,7 @@ import AppButton from "@/components/AppButton.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useAdminStore } from "@/stores/admin";
 import { useToastStore } from "@/stores/toasts";
-import { formatDateTime } from "@/utils/formatters";
+import { formatCurrency, formatDateTime } from "@/utils/formatters";
 
 const route = useRoute();
 const router = useRouter();
@@ -32,6 +32,7 @@ onMounted(() => {
 
 const member = computed(() => adminStore.currentMember);
 const activityItems = computed(() => member.value?.activity?.items || []);
+const revenue = computed(() => member.value?.revenue || {});
 const statusTone = computed(() => {
   const tones = {
     active: "border-leaf/20 bg-leaf/10 text-leaf",
@@ -170,6 +171,18 @@ async function confirmCreditAdjustment(payload) {
             <div class="rounded-md bg-linen p-4">
               <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Saldo kredit</p>
               <p class="mt-2 text-2xl font-bold text-leaf">{{ member.creditBalance }} kredit</p>
+            </div>
+            <div class="rounded-md bg-linen p-4">
+              <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Estimasi omzet jasa</p>
+              <p class="mt-2 text-2xl font-bold text-leaf">{{ formatCurrency(revenue.serviceTotal || 0) }}</p>
+            </div>
+            <div class="rounded-md bg-linen p-4">
+              <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Harga jasa terisi</p>
+              <p class="mt-2 text-lg font-bold text-ink">{{ revenue.pricedInvitations || 0 }} undangan</p>
+            </div>
+            <div class="rounded-md bg-linen p-4">
+              <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Rata-rata nilai jasa</p>
+              <p class="mt-2 text-lg font-bold text-ink">{{ formatCurrency(revenue.averageServicePrice || 0) }}</p>
             </div>
             <div class="rounded-md bg-linen p-4">
               <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Role</p>

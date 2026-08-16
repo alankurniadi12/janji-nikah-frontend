@@ -7,7 +7,7 @@ import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
 import StatCard from "@/components/StatCard.vue";
 import { useAdminStore } from "@/stores/admin";
-import { formatDate, formatDateTime } from "@/utils/formatters";
+import { formatCurrency, formatDate, formatDateTime } from "@/utils/formatters";
 
 const router = useRouter();
 const adminStore = useAdminStore();
@@ -60,11 +60,12 @@ function normalizedFilters() {
     <AdminPageHeader eyebrow="Undangan" title="Inspeksi undangan" description="Lihat semua undangan, buka detail operasional, dan proses aksi sensitif dari halaman detail." />
 
     <template v-if="adminStore.invitationSummary">
-      <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Total undangan" :value="summary.total || 0" tone="ink" />
         <StatCard label="Undangan live" :value="summary.live || 0" tone="leaf" />
         <StatCard label="Draft" :value="summary.draft || 0" tone="gold" />
         <StatCard label="Nonaktif / expired" :value="summary.inactive || 0" tone="rose" />
+        <StatCard label="Estimasi omzet jasa" :value="formatCurrency(summary.serviceRevenue?.serviceTotal || 0)" tone="rose" />
       </div>
 
       <section class="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
@@ -95,6 +96,14 @@ function normalizedFilters() {
             <div class="flex justify-between gap-4">
               <span class="text-ink/55">Rasio undangan live</span>
               <span class="font-semibold text-leaf">{{ liveRate }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Harga jasa terisi</span>
+              <span class="font-semibold text-ink">{{ summary.serviceRevenue?.pricedInvitations || 0 }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Rata-rata nilai jasa</span>
+              <span class="font-semibold text-leaf">{{ formatCurrency(summary.serviceRevenue?.averageServicePrice || 0) }}</span>
             </div>
           </div>
         </article>
@@ -191,7 +200,7 @@ function normalizedFilters() {
       <article
         v-for="invitation in adminStore.invitations"
         :key="invitation.id"
-        class="grid cursor-pointer gap-4 border-b border-ink/10 p-5 transition last:border-b-0 hover:bg-linen/60 lg:grid-cols-[1fr_170px_120px_120px_32px] lg:items-center"
+        class="grid cursor-pointer gap-4 border-b border-ink/10 p-5 transition last:border-b-0 hover:bg-linen/60 lg:grid-cols-[1fr_150px_130px_120px_120px_32px] lg:items-center"
         role="button"
         tabindex="0"
         @click="openInvitation(invitation)"
@@ -206,6 +215,10 @@ function normalizedFilters() {
         <div>
           <p class="text-xs font-bold uppercase tracking-widest text-ink/40">Update</p>
           <p class="mt-1 text-sm font-semibold text-ink/65">{{ formatDateTime(invitation.updatedAt) }}</p>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-ink/40">Nilai jasa</p>
+          <p class="mt-1 text-sm font-bold text-leaf">{{ formatCurrency(invitation.servicePrice || 0) }}</p>
         </div>
         <div>
           <p class="text-xs font-bold uppercase tracking-widest text-ink/40">Acara</p>

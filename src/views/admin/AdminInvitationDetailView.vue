@@ -11,7 +11,7 @@ import { getApiErrorMessage } from "@/lib/api";
 import { useAdminStore } from "@/stores/admin";
 import { useToastStore } from "@/stores/toasts";
 import { assetUrl } from "@/utils/assets";
-import { formatDate, formatDateTime, formatEventDate } from "@/utils/formatters";
+import { formatCurrency, formatDate, formatDateTime, formatEventDate } from "@/utils/formatters";
 
 const route = useRoute();
 const router = useRouter();
@@ -201,6 +201,11 @@ function rsvpLabel(status) {
             </div>
 
             <div class="mt-6 grid gap-4 sm:grid-cols-2">
+              <div class="rounded-md bg-linen p-4 sm:col-span-2">
+                <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Nilai jasa undangan</p>
+                <p class="mt-2 text-2xl font-bold text-leaf">{{ formatCurrency(invitation.servicePrice || 0) }}</p>
+                <p class="mt-1 text-sm text-ink/55">Estimasi harga jasa yang diinput member.</p>
+              </div>
               <div class="rounded-md bg-linen p-4">
                 <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Pengantin pria</p>
                 <p class="mt-2 text-lg font-bold text-ink">{{ invitation.groom?.fullName || "-" }}</p>
