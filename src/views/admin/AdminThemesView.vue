@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, ref } from "vue";
 
 import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import AppButton from "@/components/AppButton.vue";
@@ -11,21 +11,9 @@ import { useToastStore } from "@/stores/toasts";
 
 const adminStore = useAdminStore();
 const toastStore = useToastStore();
-const form = reactive({ name: "", key: "", thumbnailUrl: "", isPublicDemo: true });
 const error = ref("");
 
 onMounted(() => adminStore.loadThemes());
-
-async function create() {
-  error.value = "";
-  try {
-    await adminStore.createTheme({ ...form });
-    Object.assign(form, { name: "", key: "", thumbnailUrl: "", isPublicDemo: true });
-    toastStore.show("Tema berhasil dibuat.");
-  } catch (requestError) {
-    error.value = getApiErrorMessage(requestError, "Tema belum bisa dibuat.");
-  }
-}
 
 async function setThemeStatus(theme) {
   error.value = "";
@@ -42,12 +30,6 @@ async function setThemeStatus(theme) {
 <template>
   <section>
     <AdminPageHeader eyebrow="Tema" title="Kelola tema" description="Aktifkan atau nonaktifkan tema bawaan yang tersedia untuk member." />
-    <form class="mt-6 grid gap-3 rounded-lg border border-ink/10 bg-white p-5 shadow-soft lg:grid-cols-[1fr_160px_1fr_140px]" @submit.prevent="create">
-      <input v-model.trim="form.name" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm" placeholder="Nama tema" required />
-      <input v-model.trim="form.key" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm" placeholder="Key tema" required />
-      <input v-model.trim="form.thumbnailUrl" class="focus-ring h-11 rounded-md border border-ink/15 px-3 text-sm" placeholder="Thumbnail URL" />
-      <AppButton type="submit" :disabled="adminStore.saving">Buat Tema</AppButton>
-    </form>
     <p v-if="error || adminStore.error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ error || adminStore.error }}</p>
     <section class="mt-6 overflow-hidden rounded-lg border border-ink/10 bg-white shadow-soft">
       <article v-for="theme in adminStore.themes" :key="theme.id" class="grid gap-4 border-b border-ink/10 p-5 last:border-b-0 lg:grid-cols-[220px_1fr_140px_110px_150px] lg:items-center">
