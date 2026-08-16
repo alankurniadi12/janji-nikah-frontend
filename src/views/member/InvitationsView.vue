@@ -148,10 +148,10 @@ function toMonthInput(value) {
           <div class="flex h-10 w-10 items-center justify-center rounded-md bg-mint text-leaf">
             <Sparkles class="h-5 w-5" />
           </div>
-          <p class="mt-4 text-sm font-bold uppercase tracking-widest text-gold">Katalog tema</p>
-          <h2 class="mt-2 text-2xl font-bold text-ink">Tunjukkan contoh tema tanpa membuat draft.</h2>
+          <p class="mt-4 text-sm font-bold uppercase tracking-widest text-gold">Katalog tema & musik</p>
+          <h2 class="mt-2 text-2xl font-bold text-ink">Tunjukkan contoh tema dan musik tanpa membuat draft.</h2>
           <p class="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
-            Buka preview tema siap pakai, salin link, lalu kirim ke calon pengantin untuk bantu proses pilih desain.
+            Buka katalog siap pakai, salin link, lalu kirim ke calon pengantin untuk bantu proses pilih desain dan musik.
           </p>
           <div class="mt-4 flex flex-col gap-3 sm:flex-row">
             <RouterLink
@@ -160,7 +160,7 @@ function toMonthInput(value) {
               target="_blank"
             >
               <ExternalLink class="h-4 w-4" />
-              Buka Katalog Tema
+              Buka Katalog
             </RouterLink>
             <RouterLink
               class="focus-ring inline-flex min-h-11 items-center justify-center rounded-md bg-leaf px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink"

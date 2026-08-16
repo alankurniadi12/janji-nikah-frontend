@@ -100,7 +100,7 @@ async function copyDemoLink() {
     <header class="sticky top-0 z-30 border-b border-ink/10 bg-white/95 backdrop-blur">
       <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div>
-          <RouterLink to="/demo-tema" class="text-sm font-bold text-leaf hover:text-ink">Katalog tema</RouterLink>
+          <RouterLink to="/demo-tema" class="text-sm font-bold text-leaf hover:text-ink">Katalog tema & musik</RouterLink>
           <h1 class="mt-1 text-xl font-bold text-ink">{{ selectedTheme.name }}</h1>
         </div>
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">

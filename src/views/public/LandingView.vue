@@ -36,7 +36,7 @@ const steps = [
               </AppButton>
               <AppButton to="/demo-tema" variant="secondary">
                 <Eye class="h-4 w-4" />
-                Lihat Demo Tema
+                Lihat Katalog Tema & Musik
               </AppButton>
             </div>
           </div>
