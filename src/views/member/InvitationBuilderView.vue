@@ -1518,21 +1518,21 @@ function fieldError(key) {
               <article
                 v-for="music in catalogStore.music"
                 :key="music.id"
-                class="grid gap-3 rounded-md border bg-white p-4 transition md:grid-cols-[1fr_120px_110px] md:items-center"
+                class="focus-ring grid cursor-pointer gap-3 rounded-md border bg-white p-4 transition md:grid-cols-[1fr_120px_110px] md:items-center"
                 :class="form.musicId === music.id ? 'border-leaf bg-mint/40 shadow-soft' : 'border-ink/10 hover:border-leaf/40'"
+                role="button"
+                tabindex="0"
+                @click="selectMusic(music)"
+                @keydown.enter.prevent="selectMusic(music)"
+                @keydown.space.prevent="selectMusic(music)"
               >
-                <button
-                  type="button"
-                  class="focus-ring rounded-md text-left"
-                  :disabled="!isMainDataEditable"
-                  @click="selectMusic(music)"
-                >
+                <div>
                   <span class="block font-bold text-ink">{{ music.title }}</span>
                   <span class="mt-1 block text-sm text-ink/55">{{ music.artist || "Tanpa penyanyi" }}</span>
                   <span v-if="form.musicId === music.id" class="mt-2 inline-flex rounded-full bg-leaf px-2 py-0.5 text-xs font-bold text-white">
                     Dipilih
                   </span>
-                </button>
+                </div>
 
                 <p class="text-sm font-semibold text-ink/65">{{ displayMusicDuration(music) }}</p>
 
@@ -1540,7 +1540,7 @@ function fieldError(key) {
                   type="button"
                   class="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-3 text-sm font-semibold text-ink transition hover:border-leaf hover:text-leaf disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="!music.fileUrl"
-                  @click="toggleMusicPreview(music)"
+                  @click.stop="toggleMusicPreview(music)"
                 >
                   <Pause v-if="playingMusicId === music.id" class="h-4 w-4" />
                   <Play v-else class="h-4 w-4" />
