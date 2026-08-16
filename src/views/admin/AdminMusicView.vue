@@ -124,15 +124,7 @@ async function confirmDelete() {
         :class="music.isActive ? 'border-leaf/25 bg-leaf/5' : 'border-rose/20 bg-rose/5 opacity-90'"
       >
         <div>
-          <div class="flex flex-wrap items-center gap-2">
-            <p class="font-bold text-ink">{{ music.title }}</p>
-            <span
-              class="rounded-full px-2 py-0.5 text-xs font-bold"
-              :class="music.isActive ? 'bg-leaf text-white' : 'bg-rose text-white'"
-            >
-              {{ music.isActive ? "Aktif" : "Nonaktif" }}
-            </span>
-          </div>
+          <p class="font-bold text-ink">{{ music.title }}</p>
           <p class="mt-1 text-sm text-ink/55">{{ music.artist || "Tanpa penyanyi" }}</p>
         </div>
         <div class="grid gap-2">
