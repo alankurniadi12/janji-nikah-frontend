@@ -23,6 +23,7 @@ const invitation = computed(() => dashboard.value?.invitation);
 const summary = computed(() => dashboard.value?.summary || {});
 const guests = computed(() => dashboard.value?.guests || []);
 const wishes = computed(() => dashboard.value?.wishes || []);
+const publicInvitationUrl = computed(() => absoluteLink(`/${route.params.username}/${route.params.slug}`));
 const coupleNames = computed(() => {
   const groom = invitation.value?.groom?.fullName || invitation.value?.summary?.groomName || "Pengantin";
   const bride = invitation.value?.bride?.fullName || invitation.value?.summary?.brideName || "Pasangan";
@@ -93,6 +94,10 @@ async function copyGuestLink(guest) {
   await copyText(absoluteLink(guest.link), "Link tamu berhasil disalin.");
 }
 
+async function copyPublicInvitationLink() {
+  await copyText(publicInvitationUrl.value, "Link undangan publik berhasil disalin.");
+}
+
 async function copyGuestWhatsapp(guest) {
   const link = absoluteLink(guest.link);
 
@@ -144,14 +149,24 @@ async function copyGuestWhatsapp(guest) {
               Aktif sampai {{ invitation.expiresAt ? formatDate(invitation.expiresAt) : "masa undangan berakhir" }}.
             </p>
           </div>
-          <a
-            class="focus-ring inline-flex min-h-11 items-center justify-center rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink hover:border-leaf hover:text-leaf"
-            :href="`/${route.params.username}/${route.params.slug}`"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Buka Undangan
-          </a>
+          <div class="flex flex-wrap gap-2">
+            <a
+              class="focus-ring inline-flex min-h-11 items-center justify-center rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink hover:border-leaf hover:text-leaf"
+              :href="publicInvitationUrl"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Buka undangan publik
+            </a>
+            <button
+              class="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink hover:border-leaf hover:text-leaf"
+              type="button"
+              @click="copyPublicInvitationLink"
+            >
+              <Copy class="h-4 w-4" />
+              Salin link
+            </button>
+          </div>
         </div>
       </header>
 
