@@ -8,7 +8,7 @@ import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
 import ThemePreviewCard from "@/components/ThemePreviewCard.vue";
 import { invitationThemes } from "@/lib/invitationThemes";
 import { useInvitationStore } from "@/stores/invitations";
-import { formatDate } from "@/utils/formatters";
+import { formatCurrency, formatDate } from "@/utils/formatters";
 
 const invitationStore = useInvitationStore();
 const draftToDelete = ref(null);
@@ -262,7 +262,7 @@ function toMonthInput(value) {
               {{ invitation.title || `${invitation.groom?.fullName || "Pengantin pria"} & ${invitation.bride?.fullName || "Pengantin wanita"}` }}
             </p>
             <p class="mt-1 text-sm text-ink/55">
-              /{{ invitation.slug }} · Dibuat {{ formatDate(invitation.createdAt) }} · Update {{ formatDate(invitation.updatedAt) }}
+              /{{ invitation.slug }} · Dibuat {{ formatDate(invitation.createdAt) }} · Nilai jasa {{ formatCurrency(invitation.servicePrice || 0) }}
             </p>
           </RouterLink>
           <InvitationStatusBadge :status="invitation.status" />

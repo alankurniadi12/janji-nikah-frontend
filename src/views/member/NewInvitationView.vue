@@ -13,7 +13,8 @@ const error = ref("");
 const missingFields = ref([]);
 const form = reactive({
   groomName: "",
-  brideName: ""
+  brideName: "",
+  servicePrice: ""
 });
 
 async function createDraft() {
@@ -41,7 +42,8 @@ async function createDraft() {
       },
       bride: {
         fullName: form.brideName
-      }
+      },
+      servicePrice: Number(form.servicePrice || 0)
     });
     router.push({ name: "member-invitation-detail", params: { id: invitation.id } });
   } catch (requestError) {
@@ -105,6 +107,21 @@ function clearMissing() {
             />
             <p v-if="isMissing('brideName')" class="mt-1 text-xs font-semibold text-rose">Wajib diisi.</p>
           </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-ink" for="servicePrice">Harga jasa undangan</label>
+          <input
+            id="servicePrice"
+            v-model.number="form.servicePrice"
+            class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+            type="number"
+            min="0"
+            step="1000"
+            inputmode="numeric"
+            placeholder="Contoh: 250000"
+          />
+          <p class="mt-1 text-xs font-semibold text-ink/45">Optional. Dipakai untuk estimasi omzet jasa di dashboard member.</p>
         </div>
 
         <p v-if="error || invitationStore.error" class="rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">

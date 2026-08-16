@@ -42,6 +42,7 @@ onUnmounted(() => {
 const dashboard = computed(() => memberDashboard.dashboard);
 const invitations = computed(() => dashboard.value?.invitations || {});
 const actions = computed(() => dashboard.value?.actions || {});
+const revenue = computed(() => dashboard.value?.revenue || {});
 const latestTransaction = computed(() => dashboard.value?.latestTransaction);
 const pendingTransactions = computed(() => dashboard.value?.pendingTransactions?.items || []);
 const pendingTransactionTotal = computed(() => dashboard.value?.pendingTransactions?.total || 0);
@@ -244,14 +245,22 @@ function paymentTimeLeft(transaction) {
               <span class="text-ink/55">Akan expired 7 hari</span>
               <span class="font-semibold text-rose">{{ invitations.expiringSoon || 0 }}</span>
             </div>
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Harga jasa terisi</span>
+              <span class="font-semibold text-ink">{{ revenue.pricedInvitations || 0 }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+              <span class="text-ink/55">Rata-rata nilai jasa</span>
+              <span class="font-semibold text-leaf">{{ formatCurrency(revenue.averageServicePrice || 0) }}</span>
+            </div>
           </div>
         </article>
       </section>
 
       <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Sisa kredit" :value="dashboard.creditBalance" tone="leaf" />
-        <StatCard label="Undangan live" :value="invitations.live || 0" tone="gold" />
-        <StatCard label="Draft" :value="invitations.draft || 0" tone="rose" />
+        <StatCard label="Estimasi omzet jasa" :value="formatCurrency(revenue.serviceTotal || 0)" tone="leaf" />
+        <StatCard label="Sisa kredit" :value="dashboard.creditBalance" tone="gold" />
+        <StatCard label="Undangan live" :value="invitations.live || 0" tone="rose" />
         <StatCard label="Transaksi pending" :value="pendingTransactionTotal" tone="ink" />
       </div>
 

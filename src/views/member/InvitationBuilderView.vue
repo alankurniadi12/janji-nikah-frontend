@@ -14,7 +14,7 @@ import { useCatalogStore } from "@/stores/catalog";
 import { useInvitationStore } from "@/stores/invitations";
 import { useToastStore } from "@/stores/toasts";
 import { assetUrl } from "@/utils/assets";
-import { formatDate, photoIdFromUrl } from "@/utils/formatters";
+import { formatCurrency, formatDate, photoIdFromUrl } from "@/utils/formatters";
 
 const route = useRoute();
 const auth = useAuthStore();
@@ -55,6 +55,7 @@ const steps = [
 const form = reactive({
   title: "",
   slug: "",
+  servicePrice: "",
   groom: {
     fullName: "",
     fatherName: "",
@@ -181,6 +182,7 @@ watch(
 function syncForm(source) {
   form.title = source.title || "";
   form.slug = source.slug || "";
+  form.servicePrice = source.servicePrice || "";
   form.groom.fullName = source.groom?.fullName || "";
   Object.assign(form.groom, splitParentsName(source.groom?.parentsName));
   form.bride.fullName = source.bride?.fullName || "";
@@ -446,6 +448,7 @@ function buildPayload() {
   return {
     title,
     slug: form.slug,
+    servicePrice: Number(form.servicePrice || 0),
     groom: {
       fullName: form.groom.fullName,
       parentsName: joinParentsName(form.groom.fatherName, form.groom.motherName)
@@ -968,6 +971,26 @@ function fieldError(key) {
           <p class="rounded-md bg-linen px-4 py-3 text-sm font-semibold text-ink/70">
             Judul undangan otomatis mengikuti nama pengantin: {{ displayTitle }}.
           </p>
+          <div class="rounded-md border border-ink/10 bg-linen/60 p-4">
+            <label class="block text-sm font-semibold text-ink" for="servicePrice">Harga jasa undangan</label>
+            <div class="mt-2 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+              <input
+                id="servicePrice"
+                v-model.number="form.servicePrice"
+                class="focus-ring h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                type="number"
+                min="0"
+                step="1000"
+                inputmode="numeric"
+                placeholder="Contoh: 250000"
+                :disabled="!isMainDataEditable"
+              />
+              <span class="text-sm font-bold text-leaf">{{ formatCurrency(Number(form.servicePrice || 0)) }}</span>
+            </div>
+            <p class="mt-2 text-xs font-semibold text-ink/45">
+              Optional. Angka ini hanya untuk estimasi omzet jasa, bukan bukti pembayaran klien.
+            </p>
+          </div>
           <div class="grid gap-5 md:grid-cols-2">
             <div class="rounded-md border border-ink/10 p-4">
               <h2 class="font-bold text-ink">Pengantin pria</h2>
