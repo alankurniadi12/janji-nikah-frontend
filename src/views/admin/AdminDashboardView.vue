@@ -73,7 +73,7 @@ const actionRows = computed(() => [
 
     <template v-else-if="adminStore.dashboard">
       <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard label="Revenue bulan ini" :value="formatCurrency(dashboard.revenue.thisMonth)" tone="leaf" />
+        <StatCard label="Revenue bulan ini" :value="formatCompactCurrency(dashboard.revenue.thisMonth)" tone="leaf" />
         <StatCard label="Estimasi omzet member" :value="formatCompactCurrency(dashboard.revenue.memberServiceTotal || 0)" tone="gold" />
         <StatCard label="Verifikasi pembayaran" :value="dashboard.transactions.waitingVerification" tone="gold" />
         <StatCard label="Kredit dipakai bulan ini" :value="dashboard.credits.usedThisMonth" tone="rose" />
