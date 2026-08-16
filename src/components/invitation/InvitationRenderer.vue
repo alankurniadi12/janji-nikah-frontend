@@ -108,6 +108,8 @@ const layoutClass = computed(() => `invitation-layout-${props.selectedTheme.key}
 const showContent = computed(() => props.opened || props.isDemo);
 const showCover = computed(() => !props.opened || props.isDemo);
 const showStageNav = computed(() => props.selectedTheme.key === "golden-bloom-stage" && showContent.value);
+const hasGuestAccess = computed(() => Boolean(props.guest?.id));
+const hasWishes = computed(() => props.wishes.length > 0);
 const coupleNames = computed(() => {
   if (props.invitation.coupleNames) {
     return props.invitation.coupleNames;
@@ -674,12 +676,9 @@ watch(showContent, () => {
         </div>
       </section>
 
-      <section id="theme-section-rsvp" class="theme-reveal theme-rsvp-section mx-auto max-w-3xl px-4 py-12 text-center">
+      <section v-if="hasGuestAccess" id="theme-section-rsvp" class="theme-reveal theme-rsvp-section mx-auto max-w-3xl px-4 py-12 text-center">
         <h2 class="text-2xl font-bold text-ink">RSVP dan ucapan</h2>
-        <p v-if="!guest && !isDemo" class="mt-3 text-sm leading-6 text-ink/60">
-          RSVP dan ucapan tersedia melalui link personal tamu.
-        </p>
-        <div v-else-if="!isDemo" class="mt-6 text-left">
+        <div v-if="!isDemo" class="mt-6 text-left">
           <section id="public-wish-form" class="theme-section-panel rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
             <p class="text-sm font-bold uppercase tracking-widest text-gold">Konfirmasi tamu</p>
             <h3 class="mt-3 text-xl font-bold text-ink">Kehadiran dan ucapan</h3>
@@ -765,7 +764,7 @@ watch(showContent, () => {
         </div>
       </section>
 
-      <section v-if="wishes.length" class="theme-reveal theme-wishes-section bg-white px-4 py-12">
+      <section v-if="hasWishes" id="theme-section-wishes" class="theme-reveal theme-wishes-section bg-white px-4 py-12">
         <div class="mx-auto max-w-3xl">
           <p class="text-center text-sm font-bold uppercase tracking-widest text-gold">Ucapan tamu</p>
           <div class="theme-wishes-grid mt-8 grid gap-3">
@@ -812,9 +811,13 @@ watch(showContent, () => {
           <Image class="h-4 w-4" />
           Galeri
         </button>
-        <button type="button" @click="scrollToSection('theme-section-rsvp')">
+        <button v-if="hasGuestAccess" type="button" @click="scrollToSection('theme-section-rsvp')">
           <MessageCircle class="h-4 w-4" />
           RSVP
+        </button>
+        <button v-else-if="hasWishes" type="button" @click="scrollToSection('theme-section-wishes')">
+          <MessageCircle class="h-4 w-4" />
+          Ucapan
         </button>
         <button v-if="envelopeMethods.length" type="button" @click="scrollToSection('theme-section-gift')">
           <Gift class="h-4 w-4" />
