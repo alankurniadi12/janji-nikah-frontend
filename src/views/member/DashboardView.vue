@@ -56,13 +56,6 @@ const waitingVerificationCount = computed(() =>
 const hiddenPendingTransactionCount = computed(() =>
   Math.max(0, pendingTransactionTotal.value - pendingTransactions.value.length)
 );
-const draftUsagePercentage = computed(() => {
-  if (!actions.value.draftLimit) {
-    return 0;
-  }
-
-  return Math.min(100, Math.round(((invitations.value.draft || 0) / actions.value.draftLimit) * 100));
-});
 const publishCapacityLabel = computed(() => {
   const creditBalance = dashboard.value?.creditBalance || 0;
   return `${creditBalance} undangan bisa dipublish`;
@@ -338,7 +331,7 @@ function invitationActionLabel(invitation) {
         </p>
       </section>
 
-      <section class="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+      <section class="mt-6">
         <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -378,40 +371,6 @@ function invitationActionLabel(invitation) {
               <FilePlus2 class="h-4 w-4" />
               Buat Undangan
             </AppButton>
-          </div>
-        </article>
-
-        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-md bg-rose/10 text-rose">
-              <PencilLine class="h-5 w-5" />
-            </div>
-            <div>
-              <h2 class="text-lg font-bold text-ink">Status draft</h2>
-              <p class="text-sm text-ink/55">{{ invitations.draft || 0 }} dari {{ actions.draftLimit }} slot terpakai.</p>
-            </div>
-          </div>
-
-          <div class="mt-5 h-2 overflow-hidden rounded-full bg-ink/10">
-            <div class="h-full bg-leaf" :style="{ width: `${draftUsagePercentage}%` }" />
-          </div>
-
-          <p v-if="!actions.canCreateInvitation" class="mt-4 rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">
-            Batas draft sudah penuh. Hapus atau publish salah satu draft sebelum membuat undangan baru.
-          </p>
-          <p v-else class="mt-4 text-sm leading-6 text-ink/60">
-            Masih ada {{ actions.draftLimit - (invitations.draft || 0) }} slot draft untuk pesanan baru.
-          </p>
-
-          <div class="mt-5 grid gap-3 text-sm">
-            <div class="flex justify-between gap-4">
-              <span class="text-ink/55">Sudah publish total</span>
-              <span class="font-semibold text-ink">{{ invitations.publishedTotal || 0 }}</span>
-            </div>
-            <div class="flex justify-between gap-4">
-              <span class="text-ink/55">Expired</span>
-              <span class="font-semibold text-ink">{{ invitations.expired || 0 }}</span>
-            </div>
           </div>
         </article>
       </section>
