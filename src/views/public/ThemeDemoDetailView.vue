@@ -10,7 +10,6 @@ const route = useRoute();
 const copied = ref(false);
 
 const selectedTheme = computed(() => getInvitationTheme(route.params.themeKey));
-const demoUrl = computed(() => `${window.location.origin}/demo-tema/${selectedTheme.value.key}`);
 
 const sampleInvitation = {
   coupleNames: "Raka & Amara",
@@ -82,9 +81,9 @@ const sampleInvitation = {
   ]
 };
 
-async function copyDemoLink() {
+async function copyThemeName() {
   try {
-    await navigator.clipboard.writeText(demoUrl.value);
+    await navigator.clipboard.writeText(`Tema pilihan: ${selectedTheme.value.name}`);
     copied.value = true;
     window.setTimeout(() => {
       copied.value = false;
@@ -118,11 +117,11 @@ async function copyDemoLink() {
           <button
             class="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-leaf px-3 py-2 text-sm font-bold text-white hover:bg-ink"
             type="button"
-            @click="copyDemoLink"
+            @click="copyThemeName"
           >
             <Check v-if="copied" class="h-4 w-4" />
             <Copy v-else class="h-4 w-4" />
-            {{ copied ? "Link tersalin" : "Salin link" }}
+            {{ copied ? "Nama tema tersalin" : "Salin nama tema" }}
           </button>
         </div>
       </div>
