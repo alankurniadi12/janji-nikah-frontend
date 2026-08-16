@@ -1,7 +1,7 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, reactive } from "vue";
 import { useRouter } from "vue-router";
-import { ChevronRight, Loader2 } from "@lucide/vue";
+import { ChevronRight, Loader2, RotateCcw, Search } from "@lucide/vue";
 
 import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
@@ -10,30 +10,96 @@ import { formatDate, formatDateTime } from "@/utils/formatters";
 
 const router = useRouter();
 const adminStore = useAdminStore();
-const status = ref("");
+const filters = reactive({
+  q: "",
+  status: "",
+  memberStatus: ""
+});
 
 onMounted(load);
 
 function load() {
-  adminStore.loadInvitations(status.value);
+  adminStore.loadInvitations(normalizedFilters());
+}
+
+function resetFilters() {
+  Object.assign(filters, {
+    q: "",
+    status: "",
+    memberStatus: ""
+  });
+  load();
 }
 
 function openInvitation(invitation) {
   router.push({ name: "admin-invitation-detail", params: { id: invitation.id } });
 }
+
+function normalizedFilters() {
+  return Object.fromEntries(
+    Object.entries({
+      q: filters.q.trim(),
+      status: filters.status,
+      memberStatus: filters.memberStatus
+    }).filter(([, value]) => value)
+  );
+}
 </script>
 
 <template>
   <section>
-    <AdminPageHeader eyebrow="Undangan" title="Inspeksi undangan" description="Lihat semua undangan, buka detail operasional, dan proses aksi sensitif dari halaman detail.">
-      <select v-model="status" class="focus-ring h-11 rounded-md border border-ink/15 bg-white px-3 text-sm" @change="load">
-        <option value="">Semua status</option>
-        <option value="draft">Draft</option>
-        <option value="active">Aktif</option>
-        <option value="locked">Terkunci</option>
-        <option value="expired">Expired</option>
-      </select>
-    </AdminPageHeader>
+    <AdminPageHeader eyebrow="Undangan" title="Inspeksi undangan" description="Lihat semua undangan, buka detail operasional, dan proses aksi sensitif dari halaman detail." />
+
+    <form class="mt-6 grid gap-3 rounded-lg border border-ink/10 bg-white p-4 shadow-soft lg:grid-cols-[minmax(0,1fr)_170px_170px_auto_auto] lg:items-end" @submit.prevent="load">
+      <label class="block text-sm font-semibold text-ink">
+        Cari undangan/member
+        <div class="relative mt-2">
+          <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/35" />
+          <input
+            v-model="filters.q"
+            class="focus-ring h-11 w-full rounded-md border border-ink/15 bg-white pl-9 pr-3 text-sm"
+            placeholder="Nama pengantin, judul, slug, member"
+          />
+        </div>
+      </label>
+      <label class="block text-sm font-semibold text-ink">
+        Status undangan
+        <select v-model="filters.status" class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 bg-white px-3 text-sm" @change="load">
+          <option value="">Semua status</option>
+          <option value="draft">Draft</option>
+          <option value="active">Aktif</option>
+          <option value="locked">Terkunci</option>
+          <option value="expired">Expired</option>
+        </select>
+      </label>
+      <label class="block text-sm font-semibold text-ink">
+        Status member
+        <select v-model="filters.memberStatus" class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 bg-white px-3 text-sm" @change="load">
+          <option value="">Semua member</option>
+          <option value="active">Aktif</option>
+          <option value="suspended">Suspend</option>
+          <option value="blocked">Block</option>
+        </select>
+      </label>
+      <button
+        class="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-leaf px-4 py-2 text-sm font-bold text-white transition hover:bg-ink disabled:opacity-60"
+        type="submit"
+        :disabled="adminStore.loading"
+      >
+        <Loader2 v-if="adminStore.loading" class="h-4 w-4 animate-spin" />
+        <Search v-else class="h-4 w-4" />
+        Terapkan
+      </button>
+      <button
+        class="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-bold text-ink hover:border-leaf hover:text-leaf"
+        type="button"
+        :disabled="adminStore.loading"
+        @click="resetFilters"
+      >
+        <RotateCcw class="h-4 w-4" />
+        Reset
+      </button>
+    </form>
 
     <div v-if="adminStore.loading" class="mt-8 flex items-center gap-3 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
       <Loader2 class="h-5 w-5 animate-spin text-leaf" />

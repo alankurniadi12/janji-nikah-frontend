@@ -159,8 +159,8 @@ export const useAdminStore = defineStore("admin", {
       await this.mutate(() => adminService.deleteMusic(id), "Musik belum bisa dihapus.");
       this.music = this.music.filter((row) => row.id !== id);
     },
-    async loadInvitations(status = "") {
-      this.invitations = await this.run(() => adminService.getAdminInvitations(status), "Undangan belum bisa dimuat.");
+    async loadInvitations(params = {}) {
+      this.invitations = await this.run(() => adminService.getAdminInvitations(params), "Undangan belum bisa dimuat.");
     },
     async loadInvitation(id) {
       this.currentInvitation = await this.run(() => adminService.getAdminInvitation(id), "Detail undangan belum bisa dimuat.");

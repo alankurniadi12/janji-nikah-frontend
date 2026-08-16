@@ -129,8 +129,8 @@ export async function deleteMusic(id) {
   return response.data.data.music;
 }
 
-export async function getAdminInvitations(status = "") {
-  const response = await api.get("/admin/invitations", { params: status ? { status } : {} });
+export async function getAdminInvitations(params = {}) {
+  const response = await api.get("/admin/invitations", { params });
   return response.data.data.invitations;
 }
 
