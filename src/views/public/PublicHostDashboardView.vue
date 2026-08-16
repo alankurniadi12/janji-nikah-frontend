@@ -16,6 +16,11 @@ const loading = ref(true);
 const error = ref("");
 const actionError = ref("");
 const dashboard = ref(null);
+const activeTab = ref("guests");
+const visibleGuestLimit = ref(10);
+const visibleWishLimit = ref(10);
+
+const LIST_INCREMENT = 10;
 
 onMounted(loadDashboard);
 
@@ -23,6 +28,10 @@ const invitation = computed(() => dashboard.value?.invitation);
 const summary = computed(() => dashboard.value?.summary || {});
 const guests = computed(() => dashboard.value?.guests || []);
 const wishes = computed(() => dashboard.value?.wishes || []);
+const visibleGuests = computed(() => guests.value.slice(0, visibleGuestLimit.value));
+const visibleWishes = computed(() => wishes.value.slice(0, visibleWishLimit.value));
+const hasMoreGuests = computed(() => visibleGuestLimit.value < guests.value.length);
+const hasMoreWishes = computed(() => visibleWishLimit.value < wishes.value.length);
 const publicInvitationUrl = computed(() => absoluteLink(`/${route.params.username}/${route.params.slug}`));
 const coupleNames = computed(() => {
   const groom = invitation.value?.groom?.fullName || invitation.value?.summary?.groomName || "Pengantin";
@@ -109,6 +118,19 @@ async function copyGuestWhatsapp(guest) {
   const message = `Assalamu'alaikum ${guest.name},\n\nKami mengundang Anda untuk hadir di acara pernikahan ${coupleNames.value}.\n\nBuka undangan:\n${link}`;
 
   await copyText(message, "Pesan WhatsApp berhasil disalin.");
+}
+
+function setActiveTab(tab) {
+  activeTab.value = tab;
+  actionError.value = "";
+}
+
+function loadMoreGuests() {
+  visibleGuestLimit.value += LIST_INCREMENT;
+}
+
+function loadMoreWishes() {
+  visibleWishLimit.value += LIST_INCREMENT;
 }
 </script>
 
@@ -198,15 +220,43 @@ async function copyGuestWhatsapp(guest) {
         </article>
       </section>
 
-      <section class="mx-auto mt-6 grid max-w-6xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <div class="flex items-center gap-2">
-            <CalendarDays class="h-5 w-5 text-leaf" />
-            <h2 class="text-lg font-bold text-ink">Daftar kehadiran</h2>
+      <section class="mx-auto mt-6 max-w-6xl rounded-lg border border-ink/10 bg-white p-4 shadow-soft sm:p-5">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-ink">Detail laporan</h2>
+            <p class="mt-1 text-sm text-ink/55">Pantau kehadiran dan ucapan tanpa membuat halaman terlalu panjang.</p>
           </div>
-          <p v-if="actionError" class="mt-4 rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">{{ actionError }}</p>
+          <div class="grid grid-cols-2 rounded-md border border-ink/10 bg-linen p-1">
+            <button
+              class="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded px-3 text-sm font-bold transition"
+              :class="activeTab === 'guests' ? 'bg-white text-leaf shadow-sm' : 'text-ink/55 hover:text-ink'"
+              type="button"
+              @click="setActiveTab('guests')"
+            >
+              <CalendarDays class="h-4 w-4" />
+              Kehadiran
+            </button>
+            <button
+              class="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded px-3 text-sm font-bold transition"
+              :class="activeTab === 'wishes' ? 'bg-white text-leaf shadow-sm' : 'text-ink/55 hover:text-ink'"
+              type="button"
+              @click="setActiveTab('wishes')"
+            >
+              <MessageSquareText class="h-4 w-4" />
+              Ucapan
+            </button>
+          </div>
+        </div>
+
+        <p v-if="actionError" class="mt-4 rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">{{ actionError }}</p>
+
+        <div v-if="activeTab === 'guests'" class="mt-5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-sm font-bold uppercase tracking-widest text-gold">Daftar kehadiran</p>
+            <p class="text-xs font-semibold text-ink/45">Menampilkan {{ visibleGuests.length }} dari {{ guests.length }} tamu</p>
+          </div>
           <div v-if="guests.length" class="mt-4 divide-y divide-ink/10">
-            <div v-for="guest in guests" :key="guest.id" class="grid gap-3 py-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
+            <div v-for="guest in visibleGuests" :key="guest.id" class="grid gap-3 py-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
               <div class="min-w-0">
                 <p class="font-semibold text-ink">{{ guest.name }}</p>
                 <p class="text-xs text-ink/45">{{ guest.openedAt ? `Dibuka ${formatDate(guest.openedAt)}` : "Belum membuka undangan" }}</p>
@@ -240,15 +290,23 @@ async function copyGuestWhatsapp(guest) {
           <p v-else class="mt-4 rounded-md border border-dashed border-ink/15 p-5 text-sm font-semibold text-ink/50">
             Belum ada tamu yang ditambahkan.
           </p>
+          <button
+            v-if="hasMoreGuests"
+            class="focus-ring mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-bold text-ink hover:border-leaf hover:text-leaf sm:w-auto"
+            type="button"
+            @click="loadMoreGuests"
+          >
+            Muat lagi
+          </button>
         </div>
 
-        <div class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <div class="flex items-center gap-2">
-            <MessageSquareText class="h-5 w-5 text-leaf" />
-            <h2 class="text-lg font-bold text-ink">Ucapan tamu</h2>
+        <div v-else class="mt-5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-sm font-bold uppercase tracking-widest text-gold">Ucapan tamu</p>
+            <p class="text-xs font-semibold text-ink/45">Menampilkan {{ visibleWishes.length }} dari {{ wishes.length }} ucapan</p>
           </div>
           <div v-if="wishes.length" class="mt-4 space-y-3">
-            <article v-for="wish in wishes" :key="wish.id" class="rounded-md border border-ink/10 bg-linen p-4">
+            <article v-for="wish in visibleWishes" :key="wish.id" class="rounded-md border border-ink/10 bg-linen p-4">
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <p class="font-bold text-ink">{{ wish.displayName }}</p>
                 <span class="rounded-full border px-2 py-1 text-xs font-bold" :class="rsvpClass(wish.rsvpStatus)">
@@ -262,6 +320,14 @@ async function copyGuestWhatsapp(guest) {
           <p v-else class="mt-4 rounded-md border border-dashed border-ink/15 p-5 text-sm font-semibold text-ink/50">
             Belum ada ucapan yang masuk.
           </p>
+          <button
+            v-if="hasMoreWishes"
+            class="focus-ring mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-bold text-ink hover:border-leaf hover:text-leaf sm:w-auto"
+            type="button"
+            @click="loadMoreWishes"
+          >
+            Muat lagi
+          </button>
         </div>
       </section>
     </template>
