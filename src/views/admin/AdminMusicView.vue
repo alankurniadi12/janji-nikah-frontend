@@ -129,7 +129,6 @@ async function confirmDelete() {
         </div>
         <div class="grid gap-2">
           <audio v-if="music.fileUrl" class="h-10 w-full" controls preload="none" :src="assetUrl(music.fileUrl)" />
-          <a :href="assetUrl(music.fileUrl)" target="_blank" class="text-sm font-semibold text-leaf">Buka file</a>
         </div>
         <StatusPill :active="music.isActive" :label="music.isActive ? 'Aktif' : 'Nonaktif'" />
         <div class="flex flex-wrap gap-2 lg:justify-end">
