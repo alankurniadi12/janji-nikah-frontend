@@ -1,7 +1,7 @@
 <script setup>
 import { computed, reactive, ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import { ChevronLeft, ChevronRight, Loader2 } from "@lucide/vue";
+import { ChevronLeft, ChevronRight, Loader2, Search } from "@lucide/vue";
 
 import AdminPaymentActionDialog from "@/components/AdminPaymentActionDialog.vue";
 import AdminPageHeader from "@/components/AdminPageHeader.vue";
@@ -18,6 +18,12 @@ const toastStore = useToastStore();
 const router = useRouter();
 const status = ref("");
 const pageSize = ref(10);
+const filters = reactive({
+  q: "",
+  dateMode: "all",
+  date: "",
+  month: ""
+});
 const error = ref("");
 const actionDialog = reactive({
   open: false,
@@ -45,7 +51,10 @@ const resultStart = computed(() => {
   return (pagination.value.page - 1) * pagination.value.limit + 1;
 });
 const resultEnd = computed(() => Math.min(pagination.value.page * pagination.value.limit, pagination.value.total));
-const emptyMessage = computed(() => (status.value ? "Belum ada transaksi dengan status tersebut." : "Belum ada transaksi."));
+const hasActiveFilters = computed(() =>
+  Boolean(status.value || filters.q.trim() || (filters.dateMode === "date" && filters.date) || (filters.dateMode === "month" && filters.month))
+);
+const emptyMessage = computed(() => (hasActiveFilters.value ? "Transaksi tidak ditemukan untuk filter ini." : "Belum ada transaksi."));
 
 watch(status, () => {
   load(1);
@@ -55,16 +64,36 @@ watch(pageSize, () => {
   load(1);
 });
 
+watch(
+  () => [filters.dateMode, filters.date, filters.month],
+  () => {
+    load(1);
+  }
+);
+
 function buildTransactionQuery(page = 1) {
   return {
     page,
     limit: pageSize.value,
-    status: status.value || undefined
+    status: status.value || undefined,
+    q: filters.q.trim() || undefined,
+    dateMode: filters.dateMode,
+    date: filters.dateMode === "date" ? filters.date || undefined : undefined,
+    month: filters.dateMode === "month" ? filters.month || undefined : undefined
   };
 }
 
 function load(page = 1) {
   return adminStore.loadTransactions(buildTransactionQuery(page));
+}
+
+function resetFilters() {
+  status.value = "";
+  filters.q = "";
+  filters.dateMode = "all";
+  filters.date = "";
+  filters.month = "";
+  load(1);
 }
 
 function openDetail(transaction) {
@@ -117,7 +146,7 @@ async function confirmAction(note) {
     <AdminPageHeader eyebrow="Pembayaran" title="Verifikasi pembayaran" description="Approve atau tolak transaksi manual setelah cek mutasi dan bukti transfer." />
 
     <section class="mt-6 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-      <div class="grid gap-4 lg:grid-cols-[1fr_160px] lg:items-end">
+      <div class="grid gap-5">
         <div>
           <p class="text-sm font-semibold text-ink">Status pembayaran</p>
           <div class="mt-2 flex flex-wrap gap-2">
@@ -138,14 +167,50 @@ async function confirmAction(note) {
             </button>
           </div>
         </div>
-        <label class="block text-sm font-semibold text-ink">
-          Per halaman
-          <select v-model.number="pageSize" class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm">
-            <option :value="10">10</option>
-            <option :value="20">20</option>
-            <option :value="50">50</option>
-          </select>
-        </label>
+        <form class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_180px_180px_160px_120px] lg:items-end" @submit.prevent="load(1)">
+          <label class="block text-sm font-semibold text-ink">
+            Cari transaksi
+            <input
+              v-model="filters.q"
+              class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+              placeholder="Nama, email, username, ID, nominal, kode unik"
+            />
+          </label>
+          <label class="block text-sm font-semibold text-ink">
+            Filter tanggal
+            <select v-model="filters.dateMode" class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm">
+              <option value="all">Semua tanggal</option>
+              <option value="date">Tanggal dibuat</option>
+              <option value="month">Bulan dibuat</option>
+            </select>
+          </label>
+          <label v-if="filters.dateMode === 'date'" class="block text-sm font-semibold text-ink">
+            Tanggal dibuat
+            <input v-model="filters.date" type="date" class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm" />
+          </label>
+          <label v-else-if="filters.dateMode === 'month'" class="block text-sm font-semibold text-ink">
+            Bulan dibuat
+            <input v-model="filters.month" type="month" class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm" />
+          </label>
+          <div v-else class="hidden lg:block" />
+          <label class="block text-sm font-semibold text-ink">
+            Per halaman
+            <select v-model.number="pageSize" class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm">
+              <option :value="10">10</option>
+              <option :value="20">20</option>
+              <option :value="50">50</option>
+            </select>
+          </label>
+          <div class="flex gap-2">
+            <AppButton class="flex-1" type="submit">
+              <Search class="h-4 w-4" />
+              Cari
+            </AppButton>
+            <AppButton v-if="hasActiveFilters" class="flex-1" type="button" variant="secondary" @click="resetFilters">
+              Reset
+            </AppButton>
+          </div>
+        </form>
       </div>
       <p class="mt-4 border-t border-ink/10 pt-4 text-sm text-ink/55">
         Menampilkan {{ resultStart }}-{{ resultEnd }} dari {{ pagination.total }} transaksi.
@@ -198,7 +263,7 @@ async function confirmAction(note) {
       </div>
       <div v-else class="p-8 text-center">
         <p class="text-sm font-semibold text-ink/55">{{ emptyMessage }}</p>
-        <AppButton v-if="status" type="button" variant="secondary" class="mt-4" @click="status = ''">Lihat Semua</AppButton>
+        <AppButton v-if="hasActiveFilters" type="button" variant="secondary" class="mt-4" @click="resetFilters">Lihat Semua</AppButton>
       </div>
     </section>
 
