@@ -3,7 +3,6 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, Copy, ExternalLink, FilePlus2, Loader2, Sparkles, Trash2 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
-import ClientMessageTemplates from "@/components/ClientMessageTemplates.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
 import ThemePreviewCard from "@/components/ThemePreviewCard.vue";
@@ -161,8 +160,6 @@ function resetFilters() {
     <p v-if="draftCount >= 3" class="mt-5 rounded-md bg-gold/10 px-4 py-3 text-sm font-semibold text-ink">
       Batas 3 draft sudah penuh. Hapus atau publish salah satu draft sebelum membuat undangan baru.
     </p>
-
-    <ClientMessageTemplates class="mt-6" />
 
     <section class="mt-6 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
       <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center">
