@@ -1,8 +1,8 @@
 import api from "@/lib/api";
 
-export async function getInvitations() {
-  const response = await api.get("/member/invitations");
-  return response.data.data.invitations;
+export async function getInvitations(params = {}) {
+  const response = await api.get("/member/invitations", { params });
+  return response.data.data;
 }
 
 export async function createInvitation(payload = {}) {

@@ -1,6 +1,6 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
-import { ArrowRight, Check, Copy, ExternalLink, FilePlus2, Loader2, Sparkles, Trash2 } from "@lucide/vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { ArrowRight, Check, ChevronLeft, ChevronRight, Copy, ExternalLink, FilePlus2, Loader2, Sparkles, Trash2 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
@@ -13,6 +13,8 @@ import { formatCurrency, formatDate } from "@/utils/formatters";
 const invitationStore = useInvitationStore();
 const draftToDelete = ref(null);
 const catalogLinkCopied = ref(false);
+const pageSize = ref(10);
+let filterTimer = null;
 const filters = ref({
   query: "",
   dateMode: "all",
@@ -21,12 +23,15 @@ const filters = ref({
 });
 
 onMounted(() => {
-  invitationStore.loadInvitations();
+  loadInvitationPage(1);
 });
 
-const draftCount = computed(() =>
-  invitationStore.invitations.filter((invitation) => invitation.status === "draft").length
-);
+onBeforeUnmount(() => {
+  clearFilterTimer();
+});
+
+const pagination = computed(() => invitationStore.pagination);
+const draftCount = computed(() => invitationStore.summary.draft || 0);
 const themeShortcuts = computed(() =>
   invitationThemes.slice(0, 3).map((theme) => ({
     id: theme.key,
@@ -35,38 +40,17 @@ const themeShortcuts = computed(() =>
     thumbnailUrl: ""
   }))
 );
-const filteredInvitations = computed(() => {
-  const query = filters.value.query.trim().toLowerCase();
-
-  return invitationStore.invitations.filter((invitation) => {
-    const searchableText = [
-      invitation.title,
-      invitation.slug,
-      invitation.groom?.fullName,
-      invitation.bride?.fullName
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-
-    if (query && !searchableText.includes(query)) {
-      return false;
-    }
-
-    if (filters.value.dateMode === "date" && filters.value.date) {
-      return toDateInput(invitation.createdAt) === filters.value.date;
-    }
-
-    if (filters.value.dateMode === "month" && filters.value.month) {
-      return toMonthInput(invitation.createdAt) === filters.value.month;
-    }
-
-    return true;
-  });
-});
 const hasActiveFilters = computed(() =>
   Boolean(filters.value.query.trim() || (filters.value.dateMode === "date" && filters.value.date) || (filters.value.dateMode === "month" && filters.value.month))
 );
+const resultStart = computed(() => {
+  if (!pagination.value.total) {
+    return 0;
+  }
+
+  return (pagination.value.page - 1) * pagination.value.limit + 1;
+});
+const resultEnd = computed(() => Math.min(pagination.value.page * pagination.value.limit, pagination.value.total));
 const draftDeleteDetail = computed(() => {
   if (!draftToDelete.value) {
     return "";
@@ -78,6 +62,43 @@ const draftDeleteDetail = computed(() => {
 
   return `${title} · /${draftToDelete.value.slug}`;
 });
+
+watch(
+  filters,
+  () => {
+    clearFilterTimer();
+    filterTimer = window.setTimeout(() => {
+      loadInvitationPage(1);
+    }, 350);
+  },
+  { deep: true }
+);
+
+watch(pageSize, () => {
+  loadInvitationPage(1);
+});
+
+function clearFilterTimer() {
+  if (filterTimer) {
+    window.clearTimeout(filterTimer);
+    filterTimer = null;
+  }
+}
+
+function buildInvitationQuery(page = 1) {
+  return {
+    page,
+    limit: pageSize.value,
+    q: filters.value.query || undefined,
+    dateMode: filters.value.dateMode,
+    date: filters.value.dateMode === "date" ? filters.value.date || undefined : undefined,
+    month: filters.value.dateMode === "month" ? filters.value.month || undefined : undefined
+  };
+}
+
+function loadInvitationPage(page = 1) {
+  return invitationStore.loadInvitations(buildInvitationQuery(page));
+}
 
 function requestDeleteDraft(invitation) {
   if (invitation.status !== "draft") {
@@ -95,6 +116,7 @@ async function confirmDeleteDraft() {
   const invitationId = draftToDelete.value.id;
   await invitationStore.removeDraft(invitationId);
   draftToDelete.value = null;
+  await loadInvitationPage(pagination.value.page);
 }
 
 async function copyCatalogLink() {
@@ -116,22 +138,6 @@ function resetFilters() {
     date: "",
     month: ""
   };
-}
-
-function toDateInput(value) {
-  if (!value) {
-    return "";
-  }
-
-  return new Date(value).toISOString().slice(0, 10);
-}
-
-function toMonthInput(value) {
-  if (!value) {
-    return "";
-  }
-
-  return new Date(value).toISOString().slice(0, 7);
 }
 </script>
 
@@ -233,9 +239,19 @@ function toMonthInput(value) {
           </AppButton>
         </div>
       </div>
-      <p class="mt-3 text-sm text-ink/55">
-        Menampilkan {{ filteredInvitations.length }} dari {{ invitationStore.invitations.length }} undangan.
-      </p>
+      <div class="mt-4 flex flex-col gap-3 border-t border-ink/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-sm text-ink/55">
+          Menampilkan {{ resultStart }}-{{ resultEnd }} dari {{ pagination.total }} undangan.
+        </p>
+        <label class="flex items-center gap-2 text-sm font-semibold text-ink">
+          Per halaman
+          <select v-model.number="pageSize" class="focus-ring h-10 rounded-md border border-ink/15 px-3 text-sm">
+            <option :value="10">10</option>
+            <option :value="20">20</option>
+            <option :value="50">50</option>
+          </select>
+        </label>
+      </div>
     </section>
 
     <div v-if="invitationStore.loading" class="mt-8 flex items-center gap-3 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
@@ -248,9 +264,9 @@ function toMonthInput(value) {
     </p>
 
     <section v-else class="mt-8 overflow-hidden rounded-lg border border-ink/10 bg-white shadow-soft">
-      <div v-if="filteredInvitations.length" class="divide-y divide-ink/10">
+      <div v-if="invitationStore.invitations.length" class="divide-y divide-ink/10">
         <div
-          v-for="invitation in filteredInvitations"
+          v-for="invitation in invitationStore.invitations"
           :key="invitation.id"
           class="grid gap-4 px-5 py-4 md:grid-cols-[1fr_120px_150px_150px] md:items-center"
         >
@@ -308,6 +324,36 @@ function toMonthInput(value) {
         <AppButton v-else to="/app/invitations/new" class="mt-5">Buat Undangan</AppButton>
       </div>
     </section>
+
+    <nav
+      v-if="!invitationStore.loading && pagination.totalPages > 1"
+      class="mt-5 flex flex-col gap-3 rounded-lg border border-ink/10 bg-white p-4 shadow-soft sm:flex-row sm:items-center sm:justify-between"
+      aria-label="Pagination undangan"
+    >
+      <p class="text-sm font-semibold text-ink/60">
+        Halaman {{ pagination.page }} dari {{ pagination.totalPages }}
+      </p>
+      <div class="flex items-center gap-2">
+        <AppButton
+          type="button"
+          variant="secondary"
+          :disabled="!pagination.hasPreviousPage || invitationStore.loading"
+          @click="loadInvitationPage(pagination.page - 1)"
+        >
+          <ChevronLeft class="h-4 w-4" />
+          Sebelumnya
+        </AppButton>
+        <AppButton
+          type="button"
+          variant="secondary"
+          :disabled="!pagination.hasNextPage || invitationStore.loading"
+          @click="loadInvitationPage(pagination.page + 1)"
+        >
+          Berikutnya
+          <ChevronRight class="h-4 w-4" />
+        </AppButton>
+      </div>
+    </nav>
 
     <ConfirmDialog
       :open="Boolean(draftToDelete)"

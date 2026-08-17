@@ -19,6 +19,22 @@ import {
 export const useInvitationStore = defineStore("invitations", {
   state: () => ({
     invitations: [],
+    pagination: {
+      page: 1,
+      limit: 10,
+      total: 0,
+      totalPages: 1,
+      hasPreviousPage: false,
+      hasNextPage: false
+    },
+    summary: {
+      total: 0,
+      draft: 0,
+      active: 0,
+      locked: 0,
+      live: 0,
+      expired: 0
+    },
     current: null,
     preview: null,
     loading: false,
@@ -27,12 +43,21 @@ export const useInvitationStore = defineStore("invitations", {
     error: ""
   }),
   actions: {
-    async loadInvitations() {
+    async loadInvitations(params = {}) {
       this.loading = true;
       this.error = "";
 
       try {
-        this.invitations = await getInvitations();
+        const data = await getInvitations(params);
+        this.invitations = data.invitations || [];
+        this.pagination = {
+          ...this.pagination,
+          ...(data.pagination || {})
+        };
+        this.summary = {
+          ...this.summary,
+          ...(data.summary || {})
+        };
       } catch (error) {
         this.error = getApiErrorMessage(error, "Daftar undangan belum bisa dimuat.");
       } finally {
