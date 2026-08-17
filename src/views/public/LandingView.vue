@@ -21,12 +21,12 @@ const steps = [
   { title: "Bagikan link siap pakai", text: "Tamu mendapat link personal untuk membuka undangan, RSVP, dan mengirim ucapan.", icon: LinkIcon }
 ];
 
-const featuredThemes = invitationThemes.slice(0, 6);
+const featuredThemes = invitationThemes.slice(0, 4);
 
 const sellingPoints = [
-  "Buat preview dulu sebelum klien deal.",
-  "Pilih tema siap pakai, bukan desain dari nol.",
-  "1 undangan publish hanya memakai 1 kredit."
+  "Input Data Pengantin",
+  "Publish undangan",
+  "Kirim Undangan ke Pengantin"
 ];
 
 const highlights = [
@@ -79,7 +79,7 @@ const audienceItems = [
 
     <main>
       <section class="border-y border-ink/10 bg-white">
-        <div class="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.02fr_0.98fr] lg:px-8 lg:py-16 xl:gap-14">
+        <div class="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.14fr_0.86fr] lg:px-8 lg:py-16 xl:gap-14">
           <div class="flex flex-col justify-center">
             <div class="inline-flex w-fit items-center gap-2 rounded-full border border-gold/20 bg-gold/10 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-gold">
               <Sparkles class="h-3.5 w-3.5" />
@@ -92,14 +92,14 @@ const audienceItems = [
               Bikin jasa undangan digital terasa siap jual, tanpa ribet bikin sistem sendiri.
             </h2>
             <p class="mt-5 max-w-2xl text-lg leading-8 text-ink/70">
-              Cocok buat kamu yang punya calon klien dari Facebook, WhatsApp, atau jaringan lokal.
-              Tunjukkan katalog tema, isi data pengantin, publish saat sudah deal, lalu bagikan link undangan yang rapi.
+              Punya waktu luang, jaringan pertemanan, atau calon pengantin di sekitar kamu?
+              Jadikan itu peluang penghasilan tambahan lewat jasa undangan digital yang mudah ditawarkan dan terlihat profesional.
             </p>
             <div class="mt-6 grid gap-3 sm:grid-cols-3">
               <div
                 v-for="point in sellingPoints"
                 :key="point"
-                class="flex min-h-[96px] gap-2 rounded-md border border-ink/10 bg-linen px-3 py-3 text-sm font-semibold leading-6 text-ink/70"
+                class="flex min-h-[68px] items-center gap-2 rounded-md border border-ink/10 bg-linen px-3 py-3 text-sm font-bold leading-5 text-ink/70"
               >
                 <CheckCircle2 class="mt-0.5 h-4 w-4 shrink-0 text-leaf" />
                 <span>{{ point }}</span>
@@ -116,56 +116,56 @@ const audienceItems = [
               </AppButton>
             </div>
             <p class="mt-4 text-sm font-semibold text-ink/45">
-              Login cukup dengan Google. Tidak ada biaya saat membuat draft atau preview.
+              Login cukup dengan Google. Tidak ada biaya pendaftaran.
             </p>
           </div>
 
-          <div class="rounded-lg border border-ink/10 bg-linen p-4 shadow-soft sm:p-6">
-            <div class="rounded-md border border-ink/10 bg-white p-4">
+          <div class="w-full max-w-[520px] justify-self-end rounded-lg border border-ink/10 bg-linen p-3 shadow-soft sm:p-4">
+            <div class="rounded-md border border-ink/10 bg-white p-3">
               <div class="flex items-center justify-between gap-3 border-b border-ink/10 pb-4">
                 <div>
                   <p class="text-xs font-bold uppercase tracking-widest text-gold">Etalase member</p>
-                  <h2 class="mt-1 text-xl font-bold text-ink">Katalog tema + preview undangan</h2>
+                  <h2 class="mt-1 text-lg font-bold text-ink">Katalog tema + preview undangan</h2>
                 </div>
                 <div class="hidden rounded-full bg-mint px-3 py-1 text-xs font-bold text-leaf sm:block">
                   Siap ditunjukkan ke klien
                 </div>
               </div>
 
-              <div class="mt-5 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-                <div id="katalog" class="grid grid-cols-2 gap-3">
+              <div class="mt-4 grid gap-3 lg:grid-cols-[0.82fr_1.18fr]">
+                <div id="katalog" class="grid grid-cols-2 gap-2">
                   <RouterLink
                     v-for="theme in featuredThemes"
                     :key="theme.key"
                     :to="{ name: 'theme-demo-detail', params: { themeKey: theme.key } }"
-                    class="focus-ring block rounded-md border border-ink/10 bg-white p-2 transition hover:-translate-y-0.5 hover:border-leaf hover:shadow-soft"
+                    class="focus-ring block rounded-md border border-ink/10 bg-white p-1.5 transition hover:-translate-y-0.5 hover:border-leaf hover:shadow-soft"
                   >
                     <div class="theme-preview aspect-[4/3]" :class="theme.previewClass" />
-                    <p class="mt-2 truncate text-sm font-bold text-ink">{{ theme.name }}</p>
+                    <p class="mt-1.5 truncate text-xs font-bold text-ink">{{ theme.name }}</p>
                     <p class="truncate text-xs font-semibold text-ink/45">{{ theme.category }}</p>
                   </RouterLink>
                 </div>
 
-                <div class="rounded-md bg-ink p-4 text-white">
-                  <div class="mx-auto max-w-[270px] rounded-[2rem] border-8 border-white/15 bg-white/10 p-2 shadow-soft">
-                    <div class="overflow-hidden rounded-[1.35rem] bg-white text-ink">
-                      <div class="theme-preview theme-preview-golden-bloom-stage h-40 rounded-none border-0">
-                        <div class="absolute inset-x-5 top-8 z-10 text-center">
+                <div class="rounded-md bg-ink p-3 text-white">
+                  <div class="mx-auto max-w-[218px] rounded-[1.6rem] border-[7px] border-white/15 bg-white/10 p-1.5 shadow-soft">
+                    <div class="overflow-hidden rounded-[1.05rem] bg-white text-ink">
+                      <div class="theme-preview theme-preview-golden-bloom-stage h-32 rounded-none border-0">
+                        <div class="absolute inset-x-4 top-7 z-10 text-center">
                           <p class="text-xs font-bold uppercase tracking-widest text-white/80">The Wedding of</p>
-                          <h3 class="mt-2 text-3xl font-bold text-white">Alya & Rama</h3>
+                          <h3 class="mt-1.5 text-2xl font-bold text-white">Alya & Rama</h3>
                         </div>
                       </div>
-                      <div class="space-y-3 p-4">
-                        <div class="rounded-md border border-ink/10 bg-linen p-3 text-center">
+                      <div class="space-y-2 p-3">
+                        <div class="rounded-md border border-ink/10 bg-linen p-2.5 text-center">
                           <p class="text-xs font-bold uppercase tracking-widest text-gold">Akad & Resepsi</p>
-                          <p class="mt-1 text-sm font-bold text-ink">Sabtu, 18 Juli 2026</p>
+                          <p class="mt-1 text-xs font-bold text-ink">Sabtu, 18 Juli 2026</p>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
-                          <div class="rounded-md bg-mint p-3 text-center">
+                          <div class="rounded-md bg-mint p-2 text-center">
                             <p class="text-xs font-bold text-leaf">RSVP</p>
                             <p class="mt-1 text-xs font-semibold text-ink/60">Hadir / Tidak</p>
                           </div>
-                          <div class="rounded-md bg-gold/10 p-3 text-center">
+                          <div class="rounded-md bg-gold/10 p-2 text-center">
                             <p class="text-xs font-bold text-gold">Ucapan</p>
                             <p class="mt-1 text-xs font-semibold text-ink/60">Langsung tampil</p>
                           </div>
@@ -176,14 +176,14 @@ const audienceItems = [
                       </div>
                     </div>
                   </div>
-                  <div class="mt-5 grid grid-cols-2 gap-3">
-                    <div class="rounded-md border border-white/10 bg-white/10 p-3">
+                  <div class="mt-3 grid grid-cols-2 gap-2">
+                    <div class="rounded-md border border-white/10 bg-white/10 p-2.5">
                       <p class="text-xs font-bold uppercase tracking-widest text-gold">Preview</p>
-                      <p class="mt-1 text-sm font-semibold text-white/80">Gratis sebelum publish</p>
+                      <p class="mt-1 text-xs font-semibold text-white/80">Gratis</p>
                     </div>
-                    <div class="rounded-md border border-white/10 bg-white/10 p-3">
+                    <div class="rounded-md border border-white/10 bg-white/10 p-2.5">
                       <p class="text-xs font-bold uppercase tracking-widest text-gold">Publish</p>
-                      <p class="mt-1 text-sm font-semibold text-white/80">Pakai 1 kredit</p>
+                      <p class="mt-1 text-xs font-semibold text-white/80">1 kredit</p>
                     </div>
                   </div>
                 </div>
