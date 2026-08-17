@@ -165,6 +165,9 @@ const countdownParts = computed(() => {
     { label: "Detik", value: seconds }
   ];
 });
+const publicDomain = computed(() => (import.meta.env.VITE_PUBLIC_DOMAIN || "janjinikah.com").replace(/^https?:\/\//, "").replace(/\/$/, ""));
+const publicDomainUrl = computed(() => `https://${publicDomain.value}`);
+const creatorName = computed(() => props.invitation.creator?.displayName || props.invitation.creator?.memberName || "Janji Nikah Partner");
 
 function wishName(wish) {
   return wish.displayName || wish.name || "Tamu";
@@ -790,8 +793,10 @@ watch(showContent, () => {
       </section>
 
       <footer class="theme-footer border-t border-ink/10 bg-white px-4 py-6 text-center text-sm text-ink/55">
-        Dibuat dengan
-        <RouterLink class="font-bold text-leaf hover:text-ink" to="/">Janji Nikah</RouterLink>
+        Dibuat oleh
+        <span class="font-bold text-ink">{{ creatorName }}</span>
+        member
+        <a class="font-bold text-leaf hover:text-ink" :href="publicDomainUrl">{{ publicDomain }}</a>
       </footer>
 
       <nav

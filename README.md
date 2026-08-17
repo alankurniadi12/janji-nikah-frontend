@@ -14,6 +14,7 @@ Stack:
 Environment lokal:
 
 - `VITE_API_BASE_URL`: base URL backend API.
+- `VITE_PUBLIC_DOMAIN`: domain publik yang tampil di footer undangan, default lokal `janjinikah.com`.
 - `VITE_GOOGLE_CLIENT_ID`: Google OAuth client ID.
 - `VITE_GOOGLE_MAPS_API_KEY`: Google Maps JavaScript API key untuk pencarian lokasi dan pin interaktif di builder undangan.
 - `VITE_GOOGLE_MAPS_ALLOWED_HOSTS`: daftar hostname yang boleh memuat Google Maps dari frontend, pisahkan dengan koma. Default lokal: `localhost,127.0.0.1`.
