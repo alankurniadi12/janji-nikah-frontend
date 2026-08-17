@@ -5,9 +5,9 @@ export async function getAdminDashboard() {
   return response.data.data;
 }
 
-export async function getAdminTransactions(status = "") {
-  const response = await api.get("/admin/transactions", { params: status ? { status } : {} });
-  return response.data.data.transactions;
+export async function getAdminTransactions(params = {}) {
+  const response = await api.get("/admin/transactions", { params });
+  return response.data.data;
 }
 
 export async function getAdminTransaction(id) {

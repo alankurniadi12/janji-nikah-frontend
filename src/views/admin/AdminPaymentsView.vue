@@ -1,7 +1,7 @@
 <script setup>
-import { reactive, ref, onMounted } from "vue";
+import { computed, reactive, ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Loader2 } from "@lucide/vue";
+import { ChevronLeft, ChevronRight, Loader2 } from "@lucide/vue";
 
 import AdminPaymentActionDialog from "@/components/AdminPaymentActionDialog.vue";
 import AdminPageHeader from "@/components/AdminPageHeader.vue";
@@ -17,6 +17,7 @@ const adminStore = useAdminStore();
 const toastStore = useToastStore();
 const router = useRouter();
 const status = ref("");
+const pageSize = ref(10);
 const error = ref("");
 const actionDialog = reactive({
   open: false,
@@ -27,8 +28,43 @@ const actionDialog = reactive({
 
 onMounted(load);
 
-function load() {
-  adminStore.loadTransactions(status.value);
+const pagination = computed(() => adminStore.transactionPagination);
+const statusOptions = computed(() => [
+  { value: "", label: "Semua", total: adminStore.transactionSummary.total },
+  { value: "waiting_verification", label: "Menunggu verifikasi", total: adminStore.transactionSummary.waiting_verification },
+  { value: "waiting_payment", label: "Menunggu bayar", total: adminStore.transactionSummary.waiting_payment },
+  { value: "success", label: "Berhasil", total: adminStore.transactionSummary.success },
+  { value: "rejected", label: "Ditolak", total: adminStore.transactionSummary.rejected },
+  { value: "expired", label: "Expired", total: adminStore.transactionSummary.expired }
+]);
+const resultStart = computed(() => {
+  if (!pagination.value.total) {
+    return 0;
+  }
+
+  return (pagination.value.page - 1) * pagination.value.limit + 1;
+});
+const resultEnd = computed(() => Math.min(pagination.value.page * pagination.value.limit, pagination.value.total));
+const emptyMessage = computed(() => (status.value ? "Belum ada transaksi dengan status tersebut." : "Belum ada transaksi."));
+
+watch(status, () => {
+  load(1);
+});
+
+watch(pageSize, () => {
+  load(1);
+});
+
+function buildTransactionQuery(page = 1) {
+  return {
+    page,
+    limit: pageSize.value,
+    status: status.value || undefined
+  };
+}
+
+function load(page = 1) {
+  return adminStore.loadTransactions(buildTransactionQuery(page));
 }
 
 function openDetail(transaction) {
@@ -66,6 +102,7 @@ async function confirmAction(note) {
     }
 
     closeAction();
+    await load(pagination.value.page);
   } catch (requestError) {
     actionDialog.error = getApiErrorMessage(
       requestError,
@@ -77,16 +114,43 @@ async function confirmAction(note) {
 
 <template>
   <section>
-    <AdminPageHeader eyebrow="Pembayaran" title="Verifikasi pembayaran" description="Approve atau tolak transaksi manual setelah cek mutasi dan bukti transfer.">
-      <select v-model="status" class="focus-ring h-11 rounded-md border border-ink/15 bg-white px-3 text-sm" @change="load">
-        <option value="">Semua status</option>
-        <option value="waiting_verification">Menunggu verifikasi</option>
-        <option value="waiting_payment">Menunggu pembayaran</option>
-        <option value="success">Berhasil</option>
-        <option value="rejected">Ditolak</option>
-        <option value="expired">Expired</option>
-      </select>
-    </AdminPageHeader>
+    <AdminPageHeader eyebrow="Pembayaran" title="Verifikasi pembayaran" description="Approve atau tolak transaksi manual setelah cek mutasi dan bukti transfer." />
+
+    <section class="mt-6 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+      <div class="grid gap-4 lg:grid-cols-[1fr_160px] lg:items-end">
+        <div>
+          <p class="text-sm font-semibold text-ink">Status pembayaran</p>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <button
+              v-for="option in statusOptions"
+              :key="option.value || 'all'"
+              type="button"
+              :class="[
+                'focus-ring rounded-md border px-3 py-2 text-sm font-semibold transition',
+                status === option.value
+                  ? 'border-leaf bg-mint text-leaf'
+                  : 'border-ink/10 bg-white text-ink/65 hover:border-leaf hover:text-leaf'
+              ]"
+              @click="status = option.value"
+            >
+              {{ option.label }}
+              <span class="ml-1 text-xs text-ink/45">({{ option.total || 0 }})</span>
+            </button>
+          </div>
+        </div>
+        <label class="block text-sm font-semibold text-ink">
+          Per halaman
+          <select v-model.number="pageSize" class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm">
+            <option :value="10">10</option>
+            <option :value="20">20</option>
+            <option :value="50">50</option>
+          </select>
+        </label>
+      </div>
+      <p class="mt-4 border-t border-ink/10 pt-4 text-sm text-ink/55">
+        Menampilkan {{ resultStart }}-{{ resultEnd }} dari {{ pagination.total }} transaksi.
+      </p>
+    </section>
 
     <p v-if="error || adminStore.error" class="mt-5 rounded-md bg-rose/10 px-4 py-3 text-sm font-semibold text-rose">{{ error || adminStore.error }}</p>
 
@@ -132,8 +196,41 @@ async function confirmAction(note) {
           </div>
         </article>
       </div>
-      <p v-else class="p-8 text-center text-sm font-semibold text-ink/55">Belum ada transaksi.</p>
+      <div v-else class="p-8 text-center">
+        <p class="text-sm font-semibold text-ink/55">{{ emptyMessage }}</p>
+        <AppButton v-if="status" type="button" variant="secondary" class="mt-4" @click="status = ''">Lihat Semua</AppButton>
+      </div>
     </section>
+
+    <nav
+      v-if="!adminStore.loading && pagination.totalPages > 1"
+      class="mt-5 flex flex-col gap-3 rounded-lg border border-ink/10 bg-white p-4 shadow-soft sm:flex-row sm:items-center sm:justify-between"
+      aria-label="Pagination transaksi admin"
+    >
+      <p class="text-sm font-semibold text-ink/60">
+        Halaman {{ pagination.page }} dari {{ pagination.totalPages }}
+      </p>
+      <div class="flex items-center gap-2">
+        <AppButton
+          type="button"
+          variant="secondary"
+          :disabled="!pagination.hasPreviousPage || adminStore.loading"
+          @click="load(pagination.page - 1)"
+        >
+          <ChevronLeft class="h-4 w-4" />
+          Sebelumnya
+        </AppButton>
+        <AppButton
+          type="button"
+          variant="secondary"
+          :disabled="!pagination.hasNextPage || adminStore.loading"
+          @click="load(pagination.page + 1)"
+        >
+          Berikutnya
+          <ChevronRight class="h-4 w-4" />
+        </AppButton>
+      </div>
+    </nav>
 
     <AdminPaymentActionDialog
       :open="actionDialog.open"

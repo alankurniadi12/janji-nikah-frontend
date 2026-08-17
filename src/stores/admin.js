@@ -7,6 +7,22 @@ export const useAdminStore = defineStore("admin", {
   state: () => ({
     dashboard: null,
     transactions: [],
+    transactionPagination: {
+      page: 1,
+      limit: 10,
+      total: 0,
+      totalPages: 1,
+      hasPreviousPage: false,
+      hasNextPage: false
+    },
+    transactionSummary: {
+      total: 0,
+      waiting_payment: 0,
+      waiting_verification: 0,
+      success: 0,
+      rejected: 0,
+      expired: 0
+    },
     currentTransaction: null,
     members: [],
     currentMember: null,
@@ -56,8 +72,17 @@ export const useAdminStore = defineStore("admin", {
     async loadDashboard() {
       this.dashboard = await this.run(() => adminService.getAdminDashboard(), "Dashboard admin belum bisa dimuat.");
     },
-    async loadTransactions(status = "") {
-      this.transactions = await this.run(() => adminService.getAdminTransactions(status), "Transaksi belum bisa dimuat.");
+    async loadTransactions(params = {}) {
+      const data = await this.run(() => adminService.getAdminTransactions(params), "Transaksi belum bisa dimuat.");
+      this.transactions = data.transactions || [];
+      this.transactionPagination = {
+        ...this.transactionPagination,
+        ...(data.pagination || {})
+      };
+      this.transactionSummary = {
+        ...this.transactionSummary,
+        ...(data.summary || {})
+      };
     },
     async loadTransaction(id) {
       this.currentTransaction = await this.run(() => adminService.getAdminTransaction(id), "Detail transaksi belum bisa dimuat.");
