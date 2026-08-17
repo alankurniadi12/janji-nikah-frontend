@@ -12,6 +12,22 @@ import {
 export const useTransactionStore = defineStore("transactions", {
   state: () => ({
     transactions: [],
+    pagination: {
+      page: 1,
+      limit: 10,
+      total: 0,
+      totalPages: 1,
+      hasPreviousPage: false,
+      hasNextPage: false
+    },
+    summary: {
+      total: 0,
+      waiting_payment: 0,
+      waiting_verification: 0,
+      success: 0,
+      rejected: 0,
+      expired: 0
+    },
     current: null,
     loading: false,
     submitting: false,
@@ -19,12 +35,21 @@ export const useTransactionStore = defineStore("transactions", {
     error: ""
   }),
   actions: {
-    async loadTransactions() {
+    async loadTransactions(params = {}) {
       this.loading = true;
       this.error = "";
 
       try {
-        this.transactions = await getTransactions();
+        const data = await getTransactions(params);
+        this.transactions = data.transactions || [];
+        this.pagination = {
+          ...this.pagination,
+          ...(data.pagination || {})
+        };
+        this.summary = {
+          ...this.summary,
+          ...(data.summary || {})
+        };
       } catch (error) {
         this.error = getApiErrorMessage(error, "Riwayat transaksi belum bisa dimuat.");
       } finally {

@@ -10,9 +10,9 @@ export async function redeemPromoCode(promoCode) {
   return response.data.data.transaction;
 }
 
-export async function getTransactions() {
-  const response = await api.get("/member/transactions");
-  return response.data.data.transactions;
+export async function getTransactions(params = {}) {
+  const response = await api.get("/member/transactions", { params });
+  return response.data.data;
 }
 
 export async function getTransaction(id) {
