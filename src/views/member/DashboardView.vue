@@ -14,6 +14,7 @@ import {
 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
+import ClientMessageTemplates from "@/components/ClientMessageTemplates.vue";
 import InvitationStatusBadge from "@/components/InvitationStatusBadge.vue";
 import StatCard from "@/components/StatCard.vue";
 import TransactionStatusBadge from "@/components/TransactionStatusBadge.vue";
@@ -263,6 +264,8 @@ function paymentTimeLeft(transaction) {
         <StatCard label="Undangan live" :value="invitations.live || 0" tone="rose" />
         <StatCard label="Transaksi pending" :value="pendingTransactionTotal" tone="ink" />
       </div>
+
+      <ClientMessageTemplates class="mt-6" compact />
 
       <section
         v-if="pendingTransactions.length"
