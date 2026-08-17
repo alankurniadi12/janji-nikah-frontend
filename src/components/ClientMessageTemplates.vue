@@ -13,8 +13,7 @@ const copied = ref(false);
 const expanded = ref(false);
 let copiedTimer = null;
 
-const messageText = `Halo Kak, terima kasih sudah mempercayakan pembuatan undangan digitalnya.
-
+const messageText = `Halo Kak, terima kasih sudah mempercayakan pembuatan undangan pernikahannya.
 Agar undangannya bisa mulai dibuat, boleh dibantu kirim data berikut ya:
 
 DATA PENGANTIN
@@ -22,22 +21,32 @@ DATA PENGANTIN
 2. Nama orang tua pengantin pria
 3. Nama lengkap pengantin wanita
 4. Nama orang tua pengantin wanita
-5. Nama panggilan kedua pengantin jika ingin dipakai di undangan
 
 DATA ACARA
-1. Jenis acara: akad, resepsi, atau keduanya
-2. Tanggal acara
-3. Jam mulai acara
-4. Jam selesai acara jika ada
-5. Nama lokasi atau gedung
-6. Alamat lengkap acara
-7. Link Google Maps jika sudah ada
+Akad
+1. Tanggal
+2. Jam mulai
+3. Jam selesai
+4. Alamat lengkap acara
+5. Link Google Maps jika ada
+
+Resepsi
+1. Tanggal
+2. Jam mulai
+3. Jam selesai
+4. Alamat lengkap acara
+5. Link Google Maps jika ada
 
 FOTO DAN ASET
-1. Foto utama pasangan
-2. Foto pengantin pria dan wanita jika ingin ditampilkan
-3. Foto galeri, maksimal 10 foto
-4. Pilihan musik jika ada request khusus
+1. Foto utama/cover pasangan
+2. Foto pengantin pria
+3. Foto pengantin wanita
+4. Foto galeri, maksimal 10 foto
+5. Musik (sesuai katalog)
+6. Tema undangan (sesuai katalog)
+7. Cerita cinta kalau ada
+8. Quote jika ada request khusus (default terjemahan QS. Ar-Rum: 21)
+9. Dresscode jika ada
 
 AMPLOP DIGITAL JIKA INGIN DIAKTIFKAN
 1. Bank/e-wallet
@@ -45,9 +54,8 @@ AMPLOP DIGITAL JIKA INGIN DIAKTIFKAN
 3. Nama pemilik rekening
 
 CATATAN TAMBAHAN
-Kalau ada konsep warna, dress code, cerita cinta, quote, atau request khusus lain, boleh sekalian dikirim ya Kak.
-
-Kalau belum ada semua, tidak apa-apa. Datanya bisa dikirim bertahap. Untuk nama dan gelar, mohon ditulis sesuai ejaan yang ingin tampil di undangan.`;
+Kalau belum ada semua, tidak apa-apa. Datanya bisa dikirim bertahap.
+Silakan ditanyakan jika masih ada yang bingung, kami siap bantu.`;
 
 async function copyMessage() {
   try {
