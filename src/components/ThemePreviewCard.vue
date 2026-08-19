@@ -2,7 +2,7 @@
 import { computed } from "vue";
 
 import { assetUrl } from "@/utils/assets";
-import { demoInvitation, demoThemeThumbnail } from "@/lib/demoInvitation";
+import { demoInvitation, demoThemeThumbnail, demoThemeThumbnails } from "@/lib/demoInvitation";
 import { getInvitationTheme } from "@/lib/invitationThemes";
 
 const props = defineProps({
@@ -21,7 +21,13 @@ const props = defineProps({
 });
 
 const meta = computed(() => getInvitationTheme(props.theme.key));
-const previewImageUrl = computed(() => (props.theme.thumbnailUrl ? assetUrl(props.theme.thumbnailUrl) : demoThemeThumbnail));
+const previewImageUrl = computed(() => {
+  if (props.theme.thumbnailUrl) {
+    return assetUrl(props.theme.thumbnailUrl);
+  }
+
+  return demoThemeThumbnails[props.theme.key] || demoThemeThumbnail;
+});
 </script>
 
 <template>
@@ -36,7 +42,8 @@ const previewImageUrl = computed(() => (props.theme.thumbnailUrl ? assetUrl(prop
         class="relative z-10 h-full w-full object-cover"
       />
       <div class="absolute inset-0 z-10 bg-ink/20" />
-      <div class="absolute inset-x-5 bottom-4 z-10 rounded-sm bg-white/88 p-3 shadow-soft">
+      <div class="absolute right-4 top-4 z-10 h-12 w-16 overflow-hidden rounded border border-white/50 shadow-soft theme-preview" :class="meta.previewClass" />
+      <div class="absolute inset-x-5 bottom-4 z-10 rounded-sm bg-white/90 p-3 shadow-soft">
         <p class="text-xs font-bold uppercase tracking-widest text-gold">{{ meta.category }}</p>
         <p class="mt-1 truncate text-sm font-bold text-ink">{{ theme.name || meta.name }}</p>
         <p v-if="!compact" class="mt-1 truncate text-xs font-semibold text-ink/55">{{ demoInvitation.coupleNames }}</p>

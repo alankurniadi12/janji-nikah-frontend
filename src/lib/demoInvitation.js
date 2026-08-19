@@ -1,22 +1,41 @@
-import weddingBouquet from "@/assets/demo/wedding-bouquet.jpg";
-import weddingCar from "@/assets/demo/wedding-car.jpg";
-import weddingCeremony from "@/assets/demo/wedding-ceremony.jpg";
-import weddingField from "@/assets/demo/wedding-field.jpg";
-import weddingMain from "@/assets/demo/wedding-main.jpg";
-import weddingRoad from "@/assets/demo/wedding-road.jpg";
-import weddingVietnam from "@/assets/demo/wedding-vietnam.jpg";
-import weddingWoods from "@/assets/demo/wedding-woods.jpg";
+import weddingAkadPelaminan from "@/assets/demo/wedding-akad-pelaminan.jpg";
+import weddingAmpang from "@/assets/demo/wedding-ampang.jpg";
+import weddingIndonesianVow from "@/assets/demo/wedding-indonesian-vow.jpg";
+import weddingMalaccaBride from "@/assets/demo/wedding-malacca-bride.jpg";
+import weddingMuslimCouple from "@/assets/demo/wedding-muslim-couple.jpg";
+import weddingMuslimCoupleCropped from "@/assets/demo/wedding-muslim-couple-cropped.jpg";
+import weddingMuslimWedding from "@/assets/demo/wedding-muslim-wedding.jpg";
+import weddingNikahFamily from "@/assets/demo/wedding-nikah-family.jpg";
 
 export const demoInvitationImages = {
-  main: weddingMain,
-  groom: weddingField,
-  bride: weddingBouquet,
-  loveStoryMeeting: weddingCar,
-  loveStoryProposal: weddingWoods,
-  gallery: [weddingMain, weddingRoad, weddingVietnam, weddingWoods, weddingCar, weddingBouquet, weddingCeremony, weddingField]
+  main: weddingMuslimCouple,
+  groom: weddingAkadPelaminan,
+  bride: weddingMalaccaBride,
+  loveStoryMeeting: weddingMuslimCoupleCropped,
+  loveStoryProposal: weddingAmpang,
+  gallery: [
+    weddingMuslimCouple,
+    weddingAkadPelaminan,
+    weddingIndonesianVow,
+    weddingMalaccaBride,
+    weddingAmpang,
+    weddingMuslimWedding,
+    weddingNikahFamily,
+    weddingMuslimCoupleCropped
+  ]
 };
 
-export const demoThemeThumbnail = weddingMain;
+export const demoThemeThumbnails = {
+  "elegant-classic": weddingMuslimCouple,
+  "modern-minimal": weddingMalaccaBride,
+  "floral-garden": weddingAmpang,
+  "islamic-soft": weddingIndonesianVow,
+  "nusantara-heritage": weddingAkadPelaminan,
+  "coastal-dawn": weddingMuslimWedding,
+  "golden-bloom-stage": weddingNikahFamily
+};
+
+export const demoThemeThumbnail = demoThemeThumbnails["elegant-classic"];
 
 export const demoInvitation = {
   coupleNames: "Raka & Amara",
