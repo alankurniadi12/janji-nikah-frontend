@@ -23,7 +23,6 @@ const guestSearch = ref("");
 const sentFilter = ref("all");
 const wishFilter = ref("all");
 const form = reactive({
-  name: "",
   bulkNames: ""
 });
 
@@ -88,18 +87,6 @@ async function copyText(text, message = "Berhasil disalin.") {
     toastStore.show(message);
   } catch {
     error.value = "Browser belum mengizinkan copy otomatis. Salin teks secara manual dari link yang tampil.";
-  }
-}
-
-async function addGuest() {
-  error.value = "";
-
-  try {
-    await guestStore.create(route.params.id, form.name);
-    form.name = "";
-    toastStore.show("Tamu berhasil ditambahkan.");
-  } catch (requestError) {
-    error.value = getApiErrorMessage(requestError, "Tamu belum bisa ditambahkan.");
   }
 }
 
@@ -346,32 +333,9 @@ function rsvpStatusClass(status) {
     <div class="mt-6 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
       <aside class="space-y-6 xl:sticky xl:top-6 xl:self-start">
         <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <h2 class="text-lg font-bold text-ink">Tambah satu tamu</h2>
+          <h2 class="text-lg font-bold text-ink">Masukan daftar tamu</h2>
           <p class="mt-2 text-sm leading-6 text-ink/60">
-            Gunakan form ini kalau ingin menambahkan tamu satu per satu, misalnya setelah menerima nama tambahan dari klien.
-          </p>
-          <form class="mt-4 space-y-3" @submit.prevent="addGuest">
-            <label class="block text-sm font-semibold text-ink" for="guestName">Nama tamu</label>
-            <input
-              id="guestName"
-              v-model.trim="form.name"
-              class="focus-ring h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
-              placeholder="Contoh: Bapak/Ibu Andi"
-            />
-            <p class="text-xs leading-5 text-ink/50">
-              Setelah ditambahkan, sistem otomatis membuat link personal untuk tamu ini.
-            </p>
-            <AppButton class="w-full" type="submit" :disabled="guestStore.saving">
-              <Loader2 v-if="guestStore.saving" class="h-4 w-4 animate-spin" />
-              Tambah Tamu
-            </AppButton>
-          </form>
-        </section>
-
-        <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <h2 class="text-lg font-bold text-ink">Tambah banyak tamu</h2>
-          <p class="mt-2 text-sm leading-6 text-ink/60">
-            Gunakan form ini kalau sudah punya daftar nama dari WhatsApp, spreadsheet, atau catatan. Tempel semua nama sekaligus.
+            Tulis satu nama atau tempel banyak nama dari WhatsApp, spreadsheet, atau catatan.
           </p>
           <form class="mt-4 space-y-3" @submit.prevent="addBulkGuests">
             <label class="block text-sm font-semibold text-ink" for="bulkNames">Daftar nama tamu</label>
@@ -382,11 +346,11 @@ function rsvpStatusClass(status) {
               placeholder="Contoh:&#10;Bapak Andi&#10;Ibu Sari&#10;Keluarga Pak Budi"
             />
             <p class="text-xs leading-5 text-ink/50">
-              Tulis satu nama per baris. Setiap nama akan dibuatkan link undangan personal.
+              Gunakan satu baris untuk setiap tamu. Setiap nama akan dibuatkan link undangan personal.
             </p>
             <AppButton class="w-full" type="submit" :disabled="guestStore.saving">
               <Loader2 v-if="guestStore.saving" class="h-4 w-4 animate-spin" />
-              Tambah Semua Tamu
+              Tambah Tamu
             </AppButton>
           </form>
         </section>
