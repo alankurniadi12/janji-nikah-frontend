@@ -338,16 +338,14 @@ Steps:
 
 1. Daftar Gratis
 2. Buat Undangan
-3. Pilih Tema
-4. Preview
-5. Publish
-6. Kirim ke Calon Pengantin
+3. Publish
+4. Kirim ke Calon Pengantin
 
 ## Mobile
 
 Gunakan **vertical timeline**.
 
-Jangan menggunakan enam card horizontal.
+Jangan menggunakan empat card horizontal pada layar mobile.
 
 Nomor besar:
 

@@ -98,16 +98,6 @@ const steps = [
     icon: FilePenLine
   },
   {
-    title: "Pilih Tema",
-    text: "Sesuaikan tampilan undangan dengan karakter dan kebutuhan calon pengantin.",
-    icon: SwatchBook
-  },
-  {
-    title: "Preview & Periksa",
-    text: "Pastikan semua data dan tampilan sudah sesuai sebelum dipublikasikan.",
-    icon: Eye
-  },
-  {
     title: "Publish",
     text: "Gunakan 1 kredit hanya ketika undangan benar-benar siap dipublikasikan.",
     icon: Rocket
@@ -366,7 +356,7 @@ function toggleFaq(index) {
             </h2>
           </div>
 
-          <ol class="relative mt-10 grid gap-0 md:grid-cols-2 md:gap-x-10 lg:grid-cols-3 lg:gap-x-12">
+          <ol class="relative mt-10 grid gap-0 md:grid-cols-2 md:gap-x-10 lg:grid-cols-4 lg:gap-x-8">
             <li v-for="(step, index) in steps" :key="step.title" class="landing-step relative grid grid-cols-[3.25rem_1fr] gap-4 pb-9 md:pb-10">
               <div class="relative z-10 flex h-12 w-12 items-center justify-center rounded-md border border-leaf/20 bg-mint text-leaf">
                 <component :is="step.icon" class="h-5 w-5" />

@@ -74,19 +74,11 @@ Masuk menggunakan akun Google dan mulai tanpa biaya langganan.
 
 Masukkan data pengantin, acara, foto, cerita, dan informasi lainnya.
 
-### 03 — Pilih Tema
-
-Sesuaikan tampilan undangan dengan karakter dan kebutuhan calon pengantin.
-
-### 04 — Preview & Periksa
-
-Pastikan semua data dan tampilan sudah sesuai sebelum dipublikasikan.
-
-### 05 — Publish
+### 03 — Publish
 
 Gunakan 1 kredit hanya ketika undangan benar-benar siap dipublikasikan.
 
-### 06 — Kirim ke Calon Pengantin
+### 04 — Kirim ke Calon Pengantin
 
 Bagikan link undangan kepada calon pengantin untuk diteruskan kepada tamu.
 
