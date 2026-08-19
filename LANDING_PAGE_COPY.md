@@ -189,7 +189,7 @@ Kredit baru digunakan saat undangan dipublish.
 
 ## 9. Flexible Side Income
 
-# Mulai dari sampingan. Jalankan sesuai waktumu.
+# Dapat penghasilan sampingan dan jalankan sesuai waktumu
 
 Tidak semua orang punya waktu untuk membangun usaha baru dari nol.
 

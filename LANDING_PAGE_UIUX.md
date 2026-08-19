@@ -568,7 +568,7 @@ Daftar gratis dan buat hingga 3 draft terlebih dahulu.
 
 Heading:
 
-## Mulai dari sampingan. Jalankan sesuai waktumu.
+## Dapat penghasilan sampingan dan jalankan sesuai waktumu
 
 Section ini dibuat lebih emosional dan manusiawi.
 

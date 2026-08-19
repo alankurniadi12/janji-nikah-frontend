@@ -604,7 +604,7 @@ function toggleFaq(index) {
           <div>
             <p class="text-xs font-bold uppercase text-gold sm:text-sm">Jalankan secara fleksibel</p>
             <h2 id="flexible-heading" class="mt-3 text-3xl font-bold leading-tight text-ink sm:text-4xl">
-              Mulai dari sampingan. Jalankan sesuai waktumu.
+              Dapat penghasilan sampingan dan jalankan sesuai waktumu
             </h2>
             <p class="mt-5 max-w-2xl leading-7 text-ink/65">Tidak semua orang punya waktu untuk membangun usaha baru dari nol.</p>
             <p class="mt-3 max-w-2xl leading-7 text-ink/65">
