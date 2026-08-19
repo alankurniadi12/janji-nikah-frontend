@@ -1,38 +1,32 @@
-import weddingAkadPelaminan from "@/assets/demo/wedding-akad-pelaminan.jpg";
-import weddingAmpang from "@/assets/demo/wedding-ampang.jpg";
-import weddingIndonesianVow from "@/assets/demo/wedding-indonesian-vow.jpg";
-import weddingMalaccaBride from "@/assets/demo/wedding-malacca-bride.jpg";
-import weddingMuslimCouple from "@/assets/demo/wedding-muslim-couple.jpg";
-import weddingMuslimCoupleCropped from "@/assets/demo/wedding-muslim-couple-cropped.jpg";
-import weddingMuslimWedding from "@/assets/demo/wedding-muslim-wedding.jpg";
-import weddingNikahFamily from "@/assets/demo/wedding-nikah-family.jpg";
+import professionalAkadCouple from "@/assets/demo/professional-akad-couple.jpg";
+import professionalAkadDetail from "@/assets/demo/professional-akad-detail.jpg";
+import professionalBrideHijab from "@/assets/demo/professional-bride-hijab.jpg";
+import professionalGardenCouple from "@/assets/demo/professional-garden-couple.jpg";
+import professionalStageCouple from "@/assets/demo/professional-stage-couple.jpg";
 
 export const demoInvitationImages = {
-  main: weddingMuslimCouple,
-  groom: weddingAkadPelaminan,
-  bride: weddingMalaccaBride,
-  loveStoryMeeting: weddingMuslimCoupleCropped,
-  loveStoryProposal: weddingAmpang,
+  main: professionalAkadCouple,
+  groom: professionalStageCouple,
+  bride: professionalBrideHijab,
+  loveStoryMeeting: professionalGardenCouple,
+  loveStoryProposal: professionalAkadDetail,
   gallery: [
-    weddingMuslimCouple,
-    weddingAkadPelaminan,
-    weddingIndonesianVow,
-    weddingMalaccaBride,
-    weddingAmpang,
-    weddingMuslimWedding,
-    weddingNikahFamily,
-    weddingMuslimCoupleCropped
+    professionalAkadCouple,
+    professionalStageCouple,
+    professionalBrideHijab,
+    professionalGardenCouple,
+    professionalAkadDetail
   ]
 };
 
 export const demoThemeThumbnails = {
-  "elegant-classic": weddingMuslimCouple,
-  "modern-minimal": weddingMalaccaBride,
-  "floral-garden": weddingAmpang,
-  "islamic-soft": weddingIndonesianVow,
-  "nusantara-heritage": weddingAkadPelaminan,
-  "coastal-dawn": weddingMuslimWedding,
-  "golden-bloom-stage": weddingNikahFamily
+  "elegant-classic": professionalAkadCouple,
+  "modern-minimal": professionalBrideHijab,
+  "floral-garden": professionalGardenCouple,
+  "islamic-soft": professionalAkadDetail,
+  "nusantara-heritage": professionalStageCouple,
+  "coastal-dawn": professionalGardenCouple,
+  "golden-bloom-stage": professionalStageCouple
 };
 
 export const demoThemeThumbnail = demoThemeThumbnails["elegant-classic"];
