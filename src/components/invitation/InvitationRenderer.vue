@@ -472,7 +472,7 @@ watch(showContent, () => {
           <p class="theme-kicker text-sm font-bold uppercase tracking-widest text-white/70">The wedding of</p>
           <h1 class="theme-hero-title mt-5 text-5xl font-bold leading-tight sm:text-6xl">{{ coupleNames }}</h1>
           <p v-if="isDemo" class="mt-5 text-sm leading-6 text-white/70">
-            Contoh ini memakai data dummy yang sama di semua tema agar perbedaan desain terlihat adil.
+            Contoh ini memakai data pengantin yang sama di semua tema agar perbedaan desain terlihat adil.
           </p>
           <button
             v-if="musicItem?.fileUrl"

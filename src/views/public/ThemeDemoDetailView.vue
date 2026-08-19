@@ -4,82 +4,13 @@ import { useRoute } from "vue-router";
 import { Check, Copy } from "@lucide/vue";
 
 import InvitationRenderer from "@/components/invitation/InvitationRenderer.vue";
+import { demoInvitation } from "@/lib/demoInvitation";
 import { getInvitationTheme, invitationThemes } from "@/lib/invitationThemes";
 
 const route = useRoute();
 const copied = ref(false);
 
 const selectedTheme = computed(() => getInvitationTheme(route.params.themeKey));
-
-const sampleInvitation = {
-  coupleNames: "Raka & Amara",
-  guestName: "Bapak/Ibu/Saudara/i",
-  groom: {
-    fullName: "Raka Pradipta",
-    parentsName: "Putra dari Bapak Surya Pradipta dan Ibu Melati"
-  },
-  bride: {
-    fullName: "Amara Kirana",
-    parentsName: "Putri dari Bapak Bima Kirana dan Ibu Ratih"
-  },
-  events: [
-    {
-      type: "Akad",
-      date: "2026-10-18T08:00:00.000Z",
-      startTime: "08.00",
-      endTime: "10.00",
-      address: "Masjid Al Ikhlas, Jl. Kenanga No. 12, Jakarta Selatan"
-    },
-    {
-      type: "Resepsi",
-      date: "2026-10-18T11:00:00.000Z",
-      startTime: "11.00",
-      endTime: "14.00",
-      address: "Gedung Puspa Kirana, Jl. Melati Raya No. 8, Jakarta Selatan"
-    }
-  ],
-  envelope: [
-    {
-      providerName: "BCA",
-      accountNumber: "1234567890",
-      accountHolder: "Amara Kirana"
-    }
-  ],
-  loveStory: [
-    {
-      title: "Pertama bertemu",
-      date: "2021-06-12",
-      description: "Pertemuan sederhana setelah acara kampus menjadi awal dari percakapan panjang yang terus berlanjut sampai hari ini."
-    },
-    {
-      title: "Lamaran keluarga",
-      date: "2025-12-20",
-      description: "Dua keluarga bertemu dalam suasana hangat untuk merestui langkah Raka dan Amara menuju pernikahan."
-    }
-  ],
-  dressCode: {
-    enabled: true,
-    note: "Kami akan senang jika tamu berkenan memakai warna pastel atau earth tone.",
-    colors: ["#f5d7c4", "#d8bfa3", "#8f9f7a"]
-  },
-  quote: {
-    enabled: true,
-    text: "Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan-pasangan dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang.",
-    source: "QS. Ar-Rum: 21"
-  },
-  wishes: [
-    {
-      name: "Dian",
-      status: "Hadir",
-      message: "Semoga menjadi keluarga yang sakinah, mawaddah, warahmah."
-    },
-    {
-      name: "Nadia",
-      status: "Hadir",
-      message: "Selamat menempuh hidup baru. Bahagia selalu untuk Raka dan Amara."
-    }
-  ]
-};
 
 async function copyThemeName() {
   try {
@@ -128,9 +59,9 @@ async function copyThemeName() {
     </header>
 
     <InvitationRenderer
-      :invitation="sampleInvitation"
+      :invitation="demoInvitation"
       :selected-theme="selectedTheme"
-      :wishes="sampleInvitation.wishes"
+      :wishes="demoInvitation.wishes"
       opened
       is-demo
     />

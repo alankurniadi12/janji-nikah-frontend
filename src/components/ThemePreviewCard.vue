@@ -2,6 +2,7 @@
 import { computed } from "vue";
 
 import { assetUrl } from "@/utils/assets";
+import { demoInvitation, demoThemeThumbnail } from "@/lib/demoInvitation";
 import { getInvitationTheme } from "@/lib/invitationThemes";
 
 const props = defineProps({
@@ -20,6 +21,7 @@ const props = defineProps({
 });
 
 const meta = computed(() => getInvitationTheme(props.theme.key));
+const previewImageUrl = computed(() => (props.theme.thumbnailUrl ? assetUrl(props.theme.thumbnailUrl) : demoThemeThumbnail));
 </script>
 
 <template>
@@ -29,14 +31,15 @@ const meta = computed(() => getInvitationTheme(props.theme.key));
   >
     <div class="theme-preview aspect-[4/3]" :class="meta.previewClass">
       <img
-        v-if="theme.thumbnailUrl"
-        :src="assetUrl(theme.thumbnailUrl)"
+        :src="previewImageUrl"
         :alt="theme.name"
         class="relative z-10 h-full w-full object-cover"
       />
+      <div class="absolute inset-0 z-10 bg-ink/20" />
       <div class="absolute inset-x-5 bottom-4 z-10 rounded-sm bg-white/88 p-3 shadow-soft">
         <p class="text-xs font-bold uppercase tracking-widest text-gold">{{ meta.category }}</p>
         <p class="mt-1 truncate text-sm font-bold text-ink">{{ theme.name || meta.name }}</p>
+        <p v-if="!compact" class="mt-1 truncate text-xs font-semibold text-ink/55">{{ demoInvitation.coupleNames }}</p>
       </div>
     </div>
     <div class="mt-3 flex items-start justify-between gap-3">
