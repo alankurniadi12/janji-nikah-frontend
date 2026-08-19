@@ -37,6 +37,10 @@ Resepsi
 4. Alamat lengkap acara
 5. Link Google Maps jika ada
 
+DAFTAR TAMU
+Mohon dibantu kirim daftar nama tamu yang akan diundang, satu nama per baris.
+Daftar ini akan kami input ke menu daftar tamu agar setiap tamu bisa mendapatkan link undangan personal.
+
 FOTO DAN ASET
 1. Foto utama/cover pasangan
 2. Foto pengantin pria
@@ -82,7 +86,7 @@ async function copyMessage() {
           <p class="text-sm font-bold uppercase tracking-widest text-gold">Template pesan</p>
           <h2 class="mt-2 text-xl font-bold text-ink">Pesan lengkap untuk minta data catin</h2>
           <p class="mt-2 max-w-2xl text-sm leading-6 text-ink/60">
-            Satu kali copy untuk meminta data pengantin, acara, foto, musik, dan amplop digital.
+            Satu kali copy untuk meminta data pengantin, acara, daftar tamu, foto, musik, dan amplop digital.
           </p>
         </div>
       </div>
