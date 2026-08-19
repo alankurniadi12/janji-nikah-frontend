@@ -271,7 +271,7 @@ function toggleFaq(index) {
               Buat undangan digital untuk calon pengantin dengan template siap pakai, kelola semuanya dari satu dashboard, dan tentukan sendiri harga jasamu.
             </p>
             <p class="mt-4 max-w-xl text-base font-bold leading-7 text-ink">
-              tanpa bisa coding, tanpa bisa design dan tanpa biaya bulanan
+              Tanpa bisa coding, tanpa bisa desain, dan tanpa biaya bulanan.
             </p>
 
             <div class="mt-7 flex flex-col gap-3 sm:flex-row">

@@ -197,7 +197,7 @@ Buat undangan digital untuk calon pengantin dengan template siap pakai, kelola s
 
 Supporting statement:
 
-**tanpa bisa coding, tanpa bisa design dan tanpa biaya bulanan**
+**Tanpa bisa coding, tanpa bisa desain, dan tanpa biaya bulanan.**
 
 CTA:
 

@@ -9,7 +9,7 @@ Platform Jasa Undangan Digital
 
 Buat undangan digital untuk calon pengantin dengan template siap pakai, kelola semuanya dari satu dashboard, dan tentukan sendiri harga jasamu.
 
-**tanpa bisa coding, tanpa bisa design dan tanpa biaya bulanan**
+**Tanpa bisa coding, tanpa bisa desain, dan tanpa biaya bulanan.**
 
 **CTA utama:** Mulai Gratis
 **CTA sekunder:** Lihat Contoh Undangan
