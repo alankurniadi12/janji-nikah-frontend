@@ -14,11 +14,11 @@ export default {
     extend: {
       colors: {
         ink: "#17201b",
-        leaf: "#315c4c",
-        mint: "#d9eee3",
+        leaf: "#2f4a3f",
+        mint: "#e6ece7",
         rose: "#d46f6b",
-        gold: "#b9853c",
-        linen: "#f8f3ea"
+        gold: "#c28b4e",
+        linen: "#f3e9d7"
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]

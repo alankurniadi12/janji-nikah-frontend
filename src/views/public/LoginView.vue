@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { KeyRound, Loader2 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
+import BrandLogo from "@/components/BrandLogo.vue";
 import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
@@ -41,6 +42,8 @@ onBeforeUnmount(() => {
 });
 
 function renderGoogleButton() {
+  const availableWidth = Math.floor(googleButtonRef.value?.clientWidth || 320);
+
   window.google.accounts.id.initialize({
     client_id: googleClientId,
     callback: (response) => handleCredential(response.credential)
@@ -48,7 +51,7 @@ function renderGoogleButton() {
   window.google.accounts.id.renderButton(googleButtonRef.value, {
     theme: "outline",
     size: "large",
-    width: 320,
+    width: Math.max(200, Math.min(320, availableWidth)),
     text: "continue_with"
   });
 }
@@ -90,8 +93,8 @@ function redirectAfterLogin(user) {
 
 <template>
   <div class="page-shell grid min-h-screen lg:grid-cols-[0.95fr_1.05fr]">
-    <section class="flex flex-col justify-between bg-white px-6 py-6 sm:px-10">
-      <RouterLink to="/" class="text-lg font-bold text-ink">Janji Nikah</RouterLink>
+    <section class="flex min-w-0 flex-col justify-between bg-white px-6 py-6 sm:px-10">
+      <RouterLink to="/" class="focus-ring w-fit rounded-md"><BrandLogo /></RouterLink>
       <div class="py-12">
         <p class="text-sm font-bold uppercase tracking-widest text-gold">Login member</p>
         <h1 class="mt-4 max-w-xl text-4xl font-bold leading-tight text-ink">Masuk dan lanjut kelola undangan klien.</h1>
@@ -102,7 +105,7 @@ function redirectAfterLogin(user) {
       <p class="text-sm text-ink/45">Draft dan preview tidak memakai kredit. Publish memakai 1 kredit.</p>
     </section>
 
-    <main class="flex items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
+    <main class="flex min-w-0 items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
       <section class="w-full max-w-md rounded-lg border border-ink/10 bg-white p-6 shadow-soft">
         <div class="flex h-12 w-12 items-center justify-center rounded-md bg-mint text-leaf">
           <KeyRound class="h-6 w-6" />
@@ -113,7 +116,7 @@ function redirectAfterLogin(user) {
         </p>
 
         <div class="mt-6">
-          <div v-if="googleClientId" ref="googleButtonRef" class="min-h-11" />
+          <div v-if="googleClientId" ref="googleButtonRef" class="min-h-11 w-full overflow-hidden" />
           <div v-else class="rounded-md border border-gold/30 bg-gold/10 p-4">
             <p class="text-sm font-semibold text-ink">Login Google sedang belum tersedia.</p>
             <p class="mt-1 text-sm leading-6 text-ink/60">

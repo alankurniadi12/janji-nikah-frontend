@@ -14,6 +14,7 @@ import {
 import { useRouter } from "vue-router";
 
 import AppButton from "@/components/AppButton.vue";
+import BrandLogo from "@/components/BrandLogo.vue";
 import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
@@ -40,9 +41,12 @@ async function logout() {
   <div class="page-shell">
     <header class="border-b border-ink/10 bg-white">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <div>
-          <p class="text-xs font-bold uppercase tracking-widest text-gold">Admin</p>
-          <h1 class="text-xl font-bold text-ink">Janji Nikah</h1>
+        <div class="flex items-center gap-3">
+          <BrandLogo mode="mark" size="compact" />
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-gold">Admin</p>
+            <h1 class="text-xl font-bold text-ink">Janji Nikah</h1>
+          </div>
         </div>
         <AppButton variant="ghost" @click="logout">
           <LogOut class="h-4 w-4" />

@@ -80,7 +80,7 @@ Digunakan untuk:
 
 ### Leaf
 
-`#315c4c`
+`#2f4a3f`
 
 Primary brand color.
 
@@ -93,7 +93,7 @@ Digunakan untuk:
 
 ### Mint
 
-`#d9eee3`
+`#e6ece7`
 
 Digunakan untuk:
 
@@ -103,13 +103,13 @@ Digunakan untuk:
 
 ### Linen
 
-`#f8f3ea`
+`#f3e9d7`
 
 Background utama landing page.
 
 ### Gold
 
-`#b9853c`
+`#c28b4e`
 
 Gunakan terbatas untuk:
 
@@ -619,7 +619,7 @@ Default semua tertutup atau hanya pertama terbuka.
 
 Gunakan background:
 
-`#315c4c`
+`#2f4a3f`
 
 Heading:
 
@@ -822,17 +822,29 @@ Gunakan asset yang sudah disiapkan:
 
 Dashboard Janji Nikah + smartphone invitation.
 
+Asset: `src/assets/landing/hero-visual.png` dengan varian responsif `hero-visual-960.jpg` dan `hero-visual-1600.jpg`.
+
 ### Showcase 1
 
 Elegant wedding invitation.
+
+Asset: `src/assets/landing/showcase-elegant.png` dengan varian responsif 560 px dan 900 px.
 
 ### Showcase 2
 
 Floral / romantic invitation.
 
+Asset: `src/assets/landing/showcase-floral.png` dengan varian responsif 560 px dan 900 px.
+
 ### Showcase 3
 
 Modern invitation.
+
+Asset: `src/assets/landing/showcase-modern.png` dengan varian responsif 560 px dan 900 px.
+
+### Brand
+
+Gunakan logo melalui `src/components/BrandLogo.vue` dengan sumber dari `src/assets/brand/logo/`. Favicon dan app icon berada di `src/assets/brand/icons/`. File `src/assets/brand/reference/brand-reference.png` hanya menjadi referensi visual dan tidak boleh digunakan sebagai elemen UI.
 
 Jangan mengganti dengan mockup SaaS generik.
 

@@ -27,6 +27,7 @@ import {
 } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
+import BrandLogo from "@/components/BrandLogo.vue";
 import heroVisual1600 from "@/assets/landing/hero-visual-1600.jpg";
 import heroVisual960 from "@/assets/landing/hero-visual-960.jpg";
 import showcaseElegant560 from "@/assets/landing/showcase-elegant-560.jpg";
@@ -228,9 +229,8 @@ function toggleFaq(index) {
   <div class="page-shell overflow-x-clip bg-linen">
     <header class="sticky top-0 z-40 border-b border-ink/10 bg-linen/95 backdrop-blur-md">
       <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-5 sm:px-6 lg:px-8">
-        <RouterLink to="/" class="focus-ring flex shrink-0 items-center gap-2 rounded-md text-ink" aria-label="Janji Nikah">
-          <span class="flex h-9 w-9 items-center justify-center rounded-md bg-leaf text-xs font-bold text-white">JN</span>
-          <span class="text-base font-bold sm:text-lg">Janji Nikah</span>
+        <RouterLink to="/" class="focus-ring flex shrink-0 rounded-md" aria-label="Janji Nikah">
+          <BrandLogo />
         </RouterLink>
 
         <nav class="hidden items-center gap-7 text-sm font-semibold text-ink/65 lg:flex" aria-label="Navigasi utama">
@@ -689,9 +689,8 @@ function toggleFaq(index) {
     <footer class="bg-ink text-white">
       <div class="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-6 md:grid-cols-[1.2fr_0.8fr] lg:px-8">
         <div class="max-w-md">
-          <RouterLink to="/" class="focus-ring inline-flex items-center gap-2 rounded text-lg font-bold">
-            <span class="flex h-9 w-9 items-center justify-center rounded-md bg-white text-xs font-bold text-leaf">JN</span>
-            Janji Nikah
+          <RouterLink to="/" class="focus-ring inline-flex rounded">
+            <BrandLogo variant="dark" size="footer" />
           </RouterLink>
           <p class="mt-4 text-sm leading-6 text-white/60">
             Platform untuk membantu siapa pun memulai dan menjalankan jasa undangan digital dengan lebih mudah.

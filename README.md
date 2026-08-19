@@ -28,3 +28,21 @@ Catatan:
 - User-facing copy menggunakan Bahasa Indonesia.
 - Internal product documents are kept private and are not committed to this repository.
 - Batasi `VITE_GOOGLE_MAPS_API_KEY` di Google Cloud dengan HTTP referrer restriction, minimal `http://localhost:5173/*`, `http://127.0.0.1:5173/*`, dan domain production. Enable hanya Maps JavaScript API, Places API, dan Geocoding API.
+
+## Brand Assets
+
+Asset brand resmi berada di:
+
+- `src/assets/brand/logo/light/`: logo untuk background terang.
+- `src/assets/brand/logo/dark/`: logo untuk background hijau atau gelap.
+- `src/assets/brand/icons/`: favicon, Apple touch icon, dan icon aplikasi/PWA.
+- `src/assets/brand/reference/brand-reference.png`: referensi visual saja, jangan digunakan sebagai elemen UI.
+
+Gunakan komponen `src/components/BrandLogo.vue` untuk menampilkan identitas Janji Nikah di aplikasi. Pertahankan aspect ratio dan jangan menambahkan recolor, border, shadow, atau gradient pada logo.
+
+Palet brand:
+
+- Primary: `#2F4A3F`
+- Soft Green: `#E6ECE7`
+- Warm Cream: `#F3E9D7`
+- Gold Accent: `#C28B4E`

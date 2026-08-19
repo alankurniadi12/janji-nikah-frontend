@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
 import { Check, Copy, Loader2, Pause, Play } from "@lucide/vue";
 
 import ThemePreviewCard from "@/components/ThemePreviewCard.vue";
+import BrandLogo from "@/components/BrandLogo.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { invitationThemes } from "@/lib/invitationThemes";
 import { getMusic, getPublicDemoThemes } from "@/services/catalogService";
@@ -175,7 +176,7 @@ function readRemoteAudioDuration(fileUrl) {
 <template>
   <div class="page-shell">
     <header class="mx-auto flex max-w-7xl items-center px-4 py-5 sm:px-6 lg:px-8">
-      <RouterLink to="/" class="text-lg font-bold text-ink">Janji Nikah</RouterLink>
+      <RouterLink to="/" class="focus-ring rounded-md"><BrandLogo /></RouterLink>
     </header>
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <section class="max-w-3xl">

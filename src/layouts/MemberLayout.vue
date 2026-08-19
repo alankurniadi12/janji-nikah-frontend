@@ -3,6 +3,7 @@ import { CreditCard, Home, LogOut, Settings, Sparkles, Ticket, WalletCards } fro
 import { useRouter } from "vue-router";
 
 import AppButton from "@/components/AppButton.vue";
+import BrandLogo from "@/components/BrandLogo.vue";
 import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
@@ -27,8 +28,8 @@ async function logout() {
   <div class="page-shell">
     <header class="border-b border-ink/10 bg-white">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <RouterLink to="/app/dashboard" class="text-lg font-bold tracking-normal text-ink">
-          Janji Nikah
+        <RouterLink to="/app/dashboard" class="focus-ring rounded-md">
+          <BrandLogo mode="compact" size="compact" />
         </RouterLink>
         <div class="flex items-center gap-3">
           <div class="hidden text-right sm:block">
