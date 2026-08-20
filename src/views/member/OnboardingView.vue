@@ -14,6 +14,9 @@ const form = reactive({
   username: auth.user?.username || "",
   acceptTerms: false
 });
+const publicDomain = (import.meta.env.VITE_PUBLIC_DOMAIN || "janjinikah.com")
+  .replace(/^https?:\/\//, "")
+  .replace(/\/$/, "");
 
 const usernameHelp = computed(() => {
   if (!form.username) {
@@ -28,7 +31,7 @@ const usernameHelp = computed(() => {
     return "Minimal 3 karakter.";
   }
 
-  return `Link member: janjinikah.com/${form.username}`;
+  return `Link member: ${publicDomain}/${form.username}`;
 });
 
 async function submit() {
