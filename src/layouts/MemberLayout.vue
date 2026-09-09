@@ -1,5 +1,6 @@
 <script setup>
-import { CreditCard, Home, LogOut, Settings, Sparkles, Ticket, WalletCards } from "@lucide/vue";
+import { computed, onMounted } from "vue";
+import { CreditCard, Home, LogOut, Plus, Settings, Sparkles, Ticket, WalletCards } from "@lucide/vue";
 import { useRouter } from "vue-router";
 
 import AppButton from "@/components/AppButton.vue";
@@ -8,6 +9,7 @@ import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
 const router = useRouter();
+const creditBalance = computed(() => auth.user?.creditBalance || 0);
 
 const navigation = [
   { label: "Dashboard", to: "/app/dashboard", icon: Home, enabled: true },
@@ -17,6 +19,10 @@ const navigation = [
   { label: "Branding", to: "/app/branding", icon: Sparkles, enabled: true },
   { label: "Pengaturan", to: "/app/settings", icon: Settings, enabled: true }
 ];
+
+onMounted(() => {
+  auth.hydrate(true);
+});
 
 async function logout() {
   await auth.logout();
@@ -63,6 +69,25 @@ async function logout() {
             {{ item.label }}
           </RouterLink>
         </nav>
+
+        <section class="mt-3 rounded-lg border border-gold/20 bg-linen p-4 lg:mt-4" aria-label="Saldo kredit member">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-semibold uppercase text-ink/45">Kredit tersedia</p>
+              <p class="mt-1 text-2xl font-bold text-ink">{{ creditBalance }}</p>
+            </div>
+            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-gold/10 text-gold">
+              <Ticket class="h-5 w-5" />
+            </div>
+          </div>
+          <RouterLink
+            class="focus-ring mt-4 flex min-h-10 items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-3 py-2 text-sm font-semibold text-ink transition hover:border-leaf hover:text-leaf"
+            to="/app/credits/buy"
+          >
+            <Plus class="h-4 w-4" />
+            Beli Kredit
+          </RouterLink>
+        </section>
       </aside>
 
       <main>
