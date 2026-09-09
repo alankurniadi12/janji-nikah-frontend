@@ -1,5 +1,6 @@
 <script setup>
 import BrandLogo from "@/components/BrandLogo.vue";
+import PaymentSupportCard from "@/components/PaymentSupportCard.vue";
 
 defineProps({
   eyebrow: {
@@ -60,6 +61,12 @@ defineProps({
           </ul>
         </section>
       </div>
+
+      <PaymentSupportCard
+        class="mt-8"
+        title="Kontak Admin Janji Nikah"
+        description="Untuk pertanyaan layanan, pembayaran, refund, atau kerja sama, hubungi admin melalui kanal resmi berikut."
+      />
     </main>
   </div>
 </template>

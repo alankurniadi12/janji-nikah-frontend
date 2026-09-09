@@ -28,6 +28,7 @@ import {
 
 import AppButton from "@/components/AppButton.vue";
 import BrandLogo from "@/components/BrandLogo.vue";
+import { paymentConfig } from "@/config/payment";
 import heroVisual1600 from "@/assets/landing/hero-visual-1600.jpg";
 import heroVisual960 from "@/assets/landing/hero-visual-960.jpg";
 import showcaseElegant560 from "@/assets/landing/showcase-elegant-560.jpg";
@@ -41,6 +42,7 @@ const creditPurchaseRoute = {
   name: "login",
   query: { redirect: "/app/credits/buy" }
 };
+const supportLinks = paymentConfig.supportLinks;
 
 const values = [
   {
@@ -697,14 +699,40 @@ function toggleFaq(index) {
           </p>
         </div>
 
-        <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm md:justify-self-end md:text-right">
-          <a class="focus-ring rounded text-white/65 transition hover:text-white" href="#fitur">Fitur</a>
-          <a class="focus-ring rounded text-white/65 transition hover:text-white" href="#cara-kerja">Cara Kerja</a>
-          <a class="focus-ring rounded text-white/65 transition hover:text-white" href="#harga">Harga</a>
-          <a class="focus-ring rounded text-white/65 transition hover:text-white" href="#faq">FAQ</a>
-          <RouterLink class="focus-ring rounded text-white/65 transition hover:text-white" to="/syarat-ketentuan">Syarat & Ketentuan</RouterLink>
-          <RouterLink class="focus-ring rounded text-white/65 transition hover:text-white" to="/kebijakan-pengembalian-dana">Refund & Produk</RouterLink>
-          <RouterLink class="focus-ring rounded text-white/65 transition hover:text-white" to="/kebijakan-privasi">Kebijakan Privasi</RouterLink>
+        <div class="grid gap-6 md:justify-self-end md:text-right">
+          <nav class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+            <a class="focus-ring rounded text-white/65 transition hover:text-white" href="#fitur">Fitur</a>
+            <a class="focus-ring rounded text-white/65 transition hover:text-white" href="#cara-kerja">Cara Kerja</a>
+            <a class="focus-ring rounded text-white/65 transition hover:text-white" href="#harga">Harga</a>
+            <a class="focus-ring rounded text-white/65 transition hover:text-white" href="#faq">FAQ</a>
+            <RouterLink class="focus-ring rounded text-white/65 transition hover:text-white" to="/syarat-ketentuan">Syarat & Ketentuan</RouterLink>
+            <RouterLink class="focus-ring rounded text-white/65 transition hover:text-white" to="/kebijakan-pengembalian-dana">Refund & Produk</RouterLink>
+            <RouterLink class="focus-ring rounded text-white/65 transition hover:text-white" to="/kebijakan-privasi">Kebijakan Privasi</RouterLink>
+          </nav>
+
+          <div class="md:justify-self-end">
+            <p class="text-sm font-bold text-white">Kontak Admin Janji Nikah</p>
+            <div class="mt-3 flex flex-wrap gap-2 md:justify-end">
+              <a
+                v-for="link in supportLinks"
+                :key="link.key"
+                class="focus-ring inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white/75 transition hover:border-gold/50 hover:text-white"
+                :href="link.href"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                <svg v-if="link.icon === 'instagram'" class="h-4 w-4" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect width="15" height="15" x="4.5" y="4.5" rx="4" stroke="currentColor" stroke-width="2" />
+                  <circle cx="12" cy="12" r="3.25" stroke="currentColor" stroke-width="2" />
+                  <circle cx="16.75" cy="7.25" r="1" fill="currentColor" />
+                </svg>
+                <svg v-else class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M14.5 8.2V6.7c0-.7.5-.9 1-.9H17V3.2A20 20 0 0 0 14.8 3c-2.2 0-3.7 1.3-3.7 3.8v1.4H8.7v3h2.4V21h3.2v-9.8h2.4l.4-3h-2.6Z" />
+                </svg>
+                <span>{{ link.label }}</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
       <div class="border-t border-white/10">

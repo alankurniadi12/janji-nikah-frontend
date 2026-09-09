@@ -3,6 +3,17 @@ import { computed } from "vue";
 
 import { paymentConfig } from "@/config/payment";
 
+defineProps({
+  title: {
+    type: String,
+    default: "Butuh bantuan pembayaran?"
+  },
+  description: {
+    type: String,
+    default: "Hubungi Admin."
+  }
+});
+
 const supportLinks = computed(() => paymentConfig.supportLinks || []);
 const hasSupportLinks = computed(() => supportLinks.value.length > 0);
 const hasSupportContact = computed(() => hasSupportLinks.value || paymentConfig.supportContact);
@@ -10,8 +21,8 @@ const hasSupportContact = computed(() => hasSupportLinks.value || paymentConfig.
 
 <template>
   <div v-if="hasSupportContact" class="rounded-lg border border-gold/25 bg-gold/10 p-4">
-    <p class="text-sm font-bold text-ink">Butuh bantuan pembayaran?</p>
-    <p class="mt-1 text-sm leading-6 text-ink/60">Hubungi Admin.</p>
+    <p class="text-sm font-bold text-ink">{{ title }}</p>
+    <p class="mt-1 text-sm leading-6 text-ink/60">{{ description }}</p>
     <div v-if="hasSupportLinks" class="mt-4 grid gap-3 sm:grid-cols-2">
       <a
         v-for="link in supportLinks"
