@@ -3,8 +3,8 @@ function normalizeInstagramHandle(value = "") {
 }
 
 function buildSupportLinks() {
-  const instagramHandle = normalizeInstagramHandle(import.meta.env.VITE_PAYMENT_SUPPORT_INSTAGRAM || "");
-  const facebookUrl = (import.meta.env.VITE_PAYMENT_SUPPORT_FACEBOOK_URL || "").trim();
+  const instagramHandle = normalizeInstagramHandle(import.meta.env.VITE_PAYMENT_SUPPORT_INSTAGRAM || "@alankurniadi");
+  const facebookUrl = (import.meta.env.VITE_PAYMENT_SUPPORT_FACEBOOK_URL || "https://www.facebook.com/alankurniadii").trim();
 
   return [
     instagramHandle
@@ -32,7 +32,9 @@ export const paymentConfig = {
   bankName: import.meta.env.VITE_PAYMENT_BANK_NAME || "Hubungi admin",
   accountNumber: import.meta.env.VITE_PAYMENT_ACCOUNT_NUMBER || "",
   accountHolder: import.meta.env.VITE_PAYMENT_ACCOUNT_HOLDER || "Janji Nikah",
-  supportContact: import.meta.env.VITE_PAYMENT_SUPPORT_CONTACT || "",
+  supportContact:
+    import.meta.env.VITE_PAYMENT_SUPPORT_CONTACT ||
+    "Instagram @alankurniadi atau Facebook https://www.facebook.com/alankurniadii",
   supportLinks: buildSupportLinks()
 };
 
