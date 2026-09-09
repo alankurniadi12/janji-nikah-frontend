@@ -27,6 +27,7 @@ const showPublishConfirm = ref(false);
 const showCreditEmpty = ref(false);
 const savedSnapshot = ref("");
 const pendingDelete = ref(null);
+const uploadingPhotoTarget = ref("");
 const musicPreviewAudio = ref(null);
 const playingMusicId = ref("");
 const musicDurations = reactive({});
@@ -134,6 +135,10 @@ const saveButtonText = computed(() => {
 
   return hasUnsavedChanges.value ? "Simpan" : "Sudah Tersimpan";
 });
+
+function isUploadingPhoto(target) {
+  return uploadingPhotoTarget.value === target;
+}
 
 watch(currentSnapshot, () => {
   if (Object.keys(validationErrors).length > 0) {
@@ -526,6 +531,7 @@ async function uploadLoveStoryPhoto(event, index) {
 
   error.value = "";
   clearValidationErrors();
+  uploadingPhotoTarget.value = `loveStory:${index}`;
 
   try {
     const saved = await saveInvitation();
@@ -539,6 +545,8 @@ async function uploadLoveStoryPhoto(event, index) {
     toastStore.show("Foto cerita cinta berhasil diunggah.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Foto cerita cinta belum bisa diunggah.");
+  } finally {
+    uploadingPhotoTarget.value = "";
   }
 }
 
@@ -552,6 +560,7 @@ async function uploadPhoto(event, type) {
 
   error.value = "";
   clearValidationErrors();
+  uploadingPhotoTarget.value = type;
 
   try {
     if (type === "main") {
@@ -570,6 +579,8 @@ async function uploadPhoto(event, type) {
     toastStore.show("Foto galeri berhasil diunggah.");
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Foto belum bisa diunggah.");
+  } finally {
+    uploadingPhotoTarget.value = "";
   }
 }
 
@@ -1162,7 +1173,7 @@ function fieldError(key) {
             <p class="mt-1 text-sm text-ink/55">Foto utama wajib sebelum publish.</p>
             <div class="mt-4 grid gap-4 md:grid-cols-[220px_1fr] md:items-start">
               <div
-                class="aspect-[4/3] overflow-hidden rounded-md border bg-linen"
+                class="relative aspect-[4/3] overflow-hidden rounded-md border bg-linen"
                 :class="validationErrors.mainPhotoUrl ? 'border-rose bg-rose/5' : 'border-ink/10'"
                 :data-invalid="Boolean(validationErrors.mainPhotoUrl)"
               >
@@ -1175,6 +1186,10 @@ function fieldError(key) {
                 <div v-else class="flex h-full items-center justify-center text-ink/35">
                   <ImagePlus class="h-8 w-8" />
                 </div>
+                <div v-if="isUploadingPhoto('main')" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-leaf backdrop-blur-sm">
+                  <Loader2 class="h-6 w-6 animate-spin" />
+                  <p class="mt-2 text-sm font-bold">Mengunggah foto utama...</p>
+                </div>
               </div>
               <label class="block">
                 <span class="text-sm font-semibold text-ink">Upload / ganti foto utama</span>
@@ -1185,7 +1200,7 @@ function fieldError(key) {
                   :disabled="!isMainDataEditable || invitationStore.uploading"
                   @change="uploadMain"
                 />
-                <p v-if="invitationStore.uploading" class="mt-2 text-sm font-semibold text-leaf">Mengunggah foto...</p>
+                <p v-if="isUploadingPhoto('main')" class="mt-2 text-sm font-semibold text-leaf">Foto utama sedang diproses.</p>
                 <p v-else-if="fieldError('mainPhotoUrl')" class="mt-2 text-sm font-semibold text-rose">{{ fieldError("mainPhotoUrl") }}</p>
               </label>
             </div>
@@ -1200,7 +1215,7 @@ function fieldError(key) {
               <article class="rounded-md border border-ink/10 bg-white p-4">
                 <p class="text-sm font-bold text-ink">Pengantin pria</p>
                 <div class="mt-3 grid gap-3 sm:grid-cols-[140px_1fr] sm:items-start">
-                  <div class="aspect-[3/4] overflow-hidden rounded-md border border-ink/10 bg-linen">
+                  <div class="relative aspect-[3/4] overflow-hidden rounded-md border border-ink/10 bg-linen">
                     <img
                       v-if="invitation.groom?.photoUrl"
                       :src="assetUrl(invitation.groom.photoUrl)"
@@ -1209,6 +1224,10 @@ function fieldError(key) {
                     />
                     <div v-else class="flex h-full items-center justify-center text-ink/35">
                       <ImagePlus class="h-7 w-7" />
+                    </div>
+                    <div v-if="isUploadingPhoto('groom')" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-leaf backdrop-blur-sm">
+                      <Loader2 class="h-6 w-6 animate-spin" />
+                      <p class="mt-2 text-center text-sm font-bold">Mengunggah foto pria...</p>
                     </div>
                   </div>
                   <label class="block">
@@ -1220,6 +1239,7 @@ function fieldError(key) {
                       :disabled="!isMainDataEditable || invitationStore.uploading"
                       @change="uploadGroomPhoto"
                     />
+                    <p v-if="isUploadingPhoto('groom')" class="mt-2 text-sm font-semibold text-leaf">Foto pria sedang diproses.</p>
                   </label>
                 </div>
               </article>
@@ -1227,7 +1247,7 @@ function fieldError(key) {
               <article class="rounded-md border border-ink/10 bg-white p-4">
                 <p class="text-sm font-bold text-ink">Pengantin wanita</p>
                 <div class="mt-3 grid gap-3 sm:grid-cols-[140px_1fr] sm:items-start">
-                  <div class="aspect-[3/4] overflow-hidden rounded-md border border-ink/10 bg-linen">
+                  <div class="relative aspect-[3/4] overflow-hidden rounded-md border border-ink/10 bg-linen">
                     <img
                       v-if="invitation.bride?.photoUrl"
                       :src="assetUrl(invitation.bride.photoUrl)"
@@ -1236,6 +1256,10 @@ function fieldError(key) {
                     />
                     <div v-else class="flex h-full items-center justify-center text-ink/35">
                       <ImagePlus class="h-7 w-7" />
+                    </div>
+                    <div v-if="isUploadingPhoto('bride')" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-leaf backdrop-blur-sm">
+                      <Loader2 class="h-6 w-6 animate-spin" />
+                      <p class="mt-2 text-center text-sm font-bold">Mengunggah foto wanita...</p>
                     </div>
                   </div>
                   <label class="block">
@@ -1247,6 +1271,7 @@ function fieldError(key) {
                       :disabled="!isMainDataEditable || invitationStore.uploading"
                       @change="uploadBridePhoto"
                     />
+                    <p v-if="isUploadingPhoto('bride')" class="mt-2 text-sm font-semibold text-leaf">Foto wanita sedang diproses.</p>
                   </label>
                 </div>
               </article>
@@ -1276,9 +1301,11 @@ function fieldError(key) {
               <label
                 v-if="canAddGallery"
                 class="focus-ring flex aspect-[4/3] cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-ink/20 bg-linen text-center text-sm font-semibold text-ink/55 hover:border-leaf hover:text-leaf"
+                :class="{ 'pointer-events-none border-leaf/30 bg-mint text-leaf': isUploadingPhoto('gallery') }"
               >
-                <ImagePlus class="mb-2 h-7 w-7" />
-                Tambah foto
+                <Loader2 v-if="isUploadingPhoto('gallery')" class="mb-2 h-7 w-7 animate-spin" />
+                <ImagePlus v-else class="mb-2 h-7 w-7" />
+                {{ isUploadingPhoto("gallery") ? "Menambahkan foto..." : "Tambah foto" }}
                 <input
                   class="sr-only"
                   type="file"
@@ -1342,7 +1369,7 @@ function fieldError(key) {
                     />
                   </label>
                   <div class="mt-4 grid gap-3 sm:grid-cols-[140px_1fr] sm:items-start">
-                    <div class="aspect-[4/3] overflow-hidden rounded-md border border-ink/10 bg-linen">
+                    <div class="relative aspect-[4/3] overflow-hidden rounded-md border border-ink/10 bg-linen">
                       <img
                         v-if="item.photoUrl"
                         :src="assetUrl(item.photoUrl)"
@@ -1351,6 +1378,13 @@ function fieldError(key) {
                       />
                       <div v-else class="flex h-full items-center justify-center text-ink/35">
                         <ImagePlus class="h-7 w-7" />
+                      </div>
+                      <div
+                        v-if="isUploadingPhoto(`loveStory:${index}`)"
+                        class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-leaf backdrop-blur-sm"
+                      >
+                        <Loader2 class="h-6 w-6 animate-spin" />
+                        <p class="mt-2 text-center text-sm font-bold">Mengunggah foto cerita...</p>
                       </div>
                     </div>
                     <label class="block">
@@ -1362,7 +1396,8 @@ function fieldError(key) {
                         :disabled="!isMainDataEditable || invitationStore.uploading"
                         @change="uploadLoveStoryPhoto($event, index)"
                       />
-                      <p class="mt-2 text-xs leading-5 text-ink/50">Satu foto untuk bagian cerita ini.</p>
+                      <p v-if="isUploadingPhoto(`loveStory:${index}`)" class="mt-2 text-sm font-semibold text-leaf">Foto cerita sedang diproses.</p>
+                      <p v-else class="mt-2 text-xs leading-5 text-ink/50">Satu foto untuk bagian cerita ini.</p>
                     </label>
                   </div>
                   <label class="mt-4 block text-sm font-semibold text-ink">
