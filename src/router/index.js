@@ -16,6 +16,24 @@ const routes = [
     meta: { public: true }
   },
   {
+    path: "/syarat-ketentuan",
+    name: "terms",
+    component: () => import("@/views/public/TermsView.vue"),
+    meta: { public: true }
+  },
+  {
+    path: "/kebijakan-pengembalian-dana",
+    name: "refund-policy",
+    component: () => import("@/views/public/RefundPolicyView.vue"),
+    meta: { public: true }
+  },
+  {
+    path: "/kebijakan-privasi",
+    name: "privacy-policy",
+    component: () => import("@/views/public/PrivacyPolicyView.vue"),
+    meta: { public: true }
+  },
+  {
     path: "/demo-tema",
     name: "theme-demo",
     component: () => import("@/views/public/ThemeDemoView.vue"),

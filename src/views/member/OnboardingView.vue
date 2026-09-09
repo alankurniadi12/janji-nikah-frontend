@@ -80,7 +80,11 @@ async function submit() {
         <label class="flex items-start gap-3 rounded-md border border-ink/10 bg-linen p-4">
           <input v-model="form.acceptTerms" type="checkbox" class="mt-1 h-4 w-4 rounded border-ink/20 text-leaf" />
           <span class="text-sm leading-6 text-ink/70">
-            Saya menyetujui syarat layanan dan memahami bahwa kredit yang sudah dibeli atau dipakai untuk publish tidak bisa refund.
+            Saya menyetujui
+            <RouterLink class="font-semibold text-leaf hover:text-ink" to="/syarat-ketentuan" target="_blank">Syarat & Ketentuan</RouterLink>
+            serta
+            <RouterLink class="font-semibold text-leaf hover:text-ink" to="/kebijakan-pengembalian-dana" target="_blank">Kebijakan Refund & Produk</RouterLink>,
+            dan memahami bahwa kredit yang sudah dibeli atau dipakai untuk publish tidak bisa refund.
           </span>
         </label>
 

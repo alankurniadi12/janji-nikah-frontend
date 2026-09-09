@@ -702,8 +702,9 @@ function toggleFaq(index) {
           <a class="focus-ring rounded text-white/65 transition hover:text-white" href="#cara-kerja">Cara Kerja</a>
           <a class="focus-ring rounded text-white/65 transition hover:text-white" href="#harga">Harga</a>
           <a class="focus-ring rounded text-white/65 transition hover:text-white" href="#faq">FAQ</a>
-          <span class="text-white/45">Syarat & Ketentuan</span>
-          <span class="text-white/45">Kebijakan Privasi</span>
+          <RouterLink class="focus-ring rounded text-white/65 transition hover:text-white" to="/syarat-ketentuan">Syarat & Ketentuan</RouterLink>
+          <RouterLink class="focus-ring rounded text-white/65 transition hover:text-white" to="/kebijakan-pengembalian-dana">Refund & Produk</RouterLink>
+          <RouterLink class="focus-ring rounded text-white/65 transition hover:text-white" to="/kebijakan-privasi">Kebijakan Privasi</RouterLink>
         </div>
       </div>
       <div class="border-t border-white/10">
