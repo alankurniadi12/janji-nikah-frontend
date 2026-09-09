@@ -596,6 +596,51 @@ async function removeGallery(url) {
   }
 }
 
+async function removeMainPhoto() {
+  error.value = "";
+
+  try {
+    await invitationStore.removeMainPhoto(route.params.id);
+    toastStore.show("Foto utama berhasil dihapus.");
+    pendingDelete.value = null;
+  } catch (requestError) {
+    error.value = getApiErrorMessage(requestError, "Foto utama belum bisa dihapus.");
+  }
+}
+
+async function removeCouplePhoto(role) {
+  error.value = "";
+
+  try {
+    await invitationStore.removeCouplePhoto(route.params.id, role);
+    toastStore.show(role === "groom" ? "Foto pengantin pria berhasil dihapus." : "Foto pengantin wanita berhasil dihapus.");
+    pendingDelete.value = null;
+  } catch (requestError) {
+    error.value = getApiErrorMessage(requestError, "Foto pengantin belum bisa dihapus.");
+  }
+}
+
+function requestRemoveMainPhoto() {
+  pendingDelete.value = {
+    type: "mainPhoto",
+    title: "Hapus foto utama?",
+    message: "Apakah kamu yakin ingin menghapus foto utama? Undangan tidak bisa dipublish sampai foto utama diunggah lagi.",
+    detail: "Foto utama undangan",
+    confirmLabel: "Ya, Hapus Foto"
+  };
+}
+
+function requestRemoveCouplePhoto(role) {
+  pendingDelete.value = {
+    type: "couplePhoto",
+    role,
+    title: role === "groom" ? "Hapus foto pengantin pria?" : "Hapus foto pengantin wanita?",
+    message: "Apakah kamu yakin ingin menghapus foto ini? Foto yang dihapus tidak bisa dikembalikan.",
+    detail: role === "groom" ? "Foto pengantin pria" : "Foto pengantin wanita",
+    confirmLabel: "Ya, Hapus Foto"
+  };
+}
+
 function requestRemoveGallery(url) {
   pendingDelete.value = {
     type: "gallery",
@@ -614,6 +659,16 @@ async function confirmDelete() {
 
   if (pendingDelete.value.type === "gallery") {
     await removeGallery(pendingDelete.value.url);
+    return;
+  }
+
+  if (pendingDelete.value.type === "mainPhoto") {
+    await removeMainPhoto();
+    return;
+  }
+
+  if (pendingDelete.value.type === "couplePhoto") {
+    await removeCouplePhoto(pendingDelete.value.role);
     return;
   }
 
@@ -1202,6 +1257,16 @@ function fieldError(key) {
                 />
                 <p v-if="isUploadingPhoto('main')" class="mt-2 text-sm font-semibold text-leaf">Foto utama sedang diproses.</p>
                 <p v-else-if="fieldError('mainPhotoUrl')" class="mt-2 text-sm font-semibold text-rose">{{ fieldError("mainPhotoUrl") }}</p>
+                <button
+                  v-if="invitation.mainPhotoUrl"
+                  class="focus-ring mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-rose/20 bg-white px-3 py-2 text-sm font-semibold text-rose transition hover:bg-rose/10"
+                  type="button"
+                  :disabled="!isMainDataEditable || invitationStore.uploading"
+                  @click="requestRemoveMainPhoto"
+                >
+                  <Trash2 class="h-4 w-4" />
+                  Hapus foto utama
+                </button>
               </label>
             </div>
           </div>
@@ -1240,6 +1305,16 @@ function fieldError(key) {
                       @change="uploadGroomPhoto"
                     />
                     <p v-if="isUploadingPhoto('groom')" class="mt-2 text-sm font-semibold text-leaf">Foto pria sedang diproses.</p>
+                    <button
+                      v-if="invitation.groom?.photoUrl"
+                      class="focus-ring mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-rose/20 bg-white px-3 py-2 text-sm font-semibold text-rose transition hover:bg-rose/10"
+                      type="button"
+                      :disabled="!isMainDataEditable || invitationStore.uploading"
+                      @click="requestRemoveCouplePhoto('groom')"
+                    >
+                      <Trash2 class="h-4 w-4" />
+                      Hapus foto pria
+                    </button>
                   </label>
                 </div>
               </article>
@@ -1272,6 +1347,16 @@ function fieldError(key) {
                       @change="uploadBridePhoto"
                     />
                     <p v-if="isUploadingPhoto('bride')" class="mt-2 text-sm font-semibold text-leaf">Foto wanita sedang diproses.</p>
+                    <button
+                      v-if="invitation.bride?.photoUrl"
+                      class="focus-ring mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-rose/20 bg-white px-3 py-2 text-sm font-semibold text-rose transition hover:bg-rose/10"
+                      type="button"
+                      :disabled="!isMainDataEditable || invitationStore.uploading"
+                      @click="requestRemoveCouplePhoto('bride')"
+                    >
+                      <Trash2 class="h-4 w-4" />
+                      Hapus foto wanita
+                    </button>
                   </label>
                 </div>
               </article>

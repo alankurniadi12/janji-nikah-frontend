@@ -47,6 +47,11 @@ export async function uploadMainPhoto(id, file) {
   return response.data.data.invitation;
 }
 
+export async function deleteMainPhoto(id) {
+  const response = await api.delete(`/member/invitations/${id}/photos/main`);
+  return response.data.data.invitation;
+}
+
 export async function uploadCouplePhoto(id, role, file) {
   const formData = new FormData();
   formData.append("photo", file);
@@ -57,6 +62,11 @@ export async function uploadCouplePhoto(id, role, file) {
     }
   });
 
+  return response.data.data.invitation;
+}
+
+export async function deleteCouplePhoto(id, role) {
+  const response = await api.delete(`/member/invitations/${id}/photos/couple/${role}`);
   return response.data.data.invitation;
 }
 

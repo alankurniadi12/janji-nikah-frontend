@@ -3,8 +3,10 @@ import { defineStore } from "pinia";
 import { getApiErrorMessage } from "@/lib/api";
 import {
   createInvitation,
+  deleteCouplePhoto,
   deleteGalleryPhoto,
   deleteInvitation,
+  deleteMainPhoto,
   getInvitation,
   getInvitations,
   previewInvitation,
@@ -168,6 +170,20 @@ export const useInvitationStore = defineStore("invitations", {
         this.uploading = false;
       }
     },
+    async removeMainPhoto(id) {
+      this.uploading = true;
+      this.error = "";
+
+      try {
+        this.current = await deleteMainPhoto(id);
+        return this.current;
+      } catch (error) {
+        this.error = getApiErrorMessage(error, "Foto utama belum bisa dihapus.");
+        throw error;
+      } finally {
+        this.uploading = false;
+      }
+    },
     async replaceCouplePhoto(id, role, file) {
       this.uploading = true;
       this.error = "";
@@ -177,6 +193,20 @@ export const useInvitationStore = defineStore("invitations", {
         return this.current;
       } catch (error) {
         this.error = getApiErrorMessage(error, "Foto pengantin belum bisa diunggah.");
+        throw error;
+      } finally {
+        this.uploading = false;
+      }
+    },
+    async removeCouplePhoto(id, role) {
+      this.uploading = true;
+      this.error = "";
+
+      try {
+        this.current = await deleteCouplePhoto(id, role);
+        return this.current;
+      } catch (error) {
+        this.error = getApiErrorMessage(error, "Foto pengantin belum bisa dihapus.");
         throw error;
       } finally {
         this.uploading = false;
