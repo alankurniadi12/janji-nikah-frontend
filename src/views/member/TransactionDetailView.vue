@@ -424,7 +424,7 @@ async function submitProof() {
             <div v-if="hasSupportLinks || paymentConfig.supportContact" class="mt-5 rounded-lg border border-gold/25 bg-gold/10 p-4">
               <p class="text-sm font-bold text-ink">Butuh bantuan pembayaran?</p>
               <p class="mt-1 text-sm leading-6 text-ink/60">
-                Hubungi admin lewat kanal resmi Janji Nikah berikut.
+                Hubungi Admin.
               </p>
               <div v-if="hasSupportLinks" class="mt-4 grid gap-3 sm:grid-cols-2">
                 <a
