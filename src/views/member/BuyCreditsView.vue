@@ -5,6 +5,7 @@ import { Check, CreditCard, Landmark, Loader2, ReceiptText, Tag, UploadCloud } f
 
 import AppButton from "@/components/AppButton.vue";
 import CreditPackageTimer from "@/components/CreditPackageTimer.vue";
+import PaymentSupportCard from "@/components/PaymentSupportCard.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useCreditStore } from "@/stores/credit";
 import { useTransactionStore } from "@/stores/transactions";
@@ -180,6 +181,7 @@ async function createPayment() {
           <p class="mt-4 rounded-md bg-gold/10 px-3 py-2 text-sm font-semibold text-ink">
             Nominal transfer memakai kode unik 3 digit. Transfer persis sesuai total bayar agar verifikasi admin lebih cepat.
           </p>
+          <PaymentSupportCard class="mt-4" />
         </div>
 
         <aside class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
