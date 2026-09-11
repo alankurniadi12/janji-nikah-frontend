@@ -20,21 +20,24 @@ const recentPendingTransactions = computed(() => dashboard.value.recentPendingTr
 const topPackages = computed(() => dashboard.value.insights?.topPackages || []);
 const topThemes = computed(() => dashboard.value.insights?.topThemes || []);
 const publishUsageRate = computed(() => `${dashboard.value.credits?.usageRateThisMonth || 0}%`);
+const pendingTransactionTotal = computed(
+  () => (dashboard.value.transactions?.waitingPayment || 0) + (dashboard.value.transactions?.waitingVerification || 0)
+);
 
 const actionRows = computed(() => [
   {
-    label: "Pembayaran perlu diverifikasi",
-    value: actionItems.value.waitingVerification || 0,
-    to: "/admin/payments",
-    tone: "text-leaf",
-    icon: CheckCircle2
-  },
-  {
-    label: "Menunggu transfer member",
+    label: "Checkout belum selesai",
     value: actionItems.value.waitingPayment || 0,
     to: "/admin/payments",
     tone: "text-gold",
     icon: Clock3
+  },
+  {
+    label: "Transfer manual perlu dicek",
+    value: actionItems.value.waitingVerification || 0,
+    to: "/admin/payments",
+    tone: "text-leaf",
+    icon: CheckCircle2
   },
   {
     label: "Undangan expired <= 7 hari",
@@ -51,6 +54,12 @@ const actionRows = computed(() => [
     icon: Send
   }
 ]);
+
+function paymentMethodLabel(transaction) {
+  if (transaction.paymentMethod === "mayar") return "Checkout otomatis";
+  if (transaction.paymentMethod === "promo_code") return "Kode promo";
+  return "Transfer manual";
+}
 </script>
 
 <template>
@@ -58,7 +67,7 @@ const actionRows = computed(() => [
     <AdminPageHeader
       eyebrow="Dashboard admin"
       title="Operasional Janji Nikah"
-      description="Pantau uang masuk, pembayaran manual, penggunaan kredit, dan aktivitas undangan."
+      description="Pantau transaksi otomatis, uang masuk, penggunaan kredit, dan aktivitas undangan."
     >
       <AppButton type="button" variant="secondary" :disabled="adminStore.loading" @click="adminStore.loadDashboard">
         <RefreshCw class="h-4 w-4" />
@@ -75,7 +84,7 @@ const actionRows = computed(() => [
       <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Revenue bulan ini" :value="formatCompactCurrency(dashboard.revenue.thisMonth)" tone="leaf" />
         <StatCard label="Estimasi omzet member" :value="formatCompactCurrency(dashboard.revenue.memberServiceTotal || 0)" tone="gold" />
-        <StatCard label="Verifikasi pembayaran" :value="dashboard.transactions.waitingVerification" tone="gold" />
+        <StatCard label="Transaksi pending" :value="pendingTransactionTotal" tone="gold" />
         <StatCard label="Kredit dipakai bulan ini" :value="dashboard.credits.usedThisMonth" tone="rose" />
         <StatCard label="Member aktif" :value="dashboard.members.active" tone="ink" />
       </div>
@@ -88,7 +97,7 @@ const actionRows = computed(() => [
               <p class="mt-1 text-sm text-ink/55">{{ actionItems.total || 0 }} item operasional perlu dipantau.</p>
             </div>
             <AppButton to="/admin/payments" variant="secondary">
-              Verifikasi
+              Pantau
               <ArrowRight class="h-4 w-4" />
             </AppButton>
           </div>
@@ -202,7 +211,7 @@ const actionRows = computed(() => [
               <span class="font-semibold text-ink">{{ dashboard.transactions.waitingPayment }}</span>
             </div>
             <div class="flex justify-between gap-4">
-              <span class="text-ink/55">Menunggu verifikasi</span>
+              <span class="text-ink/55">Transfer manual perlu dicek</span>
               <span class="font-semibold text-ink">{{ dashboard.transactions.waitingVerification }}</span>
             </div>
             <div class="flex justify-between gap-4">
@@ -233,6 +242,9 @@ const actionRows = computed(() => [
               <div>
                 <p class="font-semibold text-ink">{{ transaction.member?.name || "Member" }}</p>
                 <p class="mt-1 text-xs text-ink/45">{{ transaction.member?.email || transaction.memberId }}</p>
+                <p class="mt-2 inline-flex rounded-full border border-ink/10 bg-linen px-2.5 py-1 text-xs font-semibold text-ink/55">
+                  {{ paymentMethodLabel(transaction) }}
+                </p>
               </div>
               <p class="text-sm font-semibold text-ink">{{ transaction.creditAmount }} kredit</p>
               <p class="text-sm font-bold text-ink">{{ formatCurrency(transaction.totalAmount) }}</p>
