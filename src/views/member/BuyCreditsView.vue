@@ -1,11 +1,10 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Check, CreditCard, Landmark, Loader2, ReceiptText, Tag, UploadCloud } from "@lucide/vue";
+import { Check, CreditCard, ExternalLink, Loader2, ReceiptText, ShieldCheck, Tag } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import CreditPackageTimer from "@/components/CreditPackageTimer.vue";
-import PaymentSupportCard from "@/components/PaymentSupportCard.vue";
 import { getApiErrorMessage } from "@/lib/api";
 import { useCreditStore } from "@/stores/credit";
 import { useTransactionStore } from "@/stores/transactions";
@@ -33,22 +32,22 @@ const nextSteps = [
   {
     icon: ReceiptText,
     title: "Buat transaksi",
-    description: "Sistem membuat total bayar final dengan kode unik 3 digit."
+    description: "Sistem membuat checkout Mayar dari harga paket aktif."
   },
   {
-    icon: Landmark,
-    title: "Transfer manual",
-    description: "Transfer ke rekening tujuan sesuai nominal final, jangan dibulatkan."
+    icon: ExternalLink,
+    title: "Bayar di Mayar",
+    description: "Kamu diarahkan ke halaman pembayaran Mayar yang aman."
   },
   {
-    icon: UploadCloud,
-    title: "Upload bukti",
-    description: "Kirim screenshot atau foto bukti transfer dari halaman detail transaksi."
+    icon: ShieldCheck,
+    title: "Verifikasi otomatis",
+    description: "Janji Nikah menunggu konfirmasi resmi dari server Mayar."
   },
   {
     icon: Check,
-    title: "Menunggu admin",
-    description: "Kredit masuk setelah pembayaran diverifikasi admin."
+    title: "Kredit masuk",
+    description: "Saldo bertambah otomatis setelah pembayaran terverifikasi."
   }
 ];
 
@@ -87,6 +86,11 @@ async function createPayment() {
     }
 
     const transaction = await transactionStore.create(selectedPackageId.value, promoCode.value.trim());
+    if (transaction.providerCheckoutUrl) {
+      window.location.assign(transaction.providerCheckoutUrl);
+      return;
+    }
+
     router.push({ name: "member-transaction-detail", params: { id: transaction.id } });
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Transaksi belum bisa dibuat.");
@@ -101,7 +105,7 @@ async function createPayment() {
         <p class="text-sm font-bold uppercase tracking-widest text-gold">Beli kredit</p>
         <h1 class="mt-2 text-3xl font-bold text-ink">Pilih paket kredit</h1>
         <p class="mt-2 max-w-2xl leading-7 text-ink/65">
-          Pilih paket dulu. Setelah transaksi dibuat, kamu akan melihat nominal final, rekening tujuan, dan form upload bukti transfer.
+          Pilih paket, lalu lanjutkan pembayaran di Mayar. Kredit masuk otomatis setelah pembayaran terkonfirmasi.
         </p>
       </div>
       <AppButton to="/app/transactions" variant="secondary">Riwayat Transaksi</AppButton>
@@ -163,7 +167,7 @@ async function createPayment() {
         <div class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <h2 class="text-lg font-bold text-ink">Setelah klik Buat Transaksi</h2>
           <p class="mt-2 text-sm leading-6 text-ink/60">
-            Kamu belum perlu transfer di halaman ini. Ikuti instruksi di detail transaksi setelah nominal final muncul.
+            Kamu akan diarahkan ke checkout Mayar. Jangan tutup halaman sampai proses redirect berjalan.
           </p>
           <div class="mt-5 grid gap-3 sm:grid-cols-2">
             <article
@@ -179,9 +183,8 @@ async function createPayment() {
             </article>
           </div>
           <p class="mt-4 rounded-md bg-gold/10 px-3 py-2 text-sm font-semibold text-ink">
-            Nominal transfer memakai kode unik 3 digit. Transfer persis sesuai total bayar agar verifikasi admin lebih cepat.
+            Status sukses tidak diambil dari redirect browser. Kredit baru masuk setelah server Janji Nikah memverifikasi pembayaran ke Mayar.
           </p>
-          <PaymentSupportCard class="mt-4" />
         </div>
 
         <aside class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
@@ -211,7 +214,7 @@ async function createPayment() {
               <span class="font-semibold text-ink">{{ formatDateTime(selectedPackage.endsAt) }}</span>
             </div>
             <div class="rounded-md bg-linen px-3 py-2 text-ink/65">
-              {{ selectedPackage.hasPromoCode && selectedPackage.price <= 0 ? "Kode promo valid akan langsung menambahkan kredit tanpa transfer." : "Total bayar final dibuat setelah transaksi dibuat." }}
+              {{ selectedPackage.hasPromoCode && selectedPackage.price <= 0 ? "Kode promo valid akan langsung menambahkan kredit tanpa pembayaran." : "Checkout Mayar dibuat setelah transaksi dibuat." }}
             </div>
 
             <label class="block">

@@ -20,6 +20,11 @@ export async function getTransaction(id) {
   return response.data.data.transaction;
 }
 
+export async function refreshMayarTransaction(id) {
+  const response = await api.post(`/member/transactions/${id}/refresh-mayar`);
+  return response.data.data.transaction;
+}
+
 export async function uploadPaymentProof(id, file) {
   const formData = new FormData();
   formData.append("paymentProof", file);

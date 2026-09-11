@@ -18,9 +18,9 @@ Environment lokal:
 - `VITE_GOOGLE_CLIENT_ID`: Google OAuth client ID.
 - `VITE_GOOGLE_MAPS_API_KEY`: Google Maps JavaScript API key untuk pencarian lokasi dan pin interaktif di builder undangan.
 - `VITE_GOOGLE_MAPS_ALLOWED_HOSTS`: daftar hostname yang boleh memuat Google Maps dari frontend, pisahkan dengan koma. Default lokal: `localhost,127.0.0.1`.
-- `VITE_PAYMENT_BANK_NAME`: nama bank tujuan transfer manual.
-- `VITE_PAYMENT_ACCOUNT_NUMBER`: nomor rekening tujuan transfer manual.
-- `VITE_PAYMENT_ACCOUNT_HOLDER`: nama pemilik rekening.
+- `VITE_PAYMENT_BANK_NAME`: nama bank tujuan transfer manual fallback.
+- `VITE_PAYMENT_ACCOUNT_NUMBER`: nomor rekening tujuan transfer manual fallback.
+- `VITE_PAYMENT_ACCOUNT_HOLDER`: nama pemilik rekening fallback.
 - `VITE_PAYMENT_SUPPORT_CONTACT`: kontak bantuan pembayaran optional.
 
 Catatan:

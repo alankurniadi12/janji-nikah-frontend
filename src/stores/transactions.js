@@ -5,6 +5,7 @@ import {
   createTransaction,
   getTransaction,
   getTransactions,
+  refreshMayarTransaction,
   redeemPromoCode,
   uploadPaymentProof
 } from "@/services/transactionService";
@@ -116,6 +117,22 @@ export const useTransactionStore = defineStore("transactions", {
         throw error;
       } finally {
         this.uploading = false;
+      }
+    },
+    async refreshMayar(id) {
+      this.submitting = true;
+      this.error = "";
+
+      try {
+        const transaction = await refreshMayarTransaction(id);
+        this.current = transaction;
+        this.transactions = this.transactions.map((item) => (item.id === id ? transaction : item));
+        return transaction;
+      } catch (error) {
+        this.error = getApiErrorMessage(error, "Status pembayaran Mayar belum bisa dicek.");
+        throw error;
+      } finally {
+        this.submitting = false;
       }
     }
   }

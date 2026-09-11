@@ -29,6 +29,7 @@ onMounted(() => {
 
 const transaction = computed(() => adminStore.currentTransaction);
 const canVerify = computed(() => transaction.value?.status === "waiting_verification");
+const isMayarTransaction = computed(() => transaction.value?.paymentMethod === "mayar");
 const proofUrl = computed(() => assetUrl(transaction.value?.paymentProofUrl || ""));
 const statusMessage = computed(() => {
   const status = transaction.value?.status;
@@ -47,7 +48,9 @@ const statusMessage = computed(() => {
       icon: CheckCircle2,
       tone: "border-leaf/20 bg-leaf/10",
       title: "Pembayaran sudah diapprove",
-      message: "Kredit sudah ditambahkan ke saldo member melalui ledger pembelian."
+      message: isMayarTransaction.value
+        ? "Kredit sudah ditambahkan otomatis setelah pembayaran Mayar terverifikasi."
+        : "Kredit sudah ditambahkan ke saldo member melalui ledger pembelian."
     };
   }
 
@@ -64,7 +67,9 @@ const statusMessage = computed(() => {
     icon: ReceiptText,
     tone: "border-ink/10 bg-white",
     title: "Detail pembayaran",
-    message: "Pantau status transaksi dan bukti pembayaran member."
+    message: isMayarTransaction.value
+      ? "Pantau status transaksi Mayar. Pembayaran Mayar tidak membutuhkan approve manual."
+      : "Pantau status transaksi dan bukti pembayaran member."
   };
 });
 
@@ -111,7 +116,7 @@ async function confirmAction(note) {
     <AdminPageHeader
       eyebrow="Detail pembayaran"
       title="Verifikasi pembayaran member"
-      description="Cek paket, nominal transfer, kode unik, member, dan bukti pembayaran sebelum memproses transaksi."
+      :description="isMayarTransaction ? 'Pantau pembayaran Mayar dan metadata provider untuk transaksi member.' : 'Cek paket, nominal transfer, kode unik, member, dan bukti pembayaran sebelum memproses transaksi.'"
     >
       <AppButton type="button" variant="secondary" @click="router.push('/admin/payments')">
         <ArrowLeft class="h-4 w-4" />
@@ -156,15 +161,19 @@ async function confirmAction(note) {
             <div class="rounded-md bg-linen p-4">
               <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Total bayar</p>
               <p class="mt-2 text-2xl font-bold text-leaf">{{ formatCurrency(transaction.totalAmount) }}</p>
-              <p class="mt-1 text-sm text-ink/55">Termasuk kode unik {{ transaction.uniqueCode }}</p>
+              <p class="mt-1 text-sm text-ink/55">{{ isMayarTransaction ? "Dibayar lewat checkout Mayar" : `Termasuk kode unik ${transaction.uniqueCode}` }}</p>
             </div>
             <div class="rounded-md border border-ink/10 p-4">
               <p class="text-sm text-ink/55">Harga paket</p>
               <p class="mt-1 font-bold text-ink">{{ formatCurrency(transaction.baseAmount) }}</p>
             </div>
-            <div class="rounded-md border border-ink/10 p-4">
+            <div v-if="!isMayarTransaction" class="rounded-md border border-ink/10 p-4">
               <p class="text-sm text-ink/55">Kode unik</p>
               <p class="mt-1 font-bold text-ink">{{ transaction.uniqueCode }}</p>
+            </div>
+            <div v-else class="rounded-md border border-ink/10 p-4">
+              <p class="text-sm text-ink/55">Provider</p>
+              <p class="mt-1 font-bold text-ink">Mayar</p>
             </div>
           </div>
         </article>
@@ -172,7 +181,7 @@ async function confirmAction(note) {
         <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <h2 class="text-lg font-bold text-ink">Aksi admin</h2>
           <p class="mt-2 text-sm leading-6 text-ink/60">
-            Proses pembayaran hanya setelah admin mengonfirmasi aksi. Catatan penolakan diisi pada popup agar melekat ke transaksi ini.
+            {{ isMayarTransaction ? "Transaksi Mayar diproses otomatis lewat webhook dan verifikasi server." : "Proses pembayaran hanya setelah admin mengonfirmasi aksi. Catatan penolakan diisi pada popup agar melekat ke transaksi ini." }}
           </p>
           <div class="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
             <AppButton type="button" :disabled="adminStore.saving || !canVerify" @click="openAction('approve')">
@@ -185,7 +194,7 @@ async function confirmAction(note) {
             </AppButton>
           </div>
           <p v-if="!canVerify" class="mt-3 text-sm font-semibold text-ink/50">
-            Aksi hanya tersedia untuk transaksi menunggu verifikasi.
+            {{ isMayarTransaction ? "Tidak ada aksi manual untuk transaksi Mayar." : "Aksi hanya tersedia untuk transaksi menunggu verifikasi." }}
           </p>
         </article>
       </section>
