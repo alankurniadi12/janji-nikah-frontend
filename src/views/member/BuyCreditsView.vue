@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Check, CreditCard, ExternalLink, Loader2, ReceiptText, ShieldCheck, Tag, X } from "@lucide/vue";
+import { Check, CreditCard, ExternalLink, Loader2, Tag, X } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import CreditPackageTimer from "@/components/CreditPackageTimer.vue";
@@ -32,28 +32,6 @@ onMounted(async () => {
 const selectedPackage = computed(() =>
   creditStore.packages.find((creditPackage) => creditPackage.id === selectedPackageId.value)
 );
-const nextSteps = [
-  {
-    icon: ReceiptText,
-    title: "Buat transaksi",
-    description: "Sistem membuat sesi pembayaran dari harga paket aktif."
-  },
-  {
-    icon: ExternalLink,
-    title: "Bayar di popup",
-    description: "Form pembayaran dibuka di atas halaman Janji Nikah."
-  },
-  {
-    icon: ShieldCheck,
-    title: "Verifikasi otomatis",
-    description: "Janji Nikah menunggu konfirmasi resmi dari penyedia pembayaran."
-  },
-  {
-    icon: Check,
-    title: "Kredit masuk",
-    description: "Saldo bertambah otomatis setelah pembayaran terverifikasi."
-  }
-];
 
 function selectPackage(creditPackage) {
   selectedPackageId.value = creditPackage.id;
@@ -223,25 +201,12 @@ function isValidCheckoutUrl(value) {
 
       <section class="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <h2 class="text-lg font-bold text-ink">Setelah klik Buat Transaksi</h2>
+          <h2 class="text-lg font-bold text-ink">Pembayaran paket</h2>
           <p class="mt-2 text-sm leading-6 text-ink/60">
-            Form pembayaran akan terbuka di popup. Jika popup tidak tampil sempurna, kamu tetap bisa membuka halaman pembayaran sebagai fallback.
+            Klik Bayar Sekarang, selesaikan checkout, lalu kredit masuk otomatis setelah pembayaran terkonfirmasi.
           </p>
-          <div class="mt-5 grid gap-3 sm:grid-cols-2">
-            <article
-              v-for="step in nextSteps"
-              :key="step.title"
-              class="rounded-md border border-ink/10 bg-linen p-4"
-            >
-              <div class="flex h-9 w-9 items-center justify-center rounded-md bg-white text-leaf">
-                <component :is="step.icon" class="h-4 w-4" />
-              </div>
-              <p class="mt-3 text-sm font-bold text-ink">{{ step.title }}</p>
-              <p class="mt-1 text-sm leading-6 text-ink/60">{{ step.description }}</p>
-            </article>
-          </div>
-          <p class="mt-4 rounded-md bg-gold/10 px-3 py-2 text-sm font-semibold text-ink">
-            Status sukses tidak diambil dari redirect browser. Kredit baru masuk setelah server Janji Nikah memverifikasi pembayaran.
+          <p class="mt-4 rounded-md bg-linen px-3 py-2 text-sm leading-6 text-ink/65">
+            Jika form checkout tidak tampil sempurna, gunakan tombol Buka Halaman Pembayaran yang muncul di popup.
           </p>
         </div>
 
