@@ -1,12 +1,12 @@
 <script setup>
 import { computed, onMounted } from "vue";
-import { AlertCircle, ArrowRight, CheckCircle2, Clock3, CreditCard, Loader2, RefreshCw, Send } from "@lucide/vue";
+import { AlertCircle, ArrowRight, Clock3, CreditCard, Loader2, RefreshCw, Send } from "@lucide/vue";
 
 import AdminPageHeader from "@/components/AdminPageHeader.vue";
 import AppButton from "@/components/AppButton.vue";
 import StatCard from "@/components/StatCard.vue";
 import { useAdminStore } from "@/stores/admin";
-import { formatCompactCurrency, formatCurrency, formatDateTime, transactionStatusLabel, transactionStatusTone } from "@/utils/formatters";
+import { formatCompactCurrency, formatCurrency } from "@/utils/formatters";
 
 const adminStore = useAdminStore();
 
@@ -16,12 +16,11 @@ onMounted(() => {
 
 const dashboard = computed(() => adminStore.dashboard || {});
 const actionItems = computed(() => dashboard.value.actionItems || {});
-const recentPendingTransactions = computed(() => dashboard.value.recentPendingTransactions || []);
 const topPackages = computed(() => dashboard.value.insights?.topPackages || []);
 const topThemes = computed(() => dashboard.value.insights?.topThemes || []);
 const publishUsageRate = computed(() => `${dashboard.value.credits?.usageRateThisMonth || 0}%`);
-const pendingTransactionTotal = computed(
-  () => (dashboard.value.transactions?.waitingPayment || 0) + (dashboard.value.transactions?.waitingVerification || 0)
+const visibleActionTotal = computed(
+  () => (actionItems.value.waitingPayment || 0) + (actionItems.value.expiringSoonInvitations || 0) + (actionItems.value.unreadNotifications || 0)
 );
 
 const actionRows = computed(() => [
@@ -31,13 +30,6 @@ const actionRows = computed(() => [
     to: "/admin/payments",
     tone: "text-gold",
     icon: Clock3
-  },
-  {
-    label: "Transfer manual perlu dicek",
-    value: actionItems.value.waitingVerification || 0,
-    to: "/admin/payments",
-    tone: "text-leaf",
-    icon: CheckCircle2
   },
   {
     label: "Undangan expired <= 7 hari",
@@ -54,12 +46,6 @@ const actionRows = computed(() => [
     icon: Send
   }
 ]);
-
-function paymentMethodLabel(transaction) {
-  if (transaction.paymentMethod === "mayar") return "Checkout otomatis";
-  if (transaction.paymentMethod === "promo_code") return "Kode promo";
-  return "Transfer manual";
-}
 </script>
 
 <template>
@@ -81,10 +67,9 @@ function paymentMethodLabel(transaction) {
     </div>
 
     <template v-else-if="adminStore.dashboard">
-      <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Revenue bulan ini" :value="formatCompactCurrency(dashboard.revenue.thisMonth)" tone="leaf" />
         <StatCard label="Estimasi omzet member" :value="formatCompactCurrency(dashboard.revenue.memberServiceTotal || 0)" tone="gold" />
-        <StatCard label="Transaksi pending" :value="pendingTransactionTotal" tone="gold" />
         <StatCard label="Kredit dipakai bulan ini" :value="dashboard.credits.usedThisMonth" tone="rose" />
         <StatCard label="Member aktif" :value="dashboard.members.active" tone="ink" />
       </div>
@@ -94,7 +79,7 @@ function paymentMethodLabel(transaction) {
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 class="text-lg font-bold text-ink">Butuh tindakan</h2>
-              <p class="mt-1 text-sm text-ink/55">{{ actionItems.total || 0 }} item operasional perlu dipantau.</p>
+              <p class="mt-1 text-sm text-ink/55">{{ visibleActionTotal }} item operasional perlu dipantau.</p>
             </div>
             <AppButton to="/admin/payments" variant="secondary">
               Pantau
@@ -211,10 +196,6 @@ function paymentMethodLabel(transaction) {
               <span class="font-semibold text-ink">{{ dashboard.transactions.waitingPayment }}</span>
             </div>
             <div class="flex justify-between gap-4">
-              <span class="text-ink/55">Transfer manual perlu dicek</span>
-              <span class="font-semibold text-ink">{{ dashboard.transactions.waitingVerification }}</span>
-            </div>
-            <div class="flex justify-between gap-4">
               <span class="text-ink/55">Sukses total</span>
               <span class="font-semibold text-ink">{{ dashboard.transactions.success }}</span>
             </div>
@@ -226,41 +207,7 @@ function paymentMethodLabel(transaction) {
         </article>
       </section>
 
-      <section class="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <h2 class="text-lg font-bold text-ink">Transaksi pending terbaru</h2>
-            <RouterLink class="text-sm font-semibold text-leaf hover:text-ink" to="/admin/payments">Lihat semua</RouterLink>
-          </div>
-
-          <div v-if="recentPendingTransactions.length" class="mt-4 divide-y divide-ink/10">
-            <div
-              v-for="transaction in recentPendingTransactions"
-              :key="transaction.id"
-              class="grid gap-3 py-4 lg:grid-cols-[1fr_130px_150px_140px] lg:items-center"
-            >
-              <div>
-                <p class="font-semibold text-ink">{{ transaction.member?.name || "Member" }}</p>
-                <p class="mt-1 text-xs text-ink/45">{{ transaction.member?.email || transaction.memberId }}</p>
-                <p class="mt-2 inline-flex rounded-full border border-ink/10 bg-linen px-2.5 py-1 text-xs font-semibold text-ink/55">
-                  {{ paymentMethodLabel(transaction) }}
-                </p>
-              </div>
-              <p class="text-sm font-semibold text-ink">{{ transaction.creditAmount }} kredit</p>
-              <p class="text-sm font-bold text-ink">{{ formatCurrency(transaction.totalAmount) }}</p>
-              <div class="space-y-2">
-                <span class="inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold" :class="transactionStatusTone(transaction.status)">
-                  {{ transactionStatusLabel(transaction.status) }}
-                </span>
-                <p class="text-xs text-ink/45">{{ formatDateTime(transaction.expiresAt) }}</p>
-              </div>
-            </div>
-          </div>
-          <p v-else class="mt-4 rounded-md bg-linen p-5 text-center text-sm font-semibold text-ink/55">
-            Tidak ada transaksi pending saat ini.
-          </p>
-        </article>
-
+      <section class="mt-6">
         <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <h2 class="text-lg font-bold text-ink">Insight bulan ini</h2>
 
