@@ -103,13 +103,13 @@ const paymentSteps = computed(() => {
     return [
       {
         title: "Checkout dibuat",
-        description: "Link pembayaran Mayar sudah disiapkan.",
+        description: "Link pembayaran sudah disiapkan.",
         done: Boolean(status),
         active: status === "waiting_payment"
       },
       {
-        title: "Verifikasi Mayar",
-        description: "Server mengecek status resmi pembayaran di Mayar.",
+        title: "Verifikasi pembayaran",
+        description: "Server mengecek status resmi pembayaran.",
         done: status === "success",
         active: status === "waiting_payment"
       },
@@ -152,9 +152,9 @@ const statusMessage = computed(() => {
     return {
       icon: Clock3,
       tone: "border-gold/25 bg-gold/10 text-ink",
-      title: isMayarTransaction.value ? "Menunggu pembayaran Mayar" : "Menunggu pembayaran",
+      title: "Menunggu pembayaran",
       message: isMayarTransaction.value
-        ? `Selesaikan pembayaran di Mayar sebelum ${formatDateTime(transaction.value?.expiresAt)}. Kredit masuk setelah server Mayar mengonfirmasi pembayaran.`
+        ? `Selesaikan pembayaran sebelum ${formatDateTime(transaction.value?.expiresAt)}. Kredit masuk setelah pembayaran terkonfirmasi.`
         : `Transfer sebelum ${formatDateTime(transaction.value?.expiresAt)}, lalu upload bukti transfer di halaman ini.`
     };
   }
@@ -194,7 +194,7 @@ const statusMessage = computed(() => {
       tone: "border-ink/10 bg-ink/5 text-ink",
       title: "Transaksi kedaluwarsa",
       message: isMayarTransaction.value
-        ? "Batas checkout Mayar sudah lewat. Buat transaksi baru untuk membeli kredit."
+        ? "Batas pembayaran sudah lewat. Buat transaksi baru untuk membeli kredit."
         : "Batas pembayaran sudah lewat. Buat transaksi baru agar mendapat kode unik dan nominal bayar baru."
     };
   }
@@ -258,9 +258,9 @@ async function refreshMayarStatus() {
 
   try {
     await transactionStore.refreshMayar(transaction.value.id);
-    toastStore.show("Status pembayaran Mayar sudah dicek.");
+    toastStore.show("Status pembayaran sudah dicek.");
   } catch {
-    toastStore.show("Status pembayaran Mayar belum bisa dicek.");
+    toastStore.show("Status pembayaran belum bisa dicek.");
   }
 }
 </script>
@@ -276,7 +276,7 @@ async function refreshMayarStatus() {
             isPromoTransaction
               ? "Kredit promo langsung masuk setelah kode valid diklaim."
               : isMayarTransaction
-                ? "Selesaikan pembayaran di Mayar. Status sukses selalu diverifikasi oleh server Janji Nikah."
+                ? "Selesaikan pembayaran melalui form checkout. Status sukses selalu diverifikasi oleh server Janji Nikah."
                 : "Selesaikan transfer manual sesuai nominal final, lalu upload bukti agar admin bisa memverifikasi pembayaran."
           }}
         </p>
@@ -320,7 +320,7 @@ async function refreshMayarStatus() {
             <p class="mt-2 text-sm leading-6 text-ink/60">
               {{
                 isMayarTransaction
-                  ? `Link checkout berlaku sampai ${formatDateTime(transaction.expiresAt)}. Setelah bayar, kembali ke halaman ini untuk melihat status.`
+                  ? `Link pembayaran berlaku sampai ${formatDateTime(transaction.expiresAt)}. Setelah bayar, kembali ke halaman ini untuk melihat status.`
                   : `Nominal dan kode unik hanya berlaku sampai ${formatDateTime(transaction.expiresAt)}. Upload bukti setelah transfer agar admin bisa verifikasi.`
               }}
             </p>
@@ -389,7 +389,7 @@ async function refreshMayarStatus() {
             </div>
 
             <div class="mt-6 rounded-lg border border-leaf/20 bg-mint p-4">
-              <p class="text-sm font-bold text-leaf">{{ isPromoTransaction ? "Nilai klaim promo" : isMayarTransaction ? "Total pembayaran Mayar" : "Total yang harus ditransfer" }}</p>
+              <p class="text-sm font-bold text-leaf">{{ isPromoTransaction ? "Nilai klaim promo" : isMayarTransaction ? "Total pembayaran" : "Total yang harus ditransfer" }}</p>
               <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p class="text-3xl font-bold text-ink">{{ formatCurrency(transaction.totalAmount) }}</p>
                 <AppButton
@@ -405,7 +405,7 @@ async function refreshMayarStatus() {
               <p v-if="!isPromoTransaction" class="mt-3 text-sm leading-6 text-ink/65">
                 {{
                   isMayarTransaction
-                    ? "Nominal ini dibayar melalui checkout Mayar. Jangan transfer manual ke rekening Janji Nikah."
+                    ? "Nominal ini dibayar melalui form checkout. Jangan transfer manual ke rekening Janji Nikah."
                     : "Transfer persis sampai 3 digit terakhir. Jangan dibulatkan agar admin mudah mencocokkan pembayaran."
                 }}
               </p>
@@ -424,12 +424,8 @@ async function refreshMayarStatus() {
                 <span class="font-semibold text-ink">{{ transaction.uniqueCode }}</span>
               </div>
               <div v-if="isMayarTransaction" class="flex justify-between gap-4 text-sm">
-                <span class="text-ink/55">Provider</span>
-                <span class="font-semibold text-ink">Mayar</span>
-              </div>
-              <div v-if="isMayarTransaction && transaction.providerStatus" class="flex justify-between gap-4 text-sm">
-                <span class="text-ink/55">Status Mayar</span>
-                <span class="font-semibold text-ink">{{ transaction.providerStatus }}</span>
+                <span class="text-ink/55">Metode</span>
+                <span class="font-semibold text-ink">Pembayaran online</span>
               </div>
               <div v-if="isPromoTransaction" class="flex justify-between gap-4 text-sm">
                 <span class="text-ink/55">Kode promo</span>
@@ -452,7 +448,7 @@ async function refreshMayarStatus() {
                 <ExternalLink class="h-5 w-5" />
               </div>
               <div>
-                <h2 class="text-lg font-bold text-ink">Checkout Mayar</h2>
+                <h2 class="text-lg font-bold text-ink">Checkout pembayaran</h2>
                 <p class="mt-1 text-sm leading-6 text-ink/60">
                   Gunakan tombol ini jika checkout belum terbuka atau kamu ingin melanjutkan pembayaran.
                 </p>
@@ -462,17 +458,17 @@ async function refreshMayarStatus() {
             <div class="mt-5 flex flex-col gap-3 sm:flex-row">
               <AppButton v-if="transaction.status === 'waiting_payment' && transaction.providerCheckoutUrl" type="button" @click="openMayarCheckout">
                 <ExternalLink class="h-4 w-4" />
-                Lanjutkan Pembayaran di Mayar
+                Lanjutkan Pembayaran
               </AppButton>
               <AppButton type="button" variant="secondary" :disabled="transactionStore.submitting" @click="refreshMayarStatus">
                 <Loader2 v-if="transactionStore.submitting" class="h-4 w-4 animate-spin" />
                 <RefreshCw v-else class="h-4 w-4" />
-                Cek Status Mayar
+                Cek Status Pembayaran
               </AppButton>
             </div>
 
             <p class="mt-4 rounded-md bg-gold/10 px-3 py-2 text-sm font-semibold text-ink">
-              Redirect dari Mayar hanya membawa kamu kembali ke halaman ini. Kredit masuk setelah server Janji Nikah memverifikasi status paid langsung ke Mayar.
+              Kembali dari halaman pembayaran hanya membawa kamu ke halaman ini. Kredit masuk setelah server Janji Nikah memverifikasi status pembayaran.
             </p>
           </section>
 
@@ -623,14 +619,14 @@ async function refreshMayarStatus() {
           <div class="flex h-10 w-10 items-center justify-center rounded-md bg-gold/10 text-gold">
             <Clock3 class="h-5 w-5" />
           </div>
-          <h2 class="mt-4 text-lg font-bold text-ink">Status Mayar</h2>
+          <h2 class="mt-4 text-lg font-bold text-ink">Status pembayaran</h2>
           <p class="mt-2 text-sm leading-6 text-ink/60">
-            Kalau pembayaran sudah dilakukan tapi status belum berubah, klik cek status. Jika Mayar belum mengonfirmasi paid, saldo belum akan ditambah.
+            Kalau pembayaran sudah dilakukan tapi status belum berubah, klik cek status. Jika pembayaran belum terkonfirmasi, saldo belum akan ditambah.
           </p>
           <AppButton class="mt-5 w-full" type="button" :disabled="transactionStore.submitting" @click="refreshMayarStatus">
             <Loader2 v-if="transactionStore.submitting" class="h-4 w-4 animate-spin" />
             <RefreshCw v-else class="h-4 w-4" />
-            Cek Status Mayar
+            Cek Status Pembayaran
           </AppButton>
         </aside>
       </div>

@@ -36,17 +36,17 @@ const nextSteps = [
   {
     icon: ReceiptText,
     title: "Buat transaksi",
-    description: "Sistem membuat checkout Mayar dari harga paket aktif."
+    description: "Sistem membuat sesi pembayaran dari harga paket aktif."
   },
   {
     icon: ExternalLink,
     title: "Bayar di popup",
-    description: "Checkout Mayar dibuka di atas halaman Janji Nikah."
+    description: "Form pembayaran dibuka di atas halaman Janji Nikah."
   },
   {
     icon: ShieldCheck,
     title: "Verifikasi otomatis",
-    description: "Janji Nikah menunggu konfirmasi resmi dari server Mayar."
+    description: "Janji Nikah menunggu konfirmasi resmi dari penyedia pembayaran."
   },
   {
     icon: Check,
@@ -103,7 +103,7 @@ async function createPayment() {
 
 function openEmbeddedCheckout(transaction) {
   if (!isValidCheckoutUrl(transaction.providerCheckoutUrl)) {
-    error.value = "Link checkout Mayar tidak valid.";
+    error.value = "Link pembayaran tidak valid.";
     return;
   }
 
@@ -137,7 +137,7 @@ function handleCheckoutFrameLoad(event) {
       closeEmbeddedCheckout({ goToDetail: true });
     }
   } catch {
-    // Cross-origin Mayar pages cannot be inspected. Loading the iframe is enough.
+    // Cross-origin payment pages cannot be inspected. Loading the iframe is enough.
   }
 }
 
@@ -163,7 +163,7 @@ function isValidCheckoutUrl(value) {
         <p class="text-sm font-bold uppercase tracking-widest text-gold">Beli kredit</p>
         <h1 class="mt-2 text-3xl font-bold text-ink">Pilih paket kredit</h1>
         <p class="mt-2 max-w-2xl leading-7 text-ink/65">
-          Pilih paket, lalu selesaikan pembayaran Mayar di popup checkout. Kredit masuk otomatis setelah pembayaran terkonfirmasi.
+          Pilih paket, lalu selesaikan pembayaran di popup checkout. Kredit masuk otomatis setelah pembayaran terkonfirmasi.
         </p>
       </div>
       <AppButton to="/app/transactions" variant="secondary">Riwayat Transaksi</AppButton>
@@ -225,7 +225,7 @@ function isValidCheckoutUrl(value) {
         <div class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <h2 class="text-lg font-bold text-ink">Setelah klik Buat Transaksi</h2>
           <p class="mt-2 text-sm leading-6 text-ink/60">
-            Checkout Mayar akan terbuka di popup. Jika popup tidak tampil sempurna, kamu tetap bisa membuka checkout Mayar sebagai fallback.
+            Form pembayaran akan terbuka di popup. Jika popup tidak tampil sempurna, kamu tetap bisa membuka halaman pembayaran sebagai fallback.
           </p>
           <div class="mt-5 grid gap-3 sm:grid-cols-2">
             <article
@@ -241,7 +241,7 @@ function isValidCheckoutUrl(value) {
             </article>
           </div>
           <p class="mt-4 rounded-md bg-gold/10 px-3 py-2 text-sm font-semibold text-ink">
-            Status sukses tidak diambil dari redirect browser. Kredit baru masuk setelah server Janji Nikah memverifikasi pembayaran ke Mayar.
+            Status sukses tidak diambil dari redirect browser. Kredit baru masuk setelah server Janji Nikah memverifikasi pembayaran.
           </p>
         </div>
 
@@ -272,7 +272,7 @@ function isValidCheckoutUrl(value) {
               <span class="font-semibold text-ink">{{ formatDateTime(selectedPackage.endsAt) }}</span>
             </div>
             <div class="rounded-md bg-linen px-3 py-2 text-ink/65">
-              {{ selectedPackage.hasPromoCode && selectedPackage.price <= 0 ? "Kode promo valid akan langsung menambahkan kredit tanpa pembayaran." : "Checkout Mayar dibuat setelah transaksi dibuat." }}
+              {{ selectedPackage.hasPromoCode && selectedPackage.price <= 0 ? "Kode promo valid akan langsung menambahkan kredit tanpa pembayaran." : "Form pembayaran dibuat setelah transaksi dibuat." }}
             </div>
 
             <label class="block">
@@ -294,7 +294,7 @@ function isValidCheckoutUrl(value) {
 
           <AppButton class="mt-5 w-full" :disabled="transactionStore.submitting || !selectedPackage" @click="createPayment">
             <Loader2 v-if="transactionStore.submitting" class="h-4 w-4 animate-spin" />
-            {{ selectedPackage?.price <= 0 && selectedPackage?.hasPromoCode ? "Klaim Kode Promo" : "Bayar di Popup Mayar" }}
+            {{ selectedPackage?.price <= 0 && selectedPackage?.hasPromoCode ? "Klaim Kode Promo" : "Bayar Sekarang" }}
           </AppButton>
           <p class="mt-3 text-xs leading-5 text-ink/50">
             Kredit yang sudah dibeli dan kredit yang sudah dipakai publish tidak bisa refund.
@@ -308,15 +308,15 @@ function isValidCheckoutUrl(value) {
       class="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-3 sm:p-6"
       role="dialog"
       aria-modal="true"
-      aria-label="Checkout Mayar"
+      aria-label="Checkout pembayaran"
     >
       <section class="flex h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg bg-white shadow-soft">
         <div class="flex items-start justify-between gap-4 border-b border-ink/10 px-4 py-3 sm:px-5">
           <div>
-            <p class="text-xs font-bold uppercase tracking-widest text-gold">Checkout Mayar</p>
+            <p class="text-xs font-bold uppercase tracking-widest text-gold">Pembayaran</p>
             <h2 class="mt-1 text-lg font-bold text-ink">Selesaikan pembayaran</h2>
             <p class="mt-1 text-sm leading-6 text-ink/60">
-              Tutup popup setelah pembayaran selesai, lalu cek status transaksi. Kredit masuk setelah server Mayar mengonfirmasi pembayaran.
+              Tutup popup setelah pembayaran selesai, lalu cek status transaksi. Kredit masuk setelah pembayaran terkonfirmasi.
             </p>
           </div>
           <button
@@ -333,12 +333,12 @@ function isValidCheckoutUrl(value) {
           <div v-if="!checkoutFrameLoaded" class="absolute inset-0 flex items-center justify-center">
             <div class="rounded-lg border border-ink/10 bg-white px-5 py-4 text-center shadow-soft">
               <Loader2 class="mx-auto h-6 w-6 animate-spin text-leaf" />
-              <p class="mt-3 text-sm font-semibold text-ink/70">Memuat checkout Mayar...</p>
+              <p class="mt-3 text-sm font-semibold text-ink/70">Memuat halaman pembayaran...</p>
             </div>
           </div>
           <iframe
             :src="checkoutUrl"
-            title="Checkout pembayaran Mayar"
+            title="Checkout pembayaran"
             class="h-full w-full border-0 bg-white"
             allow="payment *"
             @load="handleCheckoutFrameLoad"
@@ -353,7 +353,7 @@ function isValidCheckoutUrl(value) {
           <div class="flex flex-col gap-2 sm:flex-row">
             <AppButton type="button" variant="secondary" @click="openHostedFallback">
               <ExternalLink class="h-4 w-4" />
-              Buka Checkout Mayar
+              Buka Halaman Pembayaran
             </AppButton>
             <AppButton type="button" @click="closeEmbeddedCheckout({ goToDetail: true })">
               Cek Status Transaksi
