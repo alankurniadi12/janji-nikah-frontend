@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Check, CreditCard, ExternalLink, Loader2, Tag, X } from "@lucide/vue";
+import { Check, CreditCard, ExternalLink, Loader2, ShieldCheck, Tag, X } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import CreditPackageTimer from "@/components/CreditPackageTimer.vue";
@@ -200,14 +200,39 @@ function isValidCheckoutUrl(value) {
       </p>
 
       <section class="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
-        <div class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
-          <h2 class="text-lg font-bold text-ink">Pembayaran paket</h2>
-          <p class="mt-2 text-sm leading-6 text-ink/60">
-            Klik Bayar Sekarang, selesaikan checkout, lalu kredit masuk otomatis setelah pembayaran terkonfirmasi.
-          </p>
-          <p class="mt-4 rounded-md bg-linen px-3 py-2 text-sm leading-6 text-ink/65">
-            Jika form checkout tidak tampil sempurna, gunakan tombol Buka Halaman Pembayaran yang muncul di popup.
-          </p>
+        <div class="overflow-hidden rounded-lg border border-ink/10 bg-white shadow-soft">
+          <div class="border-b border-ink/10 bg-linen px-5 py-4">
+            <p class="text-xs font-bold uppercase tracking-widest text-gold">Pembayaran paket</p>
+            <h2 class="mt-1 text-lg font-bold text-ink">Checkout singkat, kredit otomatis aktif</h2>
+          </div>
+          <div class="grid gap-3 p-5 sm:grid-cols-3">
+            <div class="rounded-md border border-ink/10 bg-white p-4">
+              <div class="flex h-9 w-9 items-center justify-center rounded-md bg-mint text-leaf">
+                <CreditCard class="h-4 w-4" />
+              </div>
+              <p class="mt-3 text-sm font-bold text-ink">Pilih paket</p>
+              <p class="mt-1 text-sm leading-6 text-ink/60">Pastikan paket dan total kredit sudah sesuai.</p>
+            </div>
+            <div class="rounded-md border border-ink/10 bg-white p-4">
+              <div class="flex h-9 w-9 items-center justify-center rounded-md bg-gold/10 text-gold">
+                <ExternalLink class="h-4 w-4" />
+              </div>
+              <p class="mt-3 text-sm font-bold text-ink">Bayar langsung</p>
+              <p class="mt-1 text-sm leading-6 text-ink/60">Form checkout terbuka setelah tombol Bayar Sekarang.</p>
+            </div>
+            <div class="rounded-md border border-ink/10 bg-white p-4">
+              <div class="flex h-9 w-9 items-center justify-center rounded-md bg-leaf/10 text-leaf">
+                <ShieldCheck class="h-4 w-4" />
+              </div>
+              <p class="mt-3 text-sm font-bold text-ink">Kredit masuk</p>
+              <p class="mt-1 text-sm leading-6 text-ink/60">Saldo bertambah otomatis setelah pembayaran selesai.</p>
+            </div>
+          </div>
+          <div class="border-t border-ink/10 px-5 py-3">
+            <p class="text-xs leading-5 text-ink/50">
+              Jika form tidak tampil sempurna, gunakan tombol Buka Halaman Pembayaran yang muncul di popup.
+            </p>
+          </div>
         </div>
 
         <aside class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
