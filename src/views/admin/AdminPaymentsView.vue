@@ -107,6 +107,22 @@ function openAction(mode, transaction) {
   actionDialog.open = true;
 }
 
+function paymentMethodLabel(transaction) {
+  if (transaction.paymentMethod === "mayar") return "Checkout otomatis";
+  if (transaction.paymentMethod === "promo_code") return "Kode promo";
+  return "Transfer manual";
+}
+
+function paymentMethodTone(transaction) {
+  if (transaction.paymentMethod === "mayar") return "border-leaf/20 bg-leaf/10 text-leaf";
+  if (transaction.paymentMethod === "promo_code") return "border-gold/25 bg-gold/10 text-gold";
+  return "border-ink/10 bg-linen text-ink/60";
+}
+
+function canManuallyVerify(transaction) {
+  return transaction.paymentMethod === "manual_transfer" && transaction.status === "waiting_verification";
+}
+
 function closeAction() {
   actionDialog.open = false;
   actionDialog.transaction = null;
@@ -143,7 +159,7 @@ async function confirmAction(note) {
 
 <template>
   <section>
-    <AdminPageHeader eyebrow="Pembayaran" title="Verifikasi pembayaran" description="Approve atau tolak transaksi manual setelah cek mutasi dan bukti transfer." />
+    <AdminPageHeader eyebrow="Pembayaran" title="Pantau pembayaran" description="Monitor checkout otomatis, kode promo, dan verifikasi transfer manual dari satu tempat." />
 
     <section class="mt-6 rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
       <div class="grid gap-5">
@@ -173,7 +189,7 @@ async function confirmAction(note) {
             <input
               v-model="filters.q"
               class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
-              placeholder="Nama, email, username, ID, nominal, kode unik"
+              placeholder="Nama, email, username, ID, nominal"
             />
           </label>
           <label class="block text-sm font-semibold text-ink">
@@ -240,8 +256,16 @@ async function confirmAction(note) {
             <p class="mt-1 text-sm text-ink/55">
               {{ transaction.member?.email || transaction.memberId }} · {{ formatDate(transaction.createdAt) }}
             </p>
+            <div class="mt-2 flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold" :class="paymentMethodTone(transaction)">
+                {{ paymentMethodLabel(transaction) }}
+              </span>
+              <span v-if="transaction.paymentMethod === 'mayar' && transaction.providerStatus" class="text-xs font-semibold text-ink/45">
+                Status provider: {{ transaction.providerStatus }}
+              </span>
+            </div>
             <a
-              v-if="transaction.paymentProofUrl"
+              v-if="transaction.paymentMethod === 'manual_transfer' && transaction.paymentProofUrl"
               :href="assetUrl(transaction.paymentProofUrl)"
               target="_blank"
               class="mt-2 inline-flex text-sm font-semibold text-leaf"
@@ -256,8 +280,13 @@ async function confirmAction(note) {
           </div>
           <TransactionStatusBadge :status="transaction.status" />
           <div class="flex flex-wrap gap-2 lg:justify-end">
-            <AppButton type="button" :disabled="adminStore.saving || transaction.status !== 'waiting_verification'" @click.stop="openAction('approve', transaction)">Approve</AppButton>
-            <AppButton type="button" variant="secondary" :disabled="adminStore.saving || transaction.status !== 'waiting_verification'" @click.stop="openAction('reject', transaction)">Tolak</AppButton>
+            <template v-if="canManuallyVerify(transaction)">
+              <AppButton type="button" :disabled="adminStore.saving" @click.stop="openAction('approve', transaction)">Approve</AppButton>
+              <AppButton type="button" variant="secondary" :disabled="adminStore.saving" @click.stop="openAction('reject', transaction)">Tolak</AppButton>
+            </template>
+            <span v-else class="rounded-md bg-linen px-3 py-2 text-xs font-semibold text-ink/50">
+              {{ transaction.paymentMethod === "manual_transfer" ? "Lihat detail" : "Diproses otomatis" }}
+            </span>
           </div>
         </article>
       </div>

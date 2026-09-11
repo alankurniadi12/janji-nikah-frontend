@@ -28,8 +28,10 @@ onMounted(() => {
 });
 
 const transaction = computed(() => adminStore.currentTransaction);
-const canVerify = computed(() => transaction.value?.status === "waiting_verification");
 const isMayarTransaction = computed(() => transaction.value?.paymentMethod === "mayar");
+const isManualTransfer = computed(() => transaction.value?.paymentMethod === "manual_transfer");
+const isPromoTransaction = computed(() => transaction.value?.paymentMethod === "promo_code");
+const canVerify = computed(() => isManualTransfer.value && transaction.value?.status === "waiting_verification");
 const proofUrl = computed(() => assetUrl(transaction.value?.paymentProofUrl || ""));
 const statusMessage = computed(() => {
   const status = transaction.value?.status;
@@ -47,7 +49,7 @@ const statusMessage = computed(() => {
     return {
       icon: CheckCircle2,
       tone: "border-leaf/20 bg-leaf/10",
-      title: "Pembayaran sudah diapprove",
+      title: "Pembayaran berhasil",
       message: isMayarTransaction.value
         ? "Kredit sudah ditambahkan otomatis setelah pembayaran Mayar terverifikasi."
         : "Kredit sudah ditambahkan ke saldo member melalui ledger pembelian."
@@ -68,9 +70,24 @@ const statusMessage = computed(() => {
     tone: "border-ink/10 bg-white",
     title: "Detail pembayaran",
     message: isMayarTransaction.value
-      ? "Pantau status transaksi Mayar. Pembayaran Mayar tidak membutuhkan approve manual."
+      ? "Pantau checkout otomatis. Kredit hanya masuk setelah status resmi pembayaran terverifikasi."
       : "Pantau status transaksi dan bukti pembayaran member."
   };
+});
+
+const providerStatusLabel = computed(() => transaction.value?.providerStatus || "-");
+const providerPaymentMethodLabel = computed(() => transaction.value?.providerPaymentMethod || "-");
+const creditDeliveryDescription = computed(() => {
+  if (!transaction.value) return "";
+  if (isManualTransfer.value) return `${transaction.value.creditAmount} kredit masuk jika approve`;
+  if (isMayarTransaction.value) return `${transaction.value.creditAmount} kredit masuk otomatis setelah terverifikasi`;
+  return `${transaction.value.creditAmount} kredit diproses otomatis`;
+});
+const totalPaymentDescription = computed(() => {
+  if (!transaction.value) return "";
+  if (isMayarTransaction.value) return "Checkout otomatis";
+  if (isPromoTransaction.value) return "Kode promo";
+  return `Termasuk kode unik ${transaction.value.uniqueCode}`;
 });
 
 function openAction(mode) {
@@ -115,8 +132,8 @@ async function confirmAction(note) {
   <section>
     <AdminPageHeader
       eyebrow="Detail pembayaran"
-      title="Verifikasi pembayaran member"
-      :description="isMayarTransaction ? 'Pantau pembayaran Mayar dan metadata provider untuk transaksi member.' : 'Cek paket, nominal transfer, kode unik, member, dan bukti pembayaran sebelum memproses transaksi.'"
+      title="Detail transaksi member"
+      :description="isMayarTransaction ? 'Pantau checkout otomatis dan status pembayaran dari provider.' : 'Cek paket, nominal transfer, kode unik, member, dan bukti pembayaran sebelum memproses transaksi manual.'"
     >
       <AppButton type="button" variant="secondary" @click="router.push('/admin/payments')">
         <ArrowLeft class="h-4 w-4" />
@@ -156,12 +173,12 @@ async function confirmAction(note) {
             <div class="rounded-md bg-linen p-4">
               <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Paket</p>
               <p class="mt-2 text-lg font-bold text-ink">{{ transaction.package?.name || `${transaction.creditAmount} kredit` }}</p>
-              <p class="mt-1 text-sm text-ink/55">{{ transaction.creditAmount }} kredit masuk jika approve</p>
+              <p class="mt-1 text-sm text-ink/55">{{ creditDeliveryDescription }}</p>
             </div>
             <div class="rounded-md bg-linen p-4">
               <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Total bayar</p>
               <p class="mt-2 text-2xl font-bold text-leaf">{{ formatCurrency(transaction.totalAmount) }}</p>
-              <p class="mt-1 text-sm text-ink/55">{{ isMayarTransaction ? "Dibayar lewat checkout Mayar" : `Termasuk kode unik ${transaction.uniqueCode}` }}</p>
+              <p class="mt-1 text-sm text-ink/55">{{ totalPaymentDescription }}</p>
             </div>
             <div class="rounded-md border border-ink/10 p-4">
               <p class="text-sm text-ink/55">Harga paket</p>
@@ -178,10 +195,10 @@ async function confirmAction(note) {
           </div>
         </article>
 
-        <article class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+        <article v-if="isManualTransfer" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <h2 class="text-lg font-bold text-ink">Aksi admin</h2>
           <p class="mt-2 text-sm leading-6 text-ink/60">
-            {{ isMayarTransaction ? "Transaksi Mayar diproses otomatis lewat webhook dan verifikasi server." : "Proses pembayaran hanya setelah admin mengonfirmasi aksi. Catatan penolakan diisi pada popup agar melekat ke transaksi ini." }}
+            Proses pembayaran hanya setelah admin mengonfirmasi aksi. Catatan penolakan diisi pada popup agar melekat ke transaksi ini.
           </p>
           <div class="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
             <AppButton type="button" :disabled="adminStore.saving || !canVerify" @click="openAction('approve')">
@@ -194,8 +211,18 @@ async function confirmAction(note) {
             </AppButton>
           </div>
           <p v-if="!canVerify" class="mt-3 text-sm font-semibold text-ink/50">
-            {{ isMayarTransaction ? "Tidak ada aksi manual untuk transaksi Mayar." : "Aksi hanya tersedia untuk transaksi menunggu verifikasi." }}
+            Aksi hanya tersedia untuk transaksi manual yang menunggu verifikasi.
           </p>
+        </article>
+
+        <article v-else class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+          <h2 class="text-lg font-bold text-ink">Monitoring otomatis</h2>
+          <p class="mt-2 text-sm leading-6 text-ink/60">
+            {{ isMayarTransaction ? "Tidak ada approve atau tolak manual untuk transaksi ini. Sistem menunggu konfirmasi resmi sebelum kredit ditambahkan." : "Kode promo diproses langsung oleh sistem dan tidak membutuhkan aksi verifikasi manual." }}
+          </p>
+          <div class="mt-5 rounded-md bg-mint px-3 py-2 text-sm font-semibold text-leaf">
+            Diproses otomatis
+          </div>
         </article>
       </section>
 
@@ -248,7 +275,7 @@ async function confirmAction(note) {
         </article>
       </section>
 
-      <section class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+      <section v-if="isManualTransfer" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h2 class="text-lg font-bold text-ink">Bukti transfer</h2>
           <a
@@ -268,6 +295,68 @@ async function confirmAction(note) {
         <p v-else class="mt-4 rounded-md bg-linen p-5 text-center text-sm font-semibold text-ink/55">
           Member belum mengunggah bukti transfer.
         </p>
+      </section>
+
+      <section v-else-if="isMayarTransaction" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-ink">Status checkout</h2>
+            <p class="mt-1 text-sm text-ink/55">Data ini dipakai untuk monitoring transaksi otomatis.</p>
+          </div>
+          <a
+            v-if="transaction.providerCheckoutUrl"
+            :href="transaction.providerCheckoutUrl"
+            target="_blank"
+            rel="noreferrer"
+            class="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-ink/15 px-4 text-sm font-semibold text-ink hover:border-leaf hover:text-leaf"
+          >
+            <ExternalLink class="h-4 w-4" />
+            Buka checkout
+          </a>
+        </div>
+        <div class="mt-5 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-md border border-ink/10 p-4">
+            <p class="text-sm text-ink/55">Provider</p>
+            <p class="mt-1 font-bold text-ink">{{ transaction.paymentProvider || "-" }}</p>
+          </div>
+          <div class="rounded-md border border-ink/10 p-4">
+            <p class="text-sm text-ink/55">Status provider</p>
+            <p class="mt-1 font-bold text-ink">{{ providerStatusLabel }}</p>
+          </div>
+          <div class="rounded-md border border-ink/10 p-4">
+            <p class="text-sm text-ink/55">Metode bayar</p>
+            <p class="mt-1 font-bold text-ink">{{ providerPaymentMethodLabel }}</p>
+          </div>
+          <div class="rounded-md border border-ink/10 p-4">
+            <p class="text-sm text-ink/55">ID transaksi provider</p>
+            <p class="mt-1 break-all font-bold text-ink">{{ transaction.providerTransactionId || "-" }}</p>
+          </div>
+          <div class="rounded-md border border-ink/10 p-4">
+            <p class="text-sm text-ink/55">Dibayar</p>
+            <p class="mt-1 font-bold text-ink">{{ formatDateTime(transaction.providerPaidAt) }}</p>
+          </div>
+          <div class="rounded-md border border-ink/10 p-4">
+            <p class="text-sm text-ink/55">Diverifikasi</p>
+            <p class="mt-1 font-bold text-ink">{{ formatDateTime(transaction.providerVerifiedAt) }}</p>
+          </div>
+        </div>
+      </section>
+
+      <section v-else-if="isPromoTransaction" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+        <h2 class="text-lg font-bold text-ink">Kode promo</h2>
+        <p class="mt-2 text-sm leading-6 text-ink/60">
+          Transaksi ini berasal dari kode promo dan tidak memerlukan bukti transfer atau checkout pembayaran.
+        </p>
+        <div class="mt-5 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-md border border-ink/10 p-4">
+            <p class="text-sm text-ink/55">Metode</p>
+            <p class="mt-1 font-bold text-ink">Kode promo</p>
+          </div>
+          <div class="rounded-md border border-ink/10 p-4">
+            <p class="text-sm text-ink/55">Status</p>
+            <p class="mt-1 font-bold text-ink">Diproses otomatis</p>
+          </div>
+        </div>
       </section>
     </div>
 
