@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Check, CreditCard, ExternalLink, Loader2, ReceiptText, ShieldCheck, Tag } from "@lucide/vue";
+import { Check, CreditCard, ExternalLink, Loader2, ReceiptText, ShieldCheck, Tag, X } from "@lucide/vue";
 
 import AppButton from "@/components/AppButton.vue";
 import CreditPackageTimer from "@/components/CreditPackageTimer.vue";
@@ -16,6 +16,10 @@ const router = useRouter();
 const selectedPackageId = ref("");
 const promoCode = ref("");
 const error = ref("");
+const checkoutUrl = ref("");
+const checkoutTransactionId = ref("");
+const checkoutFrameLoaded = ref(false);
+const checkoutFrameBlocked = ref(false);
 
 onMounted(async () => {
   await creditStore.loadPackages();
@@ -36,8 +40,8 @@ const nextSteps = [
   },
   {
     icon: ExternalLink,
-    title: "Bayar di Mayar",
-    description: "Kamu diarahkan ke halaman pembayaran Mayar yang aman."
+    title: "Bayar di popup",
+    description: "Checkout Mayar dibuka di atas halaman Janji Nikah."
   },
   {
     icon: ShieldCheck,
@@ -87,13 +91,67 @@ async function createPayment() {
 
     const transaction = await transactionStore.create(selectedPackageId.value, promoCode.value.trim());
     if (transaction.providerCheckoutUrl) {
-      window.location.assign(transaction.providerCheckoutUrl);
+      openEmbeddedCheckout(transaction);
       return;
     }
 
     router.push({ name: "member-transaction-detail", params: { id: transaction.id } });
   } catch (requestError) {
     error.value = getApiErrorMessage(requestError, "Transaksi belum bisa dibuat.");
+  }
+}
+
+function openEmbeddedCheckout(transaction) {
+  if (!isValidCheckoutUrl(transaction.providerCheckoutUrl)) {
+    error.value = "Link checkout Mayar tidak valid.";
+    return;
+  }
+
+  checkoutUrl.value = transaction.providerCheckoutUrl;
+  checkoutTransactionId.value = transaction.id;
+  checkoutFrameLoaded.value = false;
+  checkoutFrameBlocked.value = false;
+}
+
+function closeEmbeddedCheckout({ goToDetail = false } = {}) {
+  const transactionId = checkoutTransactionId.value;
+
+  checkoutUrl.value = "";
+  checkoutTransactionId.value = "";
+  checkoutFrameLoaded.value = false;
+  checkoutFrameBlocked.value = false;
+
+  if (goToDetail && transactionId) {
+    router.push({ name: "member-transaction-detail", params: { id: transactionId }, query: { payment: "mayar" } });
+  }
+}
+
+function handleCheckoutFrameLoad(event) {
+  checkoutFrameLoaded.value = true;
+
+  try {
+    const href = event.target?.contentWindow?.location?.href || "";
+    const url = href ? new URL(href) : null;
+
+    if (url?.origin === window.location.origin && url.pathname.startsWith("/app/transactions/")) {
+      closeEmbeddedCheckout({ goToDetail: true });
+    }
+  } catch {
+    // Cross-origin Mayar pages cannot be inspected. Loading the iframe is enough.
+  }
+}
+
+function openHostedFallback() {
+  if (checkoutUrl.value) {
+    window.location.assign(checkoutUrl.value);
+  }
+}
+
+function isValidCheckoutUrl(value) {
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
   }
 }
 </script>
@@ -105,7 +163,7 @@ async function createPayment() {
         <p class="text-sm font-bold uppercase tracking-widest text-gold">Beli kredit</p>
         <h1 class="mt-2 text-3xl font-bold text-ink">Pilih paket kredit</h1>
         <p class="mt-2 max-w-2xl leading-7 text-ink/65">
-          Pilih paket, lalu lanjutkan pembayaran di Mayar. Kredit masuk otomatis setelah pembayaran terkonfirmasi.
+          Pilih paket, lalu selesaikan pembayaran Mayar di popup checkout. Kredit masuk otomatis setelah pembayaran terkonfirmasi.
         </p>
       </div>
       <AppButton to="/app/transactions" variant="secondary">Riwayat Transaksi</AppButton>
@@ -167,7 +225,7 @@ async function createPayment() {
         <div class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <h2 class="text-lg font-bold text-ink">Setelah klik Buat Transaksi</h2>
           <p class="mt-2 text-sm leading-6 text-ink/60">
-            Kamu akan diarahkan ke checkout Mayar. Jangan tutup halaman sampai proses redirect berjalan.
+            Checkout Mayar akan terbuka di popup. Jika popup tidak tampil sempurna, kamu tetap bisa membuka checkout Mayar sebagai fallback.
           </p>
           <div class="mt-5 grid gap-3 sm:grid-cols-2">
             <article
@@ -236,7 +294,7 @@ async function createPayment() {
 
           <AppButton class="mt-5 w-full" :disabled="transactionStore.submitting || !selectedPackage" @click="createPayment">
             <Loader2 v-if="transactionStore.submitting" class="h-4 w-4 animate-spin" />
-            {{ selectedPackage?.price <= 0 && selectedPackage?.hasPromoCode ? "Klaim Kode Promo" : "Buat Transaksi dan Lihat Instruksi" }}
+            {{ selectedPackage?.price <= 0 && selectedPackage?.hasPromoCode ? "Klaim Kode Promo" : "Bayar di Popup Mayar" }}
           </AppButton>
           <p class="mt-3 text-xs leading-5 text-ink/50">
             Kredit yang sudah dibeli dan kredit yang sudah dipakai publish tidak bisa refund.
@@ -244,5 +302,65 @@ async function createPayment() {
         </aside>
       </section>
     </template>
+
+    <div
+      v-if="checkoutUrl"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-3 sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Checkout Mayar"
+    >
+      <section class="flex h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg bg-white shadow-soft">
+        <div class="flex items-start justify-between gap-4 border-b border-ink/10 px-4 py-3 sm:px-5">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-gold">Checkout Mayar</p>
+            <h2 class="mt-1 text-lg font-bold text-ink">Selesaikan pembayaran</h2>
+            <p class="mt-1 text-sm leading-6 text-ink/60">
+              Tutup popup setelah pembayaran selesai, lalu cek status transaksi. Kredit masuk setelah server Mayar mengonfirmasi pembayaran.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="focus-ring flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-ink/10 text-ink/60 hover:text-ink"
+            aria-label="Tutup checkout"
+            @click="closeEmbeddedCheckout({ goToDetail: true })"
+          >
+            <X class="h-5 w-5" />
+          </button>
+        </div>
+
+        <div class="relative min-h-0 flex-1 bg-linen">
+          <div v-if="!checkoutFrameLoaded" class="absolute inset-0 flex items-center justify-center">
+            <div class="rounded-lg border border-ink/10 bg-white px-5 py-4 text-center shadow-soft">
+              <Loader2 class="mx-auto h-6 w-6 animate-spin text-leaf" />
+              <p class="mt-3 text-sm font-semibold text-ink/70">Memuat checkout Mayar...</p>
+            </div>
+          </div>
+          <iframe
+            :src="checkoutUrl"
+            title="Checkout pembayaran Mayar"
+            class="h-full w-full border-0 bg-white"
+            allow="payment *"
+            @load="handleCheckoutFrameLoad"
+            @error="checkoutFrameBlocked = true"
+          />
+        </div>
+
+        <div class="flex flex-col gap-3 border-t border-ink/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <p class="text-xs leading-5 text-ink/55">
+            Jika halaman checkout kosong atau metode bayar membuka halaman baru, gunakan tombol fallback.
+          </p>
+          <div class="flex flex-col gap-2 sm:flex-row">
+            <AppButton type="button" variant="secondary" @click="openHostedFallback">
+              <ExternalLink class="h-4 w-4" />
+              Buka Checkout Mayar
+            </AppButton>
+            <AppButton type="button" @click="closeEmbeddedCheckout({ goToDetail: true })">
+              Cek Status Transaksi
+            </AppButton>
+          </div>
+        </div>
+      </section>
+    </div>
   </section>
 </template>
