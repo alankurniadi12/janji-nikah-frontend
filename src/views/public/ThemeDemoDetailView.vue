@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
-import { Check, Copy } from "@lucide/vue";
+import { Check, Copy, Eye, EyeOff } from "@lucide/vue";
 
 import InvitationRenderer from "@/components/invitation/InvitationRenderer.vue";
 import { demoInvitation } from "@/lib/demoInvitation";
@@ -9,6 +9,7 @@ import { getInvitationTheme, invitationThemes } from "@/lib/invitationThemes";
 
 const route = useRoute();
 const copied = ref(false);
+const isCatalogHeaderHidden = ref(false);
 
 const selectedTheme = computed(() => getInvitationTheme(route.params.themeKey));
 
@@ -27,7 +28,7 @@ async function copyThemeName() {
 
 <template>
   <div>
-    <header class="sticky top-0 z-30 border-b border-ink/10 bg-white/95 backdrop-blur">
+    <header v-if="!isCatalogHeaderHidden" class="sticky top-0 z-30 border-b border-ink/10 bg-white/95 backdrop-blur">
       <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div>
           <RouterLink to="/demo-tema" class="text-sm font-bold text-leaf hover:text-ink">Katalog tema & musik</RouterLink>
@@ -54,9 +55,31 @@ async function copyThemeName() {
             <Copy v-else class="h-4 w-4" />
             {{ copied ? "Nama tema tersalin" : "Salin nama tema" }}
           </button>
+          <button
+            class="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-3 py-2 text-sm font-bold text-ink hover:border-leaf hover:text-leaf"
+            type="button"
+            aria-label="Sembunyikan header katalog"
+            title="Sembunyikan header katalog"
+            @click="isCatalogHeaderHidden = true"
+          >
+            <EyeOff class="h-4 w-4" />
+            Lihat full
+          </button>
         </div>
       </div>
     </header>
+
+    <button
+      v-else
+      class="focus-ring fixed right-3 top-3 z-50 inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-ink/15 bg-white/95 px-3 py-2 text-sm font-bold text-ink shadow-lg backdrop-blur hover:border-leaf hover:text-leaf"
+      type="button"
+      aria-label="Tampilkan header katalog"
+      title="Tampilkan header katalog"
+      @click="isCatalogHeaderHidden = false"
+    >
+      <Eye class="h-4 w-4" />
+      Tampilkan menu
+    </button>
 
     <InvitationRenderer
       :invitation="demoInvitation"
