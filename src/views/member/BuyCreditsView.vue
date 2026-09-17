@@ -100,7 +100,7 @@ function closeEmbeddedCheckout({ goToDetail = false } = {}) {
   checkoutFrameBlocked.value = false;
 
   if (goToDetail && transactionId) {
-    router.push({ name: "member-transaction-detail", params: { id: transactionId }, query: { payment: "mayar" } });
+    router.push({ name: "member-transaction-detail", params: { id: transactionId }, query: { payment: "midtrans" } });
   }
 }
 

@@ -34,11 +34,11 @@ let timerInterval = null;
 onMounted(async () => {
   const loadedTransaction = await transactionStore.loadTransaction(route.params.id);
 
-  if (loadedTransaction?.paymentMethod === "mayar" && route.query.payment === "mayar" && loadedTransaction.status === "waiting_payment") {
+  if (loadedTransaction?.paymentMethod === "midtrans" && route.query.payment === "midtrans" && loadedTransaction.status === "waiting_payment") {
     try {
-      await transactionStore.refreshMayar(loadedTransaction.id);
+      await transactionStore.refreshMidtrans(loadedTransaction.id);
     } catch {
-      // Keep the pending state visible when Mayar has not confirmed payment yet.
+      // Keep the pending state visible when Midtrans has not confirmed payment yet.
     }
   }
 
@@ -55,8 +55,8 @@ onUnmounted(() => {
 
 const transaction = computed(() => transactionStore.current);
 const isPromoTransaction = computed(() => transaction.value?.paymentMethod === "promo_code");
-const isMayarTransaction = computed(() => transaction.value?.paymentMethod === "mayar");
-const canUploadProof = computed(() => transaction.value?.status === "waiting_payment" && !isMayarTransaction.value);
+const isMidtransTransaction = computed(() => transaction.value?.paymentMethod === "midtrans");
+const canUploadProof = computed(() => transaction.value?.status === "waiting_payment" && !isMidtransTransaction.value);
 const hasUploadedProof = computed(() => ["waiting_verification", "success"].includes(transaction.value?.status));
 const isPaymentAccountReady = computed(() => hasConfiguredPaymentAccount(paymentConfig));
 const remainingPaymentMs = computed(() => {
@@ -99,7 +99,7 @@ const paymentSteps = computed(() => {
     ];
   }
 
-  if (isMayarTransaction.value) {
+  if (isMidtransTransaction.value) {
     return [
       {
         title: "Checkout dibuat",
@@ -153,7 +153,7 @@ const statusMessage = computed(() => {
       icon: Clock3,
       tone: "border-gold/25 bg-gold/10 text-ink",
       title: "Menunggu pembayaran",
-      message: isMayarTransaction.value
+      message: isMidtransTransaction.value
         ? `Selesaikan pembayaran sebelum ${formatDateTime(transaction.value?.expiresAt)}. Kredit masuk setelah pembayaran terkonfirmasi.`
         : `Transfer sebelum ${formatDateTime(transaction.value?.expiresAt)}, lalu upload bukti transfer di halaman ini.`
     };
@@ -193,7 +193,7 @@ const statusMessage = computed(() => {
       icon: AlertCircle,
       tone: "border-ink/10 bg-ink/5 text-ink",
       title: "Transaksi kedaluwarsa",
-      message: isMayarTransaction.value
+      message: isMidtransTransaction.value
         ? "Batas pembayaran sudah lewat. Buat transaksi baru untuk membeli kredit."
         : "Batas pembayaran sudah lewat. Buat transaksi baru agar mendapat kode unik dan nominal bayar baru."
     };
@@ -245,19 +245,19 @@ async function submitProof() {
   }
 }
 
-function openMayarCheckout() {
+function openMidtransCheckout() {
   if (transaction.value?.providerCheckoutUrl) {
     window.location.assign(transaction.value.providerCheckoutUrl);
   }
 }
 
-async function refreshMayarStatus() {
+async function refreshMidtransStatus() {
   if (!transaction.value?.id) {
     return;
   }
 
   try {
-    await transactionStore.refreshMayar(transaction.value.id);
+    await transactionStore.refreshMidtrans(transaction.value.id);
     toastStore.show("Status pembayaran sudah dicek.");
   } catch {
     toastStore.show("Status pembayaran belum bisa dicek.");
@@ -275,7 +275,7 @@ async function refreshMayarStatus() {
           {{
             isPromoTransaction
               ? "Kredit promo langsung masuk setelah kode valid diklaim."
-              : isMayarTransaction
+              : isMidtransTransaction
                 ? "Selesaikan pembayaran melalui form checkout. Status sukses selalu diverifikasi oleh server Janji Nikah."
                 : "Selesaikan transfer manual sesuai nominal final, lalu upload bukti agar admin bisa memverifikasi pembayaran."
           }}
@@ -315,11 +315,11 @@ async function refreshMayarStatus() {
       >
         <div class="grid gap-5 lg:grid-cols-[1fr_340px] lg:items-center">
           <div>
-            <p class="text-sm font-bold uppercase tracking-widest text-gold">{{ isMayarTransaction ? "Batas checkout berjalan" : "Batas transfer berjalan" }}</p>
+            <p class="text-sm font-bold uppercase tracking-widest text-gold">{{ isMidtransTransaction ? "Batas checkout berjalan" : "Batas transfer berjalan" }}</p>
             <h2 class="mt-2 text-xl font-bold text-ink">Selesaikan sebelum transaksi kedaluwarsa</h2>
             <p class="mt-2 text-sm leading-6 text-ink/60">
               {{
-                isMayarTransaction
+                isMidtransTransaction
                   ? `Link pembayaran berlaku sampai ${formatDateTime(transaction.expiresAt)}. Setelah bayar, kembali ke halaman ini untuk melihat status.`
                   : `Nominal dan kode unik hanya berlaku sampai ${formatDateTime(transaction.expiresAt)}. Upload bukti setelah transfer agar admin bisa verifikasi.`
               }}
@@ -389,7 +389,7 @@ async function refreshMayarStatus() {
             </div>
 
             <div class="mt-6 rounded-lg border border-leaf/20 bg-mint p-4">
-              <p class="text-sm font-bold text-leaf">{{ isPromoTransaction ? "Nilai klaim promo" : isMayarTransaction ? "Total pembayaran" : "Total yang harus ditransfer" }}</p>
+              <p class="text-sm font-bold text-leaf">{{ isPromoTransaction ? "Nilai klaim promo" : isMidtransTransaction ? "Total pembayaran" : "Total yang harus ditransfer" }}</p>
               <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p class="text-3xl font-bold text-ink">{{ formatCurrency(transaction.totalAmount) }}</p>
                 <AppButton
@@ -404,7 +404,7 @@ async function refreshMayarStatus() {
               </div>
               <p v-if="!isPromoTransaction" class="mt-3 text-sm leading-6 text-ink/65">
                 {{
-                  isMayarTransaction
+                  isMidtransTransaction
                     ? "Nominal ini dibayar melalui form checkout. Jangan transfer manual ke rekening Janji Nikah."
                     : "Transfer persis sampai 3 digit terakhir. Jangan dibulatkan agar admin mudah mencocokkan pembayaran."
                 }}
@@ -419,11 +419,11 @@ async function refreshMayarStatus() {
                 <span class="text-ink/55">Harga paket</span>
                 <span class="font-semibold text-ink">{{ formatCurrency(transaction.baseAmount) }}</span>
               </div>
-              <div v-if="!isPromoTransaction && !isMayarTransaction" class="flex justify-between gap-4 text-sm">
+              <div v-if="!isPromoTransaction && !isMidtransTransaction" class="flex justify-between gap-4 text-sm">
                 <span class="text-ink/55">Kode unik</span>
                 <span class="font-semibold text-ink">{{ transaction.uniqueCode }}</span>
               </div>
-              <div v-if="isMayarTransaction" class="flex justify-between gap-4 text-sm">
+              <div v-if="isMidtransTransaction" class="flex justify-between gap-4 text-sm">
                 <span class="text-ink/55">Metode</span>
                 <span class="font-semibold text-ink">Pembayaran online</span>
               </div>
@@ -442,7 +442,7 @@ async function refreshMayarStatus() {
             </p>
           </section>
 
-          <section v-if="isMayarTransaction" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+          <section v-if="isMidtransTransaction" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
             <div class="flex items-start gap-3">
               <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-mint text-leaf">
                 <ExternalLink class="h-5 w-5" />
@@ -456,11 +456,11 @@ async function refreshMayarStatus() {
             </div>
 
             <div class="mt-5 flex flex-col gap-3 sm:flex-row">
-              <AppButton v-if="transaction.status === 'waiting_payment' && transaction.providerCheckoutUrl" type="button" @click="openMayarCheckout">
+              <AppButton v-if="transaction.status === 'waiting_payment' && transaction.providerCheckoutUrl" type="button" @click="openMidtransCheckout">
                 <ExternalLink class="h-4 w-4" />
                 Lanjutkan Pembayaran
               </AppButton>
-              <AppButton type="button" variant="secondary" :disabled="transactionStore.submitting" @click="refreshMayarStatus">
+              <AppButton type="button" variant="secondary" :disabled="transactionStore.submitting" @click="refreshMidtransStatus">
                 <Loader2 v-if="transactionStore.submitting" class="h-4 w-4 animate-spin" />
                 <RefreshCw v-else class="h-4 w-4" />
                 Cek Status Pembayaran
@@ -516,7 +516,7 @@ async function refreshMayarStatus() {
             </p>
           </section>
 
-          <section v-if="!isPromoTransaction && !isMayarTransaction" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+          <section v-if="!isPromoTransaction && !isMidtransTransaction" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
             <h2 class="text-lg font-bold text-ink">Cara transfer</h2>
             <ol class="mt-4 grid gap-3 text-sm leading-6 text-ink/65">
               <li>1. Buka mobile banking, internet banking, ATM, atau e-wallet yang mendukung transfer bank.</li>
@@ -530,7 +530,7 @@ async function refreshMayarStatus() {
           </section>
         </div>
 
-        <aside v-if="!isPromoTransaction && !isMayarTransaction" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft lg:sticky lg:top-6 lg:self-start">
+        <aside v-if="!isPromoTransaction && !isMidtransTransaction" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft lg:sticky lg:top-6 lg:self-start">
           <div class="flex h-10 w-10 items-center justify-center rounded-md bg-rose/10 text-rose">
             <UploadCloud class="h-5 w-5" />
           </div>
@@ -623,7 +623,7 @@ async function refreshMayarStatus() {
           <p class="mt-2 text-sm leading-6 text-ink/60">
             Kalau pembayaran sudah dilakukan tapi status belum berubah, klik cek status. Jika pembayaran belum terkonfirmasi, saldo belum akan ditambah.
           </p>
-          <AppButton class="mt-5 w-full" type="button" :disabled="transactionStore.submitting" @click="refreshMayarStatus">
+          <AppButton class="mt-5 w-full" type="button" :disabled="transactionStore.submitting" @click="refreshMidtransStatus">
             <Loader2 v-if="transactionStore.submitting" class="h-4 w-4 animate-spin" />
             <RefreshCw v-else class="h-4 w-4" />
             Cek Status Pembayaran

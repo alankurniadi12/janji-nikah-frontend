@@ -20,8 +20,8 @@ export async function getTransaction(id) {
   return response.data.data.transaction;
 }
 
-export async function refreshMayarTransaction(id) {
-  const response = await api.post(`/member/transactions/${id}/refresh-mayar`);
+export async function refreshMidtransTransaction(id) {
+  const response = await api.post(`/member/transactions/${id}/refresh-midtrans`);
   return response.data.data.transaction;
 }
 

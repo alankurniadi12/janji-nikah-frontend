@@ -28,7 +28,7 @@ onMounted(() => {
 });
 
 const transaction = computed(() => adminStore.currentTransaction);
-const isMayarTransaction = computed(() => transaction.value?.paymentMethod === "mayar");
+const isMidtransTransaction = computed(() => transaction.value?.paymentMethod === "midtrans");
 const isManualTransfer = computed(() => transaction.value?.paymentMethod === "manual_transfer");
 const isPromoTransaction = computed(() => transaction.value?.paymentMethod === "promo_code");
 const canVerify = computed(() => isManualTransfer.value && transaction.value?.status === "waiting_verification");
@@ -50,8 +50,8 @@ const statusMessage = computed(() => {
       icon: CheckCircle2,
       tone: "border-leaf/20 bg-leaf/10",
       title: "Pembayaran berhasil",
-      message: isMayarTransaction.value
-        ? "Kredit sudah ditambahkan otomatis setelah pembayaran Mayar terverifikasi."
+      message: isMidtransTransaction.value
+        ? "Kredit sudah ditambahkan otomatis setelah pembayaran Midtrans terverifikasi."
         : "Kredit sudah ditambahkan ke saldo member melalui ledger pembelian."
     };
   }
@@ -69,7 +69,7 @@ const statusMessage = computed(() => {
     icon: ReceiptText,
     tone: "border-ink/10 bg-white",
     title: "Detail pembayaran",
-    message: isMayarTransaction.value
+    message: isMidtransTransaction.value
       ? "Pantau checkout otomatis. Kredit hanya masuk setelah status resmi pembayaran terverifikasi."
       : "Pantau status transaksi dan bukti pembayaran member."
   };
@@ -80,12 +80,12 @@ const providerPaymentMethodLabel = computed(() => transaction.value?.providerPay
 const creditDeliveryDescription = computed(() => {
   if (!transaction.value) return "";
   if (isManualTransfer.value) return `${transaction.value.creditAmount} kredit masuk jika approve`;
-  if (isMayarTransaction.value) return `${transaction.value.creditAmount} kredit masuk otomatis setelah terverifikasi`;
+  if (isMidtransTransaction.value) return `${transaction.value.creditAmount} kredit masuk otomatis setelah terverifikasi`;
   return `${transaction.value.creditAmount} kredit diproses otomatis`;
 });
 const totalPaymentDescription = computed(() => {
   if (!transaction.value) return "";
-  if (isMayarTransaction.value) return "Checkout otomatis";
+  if (isMidtransTransaction.value) return "Checkout otomatis";
   if (isPromoTransaction.value) return "Kode promo";
   return `Termasuk kode unik ${transaction.value.uniqueCode}`;
 });
@@ -133,7 +133,7 @@ async function confirmAction(note) {
     <AdminPageHeader
       eyebrow="Detail pembayaran"
       title="Detail transaksi member"
-      :description="isMayarTransaction ? 'Pantau checkout otomatis dan status pembayaran dari provider.' : 'Cek paket, nominal transfer, kode unik, member, dan bukti pembayaran sebelum memproses transaksi manual.'"
+      :description="isMidtransTransaction ? 'Pantau checkout otomatis dan status pembayaran dari provider.' : 'Cek paket, nominal transfer, kode unik, member, dan bukti pembayaran sebelum memproses transaksi manual.'"
     >
       <AppButton type="button" variant="secondary" @click="router.push('/admin/payments')">
         <ArrowLeft class="h-4 w-4" />
@@ -184,13 +184,13 @@ async function confirmAction(note) {
               <p class="text-sm text-ink/55">Harga paket</p>
               <p class="mt-1 font-bold text-ink">{{ formatCurrency(transaction.baseAmount) }}</p>
             </div>
-            <div v-if="!isMayarTransaction" class="rounded-md border border-ink/10 p-4">
+            <div v-if="!isMidtransTransaction" class="rounded-md border border-ink/10 p-4">
               <p class="text-sm text-ink/55">Kode unik</p>
               <p class="mt-1 font-bold text-ink">{{ transaction.uniqueCode }}</p>
             </div>
             <div v-else class="rounded-md border border-ink/10 p-4">
               <p class="text-sm text-ink/55">Provider</p>
-              <p class="mt-1 font-bold text-ink">Mayar</p>
+              <p class="mt-1 font-bold text-ink">Midtrans</p>
             </div>
           </div>
         </article>
@@ -218,7 +218,7 @@ async function confirmAction(note) {
         <article v-else class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
           <h2 class="text-lg font-bold text-ink">Monitoring otomatis</h2>
           <p class="mt-2 text-sm leading-6 text-ink/60">
-            {{ isMayarTransaction ? "Tidak ada approve atau tolak manual untuk transaksi ini. Sistem menunggu konfirmasi resmi sebelum kredit ditambahkan." : "Kode promo diproses langsung oleh sistem dan tidak membutuhkan aksi verifikasi manual." }}
+            {{ isMidtransTransaction ? "Tidak ada approve atau tolak manual untuk transaksi ini. Sistem menunggu konfirmasi resmi sebelum kredit ditambahkan." : "Kode promo diproses langsung oleh sistem dan tidak membutuhkan aksi verifikasi manual." }}
           </p>
           <div class="mt-5 rounded-md bg-mint px-3 py-2 text-sm font-semibold text-leaf">
             Diproses otomatis
@@ -297,7 +297,7 @@ async function confirmAction(note) {
         </p>
       </section>
 
-      <section v-else-if="isMayarTransaction" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
+      <section v-else-if="isMidtransTransaction" class="rounded-lg border border-ink/10 bg-white p-5 shadow-soft">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 class="text-lg font-bold text-ink">Status checkout</h2>

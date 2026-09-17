@@ -5,7 +5,7 @@ import {
   createTransaction,
   getTransaction,
   getTransactions,
-  refreshMayarTransaction,
+  refreshMidtransTransaction,
   redeemPromoCode,
   uploadPaymentProof
 } from "@/services/transactionService";
@@ -119,17 +119,17 @@ export const useTransactionStore = defineStore("transactions", {
         this.uploading = false;
       }
     },
-    async refreshMayar(id) {
+    async refreshMidtrans(id) {
       this.submitting = true;
       this.error = "";
 
       try {
-        const transaction = await refreshMayarTransaction(id);
+        const transaction = await refreshMidtransTransaction(id);
         this.current = transaction;
         this.transactions = this.transactions.map((item) => (item.id === id ? transaction : item));
         return transaction;
       } catch (error) {
-        this.error = getApiErrorMessage(error, "Status pembayaran Mayar belum bisa dicek.");
+        this.error = getApiErrorMessage(error, "Status pembayaran Midtrans belum bisa dicek.");
         throw error;
       } finally {
         this.submitting = false;

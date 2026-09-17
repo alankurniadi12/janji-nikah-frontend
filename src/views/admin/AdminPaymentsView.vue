@@ -108,13 +108,13 @@ function openAction(mode, transaction) {
 }
 
 function paymentMethodLabel(transaction) {
-  if (transaction.paymentMethod === "mayar") return "Checkout otomatis";
+  if (transaction.paymentMethod === "midtrans") return "Checkout otomatis";
   if (transaction.paymentMethod === "promo_code") return "Kode promo";
   return "Transfer manual";
 }
 
 function paymentMethodTone(transaction) {
-  if (transaction.paymentMethod === "mayar") return "border-leaf/20 bg-leaf/10 text-leaf";
+  if (transaction.paymentMethod === "midtrans") return "border-leaf/20 bg-leaf/10 text-leaf";
   if (transaction.paymentMethod === "promo_code") return "border-gold/25 bg-gold/10 text-gold";
   return "border-ink/10 bg-linen text-ink/60";
 }
@@ -260,7 +260,7 @@ async function confirmAction(note) {
               <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold" :class="paymentMethodTone(transaction)">
                 {{ paymentMethodLabel(transaction) }}
               </span>
-              <span v-if="transaction.paymentMethod === 'mayar' && transaction.providerStatus" class="text-xs font-semibold text-ink/45">
+              <span v-if="transaction.paymentMethod === 'midtrans' && transaction.providerStatus" class="text-xs font-semibold text-ink/45">
                 Status provider: {{ transaction.providerStatus }}
               </span>
             </div>
