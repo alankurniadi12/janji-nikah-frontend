@@ -4,7 +4,7 @@ import { CalendarDays, CalendarPlus, Copy, Gift, Heart, Image, Loader2, MapPin, 
 
 import { getThemeClass } from "@/lib/invitationThemes";
 import { assetUrl } from "@/utils/assets";
-import { formatEventDate } from "@/utils/formatters";
+import { eventTypeLabel, formatEventDate } from "@/utils/formatters";
 
 const props = defineProps({
   invitation: {
@@ -110,14 +110,16 @@ const showCover = computed(() => !props.opened || props.isDemo);
 const showStageNav = computed(() => props.selectedTheme.key === "golden-bloom-stage" && showContent.value);
 const hasGuestAccess = computed(() => Boolean(props.guest?.id));
 const hasWishes = computed(() => props.wishes.length > 0);
-const coupleNames = computed(() => {
-  if (props.invitation.coupleNames) {
-    return props.invitation.coupleNames;
-  }
+const groomName = computed(() => props.invitation.groom?.fullName || props.invitation.summary?.groomName || "Pengantin");
+const brideName = computed(() => props.invitation.bride?.fullName || props.invitation.summary?.brideName || "Pasangan");
+const coupleNames = computed(() => props.invitation.coupleNames || `${groomName.value} & ${brideName.value}`);
+const openingNames = computed(() => {
+  const groom = props.invitation.groom?.nickname?.trim();
+  const bride = props.invitation.bride?.nickname?.trim();
 
-  const groom = props.invitation.groom?.fullName || props.invitation.summary?.groomName || "Pengantin";
-  const bride = props.invitation.bride?.fullName || props.invitation.summary?.brideName || "Pasangan";
-  return `${groom} & ${bride}`;
+  if (!groom && !bride) return coupleNames.value;
+
+  return `${groom || groomName.value} & ${bride || brideName.value}`;
 });
 const guestName = computed(() => props.guest?.name || props.invitation.guestName);
 const envelopeMethods = computed(() => {
@@ -253,15 +255,6 @@ function normalizeTime(value) {
   }
 
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-}
-
-function eventTypeLabel(type) {
-  const labels = {
-    akad: "Akad",
-    resepsi: "Resepsi"
-  };
-
-  return labels[String(type || "").toLowerCase()] || type || "Acara";
 }
 
 function calendarDataUri(eventItem) {
@@ -438,7 +431,7 @@ watch(showContent, () => {
       <div class="theme-cover-copy relative z-10 mx-auto max-w-2xl text-center text-white">
         <p class="theme-kicker text-sm font-bold uppercase tracking-widest text-white/75">Undangan pernikahan</p>
         <p v-if="guestName" class="theme-guest-name mt-4 text-sm font-semibold text-white/80">Kepada {{ guestName }}</p>
-        <h1 class="theme-cover-title mt-5 text-5xl font-bold leading-tight sm:text-6xl">{{ coupleNames }}</h1>
+        <h1 class="theme-cover-title mt-5 text-5xl font-bold leading-tight sm:text-6xl">{{ openingNames }}</h1>
         <p v-if="invitation.events?.[0]" class="theme-cover-date mt-5 text-lg text-white/80">
           {{ formatEventDate(invitation.events[0].date) }}
         </p>
@@ -470,7 +463,7 @@ watch(showContent, () => {
         <div v-else class="absolute inset-0 opacity-25 theme-preview" :class="selectedTheme.previewClass" />
         <div class="theme-hero-copy relative z-10 mx-auto max-w-3xl">
           <p class="theme-kicker text-sm font-bold uppercase tracking-widest text-white/70">The wedding of</p>
-          <h1 class="theme-hero-title mt-5 text-5xl font-bold leading-tight sm:text-6xl">{{ coupleNames }}</h1>
+          <h1 class="theme-hero-title mt-5 text-5xl font-bold leading-tight sm:text-6xl">{{ openingNames }}</h1>
           <p v-if="isDemo" class="mt-5 text-sm leading-6 text-white/70">
             Contoh ini memakai data pengantin yang sama di semua tema agar perbedaan desain terlihat adil.
           </p>
@@ -556,7 +549,7 @@ watch(showContent, () => {
             >
               <div class="flex items-center gap-3 text-leaf">
                 <CalendarDays class="h-5 w-5" />
-                <p class="text-sm font-bold uppercase tracking-widest">{{ eventItem.type }}</p>
+                <p class="text-sm font-bold uppercase tracking-widest">{{ eventTypeLabel(eventItem.type) }}</p>
               </div>
               <h2 class="mt-4 text-2xl font-bold text-ink">{{ formatEventDate(eventItem.date) }}</h2>
               <p class="mt-2 text-sm font-semibold text-ink/70">

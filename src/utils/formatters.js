@@ -1,3 +1,13 @@
+export const eventTypeLabels = {
+  akad: "Akad",
+  resepsi: "Resepsi",
+  ngunduh_mantu: "Ngunduh Mantu"
+};
+
+export function eventTypeLabel(type) {
+  return eventTypeLabels[String(type || "").toLowerCase()] || type || "Acara";
+}
+
 export function formatCurrency(value) {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",

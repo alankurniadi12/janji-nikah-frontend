@@ -14,7 +14,7 @@ import { useCatalogStore } from "@/stores/catalog";
 import { useInvitationStore } from "@/stores/invitations";
 import { useToastStore } from "@/stores/toasts";
 import { assetUrl } from "@/utils/assets";
-import { formatCurrency, formatDate, photoIdFromUrl } from "@/utils/formatters";
+import { eventTypeLabels, formatCurrency, formatDate, photoIdFromUrl } from "@/utils/formatters";
 
 const route = useRoute();
 const auth = useAuthStore();
@@ -59,11 +59,13 @@ const form = reactive({
   servicePrice: "",
   groom: {
     fullName: "",
+    nickname: "",
     fatherName: "",
     motherName: ""
   },
   bride: {
     fullName: "",
+    nickname: "",
     fatherName: "",
     motherName: ""
   },
@@ -189,8 +191,10 @@ function syncForm(source) {
   form.slug = source.slug || "";
   form.servicePrice = source.servicePrice || "";
   form.groom.fullName = source.groom?.fullName || "";
+  form.groom.nickname = source.groom?.nickname || "";
   Object.assign(form.groom, splitParentsName(source.groom?.parentsName));
   form.bride.fullName = source.bride?.fullName || "";
+  form.bride.nickname = source.bride?.nickname || "";
   Object.assign(form.bride, splitParentsName(source.bride?.parentsName));
   form.events = (source.events || []).map((event) => ({
     type: event.type || "akad",
@@ -456,10 +460,12 @@ function buildPayload() {
     servicePrice: Number(form.servicePrice || 0),
     groom: {
       fullName: form.groom.fullName,
+      nickname: form.groom.nickname,
       parentsName: joinParentsName(form.groom.fatherName, form.groom.motherName)
     },
     bride: {
       fullName: form.bride.fullName,
+      nickname: form.bride.nickname,
       parentsName: joinParentsName(form.bride.fatherName, form.bride.motherName)
     },
     events: form.events.map((event) => ({ ...event })),
@@ -1070,6 +1076,15 @@ function fieldError(key) {
                 :disabled="!isMainDataEditable"
               />
               <p v-if="fieldError('groom.fullName')" class="mt-1 text-xs font-semibold text-rose">{{ fieldError("groom.fullName") }}</p>
+              <label class="mt-4 block text-sm font-semibold text-ink" for="groomNickname">Nama panggilan (opsional)</label>
+              <input
+                id="groomNickname"
+                v-model.trim="form.groom.nickname"
+                class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                aria-describedby="groomNicknameHint"
+                :disabled="!isMainDataEditable"
+              />
+              <p id="groomNicknameHint" class="mt-1 text-xs text-ink/55">Tampil di bagian atas undangan.</p>
               <label class="mt-4 block text-sm font-semibold text-ink" for="groomFather">Nama ayah</label>
               <input
                 id="groomFather"
@@ -1103,6 +1118,15 @@ function fieldError(key) {
                 :disabled="!isMainDataEditable"
               />
               <p v-if="fieldError('bride.fullName')" class="mt-1 text-xs font-semibold text-rose">{{ fieldError("bride.fullName") }}</p>
+              <label class="mt-4 block text-sm font-semibold text-ink" for="brideNickname">Nama panggilan (opsional)</label>
+              <input
+                id="brideNickname"
+                v-model.trim="form.bride.nickname"
+                class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
+                aria-describedby="brideNicknameHint"
+                :disabled="!isMainDataEditable"
+              />
+              <p id="brideNicknameHint" class="mt-1 text-xs text-ink/55">Tampil di bagian atas undangan.</p>
               <label class="mt-4 block text-sm font-semibold text-ink" for="brideFather">Nama ayah</label>
               <input
                 id="brideFather"
@@ -1133,14 +1157,17 @@ function fieldError(key) {
               <h2 class="text-lg font-bold text-ink">Data acara</h2>
               <p class="mt-1 text-sm text-ink/55">Minimal satu acara wajib sebelum publish.</p>
             </div>
-            <div class="flex gap-2">
-              <AppButton type="button" variant="secondary" :disabled="!isMainDataEditable" @click="addEvent('akad')">
+            <div class="flex flex-wrap gap-2">
+              <AppButton
+                v-for="(label, type) in eventTypeLabels"
+                :key="type"
+                type="button"
+                variant="secondary"
+                :disabled="!isMainDataEditable"
+                @click="addEvent(type)"
+              >
                 <Plus class="h-4 w-4" />
-                Akad
-              </AppButton>
-              <AppButton type="button" variant="secondary" :disabled="!isMainDataEditable" @click="addEvent('resepsi')">
-                <Plus class="h-4 w-4" />
-                Resepsi
+                {{ label }}
               </AppButton>
             </div>
           </div>
@@ -1166,8 +1193,7 @@ function fieldError(key) {
                     class="focus-ring mt-2 h-11 w-full rounded-md border border-ink/15 px-3 text-sm"
                     :disabled="!isMainDataEditable"
                   >
-                    <option value="akad">Akad</option>
-                    <option value="resepsi">Resepsi</option>
+                    <option v-for="(label, type) in eventTypeLabels" :key="type" :value="type">{{ label }}</option>
                   </select>
                 </label>
                 <label class="block text-sm font-semibold text-ink">
@@ -1218,7 +1244,7 @@ function fieldError(key) {
             :class="validationErrors.events ? 'border-rose bg-rose/5' : 'border-ink/20'"
             :data-invalid="Boolean(validationErrors.events)"
           >
-            Belum ada acara. Tambahkan akad atau resepsi.
+            Belum ada acara. Pilih jenis acara untuk menambahkannya.
           </p>
         </section>
 

@@ -11,7 +11,7 @@ import { getApiErrorMessage } from "@/lib/api";
 import { useAdminStore } from "@/stores/admin";
 import { useToastStore } from "@/stores/toasts";
 import { assetUrl } from "@/utils/assets";
-import { formatCurrency, formatDate, formatDateTime, formatEventDate } from "@/utils/formatters";
+import { eventTypeLabel, formatCurrency, formatDate, formatDateTime, formatEventDate } from "@/utils/formatters";
 
 const route = useRoute();
 const router = useRouter();
@@ -100,15 +100,6 @@ async function confirmUnlock(note) {
   } catch (requestError) {
     unlockDialog.error = getApiErrorMessage(requestError, "Undangan belum bisa di-unlock.");
   }
-}
-
-function eventTypeLabel(type) {
-  const labels = {
-    akad: "Akad",
-    resepsi: "Resepsi"
-  };
-
-  return labels[type] || type || "Acara";
 }
 
 function ledgerTitle(type) {
