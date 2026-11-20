@@ -35,6 +35,7 @@ const wishes = computed(() => dashboard.value?.wishes || []);
 const visibleGuests = computed(() => guests.value.slice(0, visibleGuestLimit.value));
 const visibleWishes = computed(() => wishes.value.slice(0, visibleWishLimit.value));
 const hasMoreGuests = computed(() => visibleGuestLimit.value < guests.value.length);
+const remainingGuestSlots = computed(() => Math.max(500 - (summary.value.totalGuests || 0), 0));
 const hasMoreWishes = computed(() => visibleWishLimit.value < wishes.value.length);
 const publicInvitationUrl = computed(() => absoluteLink(`/${route.params.username}/${route.params.slug}`));
 const coupleNames = computed(() => {
@@ -126,6 +127,11 @@ async function copyGuestWhatsapp(guest) {
 
 async function submitGuest() {
   if (addingGuest.value) return;
+
+  if (remainingGuestSlots.value === 0) {
+    addGuestError.value = "Batas 500 tamu per undangan sudah tercapai.";
+    return;
+  }
 
   const name = guestName.value.trim();
   addGuestError.value = "";
@@ -293,6 +299,7 @@ function loadMoreWishes() {
           <form class="rounded-md border border-leaf/15 bg-mint/40 p-4" @submit.prevent="submitGuest">
             <label class="block text-sm font-bold text-ink" for="hostGuestName">Tambah tamu undangan</label>
             <p class="mt-1 text-xs text-ink/60">Tamu yang terlupa bisa ditambahkan di sini. Setiap tamu mendapat link undangan sendiri.</p>
+            <p class="mt-1 text-xs font-semibold text-ink/60">{{ summary.totalGuests || 0 }} dari 500 tamu terpakai.</p>
             <div class="mt-3 flex flex-col gap-2 sm:flex-row">
               <input
                 id="hostGuestName"
@@ -302,13 +309,13 @@ function loadMoreWishes() {
                 placeholder="Nama tamu"
                 maxlength="100"
                 autocomplete="off"
-                :disabled="addingGuest"
+                :disabled="addingGuest || remainingGuestSlots === 0"
                 required
               />
               <button
                 class="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-leaf px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
                 type="submit"
-                :disabled="addingGuest"
+                :disabled="addingGuest || remainingGuestSlots === 0"
               >
                 <Loader2 v-if="addingGuest" class="h-4 w-4 animate-spin" />
                 <Plus v-else class="h-4 w-4" />

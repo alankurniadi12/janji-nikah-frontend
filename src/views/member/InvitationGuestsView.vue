@@ -25,6 +25,7 @@ const wishFilter = ref("all");
 const form = reactive({
   bulkNames: ""
 });
+const remainingGuestSlots = computed(() => Math.max(500 - guestStore.guests.length, 0));
 
 onMounted(async () => {
   await Promise.all([
@@ -339,16 +340,18 @@ function rsvpStatusClass(status) {
           </p>
           <form class="mt-4 space-y-3" @submit.prevent="addBulkGuests">
             <label class="block text-sm font-semibold text-ink" for="bulkNames">Daftar nama tamu</label>
+            <p class="text-xs font-semibold text-ink/60">{{ guestStore.guests.length }} dari 500 tamu terpakai.</p>
             <textarea
               id="bulkNames"
               v-model="form.bulkNames"
               class="focus-ring min-h-36 w-full rounded-md border border-ink/15 px-3 py-2 text-sm"
               placeholder="Contoh:&#10;Bapak Andi&#10;Ibu Sari&#10;Keluarga Pak Budi"
+              :disabled="remainingGuestSlots === 0"
             />
             <p class="text-xs leading-5 text-ink/50">
-              Gunakan satu baris untuk setiap tamu. Setiap nama akan dibuatkan link undangan personal.
+              Gunakan satu baris untuk setiap tamu. Maksimal 500 tamu per undangan; jika daftar melebihi sisa kuota, tidak ada nama baru yang ditambahkan.
             </p>
-            <AppButton class="w-full" type="submit" :disabled="guestStore.saving">
+            <AppButton class="w-full" type="submit" :disabled="guestStore.saving || remainingGuestSlots === 0">
               <Loader2 v-if="guestStore.saving" class="h-4 w-4 animate-spin" />
               Tambah Tamu
             </AppButton>
