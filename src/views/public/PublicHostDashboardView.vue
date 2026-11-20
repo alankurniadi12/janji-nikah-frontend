@@ -1,11 +1,11 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { CalendarDays, CheckCircle2, Clock3, Copy, Loader2, MessageSquareText, Users, XCircle } from "@lucide/vue";
+import { CalendarDays, CheckCircle2, Clock3, Copy, Loader2, MessageSquareText, Plus, Users, XCircle } from "@lucide/vue";
 
 import whatsappIconUrl from "@/assets/ic-whatsapp.png";
 import { getApiErrorMessage } from "@/lib/api";
-import { getPublicHostDashboard } from "@/services/publicInvitationService";
+import { addPublicHostGuest, getPublicHostDashboard } from "@/services/publicInvitationService";
 import { useToastStore } from "@/stores/toasts";
 import { formatDate } from "@/utils/formatters";
 
@@ -19,6 +19,10 @@ const dashboard = ref(null);
 const activeTab = ref("guests");
 const visibleGuestLimit = ref(10);
 const visibleWishLimit = ref(10);
+const guestName = ref("");
+const addingGuest = ref(false);
+const addedGuest = ref(null);
+const addGuestError = ref("");
 
 const LIST_INCREMENT = 10;
 
@@ -118,6 +122,41 @@ async function copyGuestWhatsapp(guest) {
   const message = `Assalamu'alaikum ${guest.name},\n\nKami mengundang Anda untuk hadir di acara pernikahan ${coupleNames.value}.\n\nBuka undangan:\n${link}`;
 
   await copyText(message, "Pesan WhatsApp berhasil disalin.");
+}
+
+async function submitGuest() {
+  if (addingGuest.value) return;
+
+  const name = guestName.value.trim();
+  addGuestError.value = "";
+  addedGuest.value = null;
+
+  if (!name) {
+    addGuestError.value = "Nama tamu wajib diisi.";
+    return;
+  }
+
+  addingGuest.value = true;
+
+  try {
+    const guest = await addPublicHostGuest(route.params.username, route.params.slug, route.params.token, name);
+    addedGuest.value = guest;
+    guestName.value = "";
+    dashboard.value = {
+      ...dashboard.value,
+      guests: [{ ...guest, rsvpStatus: "pending", rsvp: null }, ...guests.value],
+      summary: {
+        ...summary.value,
+        totalGuests: (summary.value.totalGuests || 0) + 1,
+        pending: (summary.value.pending || 0) + 1
+      }
+    };
+    toastStore.show("Tamu berhasil ditambahkan. Link undangan siap dibagikan.");
+  } catch (requestError) {
+    addGuestError.value = getApiErrorMessage(requestError, "Tamu gagal ditambahkan. Coba lagi.");
+  } finally {
+    addingGuest.value = false;
+  }
 }
 
 function setActiveTab(tab) {
@@ -251,7 +290,42 @@ function loadMoreWishes() {
         <p v-if="actionError" class="mt-4 rounded-md bg-rose/10 px-3 py-2 text-sm font-semibold text-rose">{{ actionError }}</p>
 
         <div v-if="activeTab === 'guests'" class="mt-5">
-          <div class="flex flex-wrap items-center justify-between gap-2">
+          <form class="rounded-md border border-leaf/15 bg-mint/40 p-4" @submit.prevent="submitGuest">
+            <label class="block text-sm font-bold text-ink" for="hostGuestName">Tambah tamu undangan</label>
+            <p class="mt-1 text-xs text-ink/60">Tamu yang terlupa bisa ditambahkan di sini. Setiap tamu mendapat link undangan sendiri.</p>
+            <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+              <input
+                id="hostGuestName"
+                v-model.trim="guestName"
+                class="focus-ring min-h-11 min-w-0 flex-1 rounded-md border border-ink/15 bg-white px-3 text-sm"
+                type="text"
+                placeholder="Nama tamu"
+                maxlength="100"
+                autocomplete="off"
+                :disabled="addingGuest"
+                required
+              />
+              <button
+                class="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-leaf px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+                type="submit"
+                :disabled="addingGuest"
+              >
+                <Loader2 v-if="addingGuest" class="h-4 w-4 animate-spin" />
+                <Plus v-else class="h-4 w-4" />
+                Tambah tamu
+              </button>
+            </div>
+            <p v-if="addGuestError" class="mt-2 text-sm font-semibold text-rose" role="alert">{{ addGuestError }}</p>
+            <div v-if="addedGuest" class="mt-3 rounded-md border border-leaf/15 bg-white p-3 text-sm">
+              <p class="font-semibold text-ink">{{ addedGuest.name }} berhasil ditambahkan.</p>
+              <p class="mt-1 break-all text-xs text-ink/55">{{ absoluteLink(addedGuest.link) }}</p>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <button class="focus-ring rounded-md border border-ink/15 px-3 py-2 font-semibold text-leaf" type="button" @click="copyGuestLink(addedGuest)">Salin link tamu</button>
+                <button class="focus-ring rounded-md border border-ink/15 px-3 py-2 font-semibold text-leaf" type="button" @click="copyGuestWhatsapp(addedGuest)">Salin pesan WhatsApp</button>
+              </div>
+            </div>
+          </form>
+          <div class="mt-5 flex flex-wrap items-center justify-between gap-2">
             <p class="text-sm font-bold uppercase tracking-widest text-gold">Daftar kehadiran</p>
             <p class="text-xs font-semibold text-ink/45">Menampilkan {{ visibleGuests.length }} dari {{ guests.length }} tamu</p>
           </div>

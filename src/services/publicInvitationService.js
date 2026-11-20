@@ -11,3 +11,8 @@ export async function getPublicHostDashboard(username, slug, token) {
   });
   return response.data.data;
 }
+
+export async function addPublicHostGuest(username, slug, token, name) {
+  const response = await api.post(`/public/invitations/${username}/${slug}/host/${token}/guests`, { name });
+  return response.data.data.guest;
+}
