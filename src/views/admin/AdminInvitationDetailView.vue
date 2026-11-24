@@ -11,6 +11,7 @@ import { getApiErrorMessage } from "@/lib/api";
 import { useAdminStore } from "@/stores/admin";
 import { useToastStore } from "@/stores/toasts";
 import { assetUrl } from "@/utils/assets";
+import { formatCoupleDescription } from "@/utils/coupleDescription";
 import { eventTypeLabel, formatCurrency, formatDate, formatDateTime, formatEventDate } from "@/utils/formatters";
 
 const route = useRoute();
@@ -200,12 +201,12 @@ function rsvpLabel(status) {
               <div class="rounded-md bg-linen p-4">
                 <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Pengantin pria</p>
                 <p class="mt-2 text-lg font-bold text-ink">{{ invitation.groom?.fullName || "-" }}</p>
-                <p class="mt-1 text-sm text-ink/55">{{ invitation.groom?.parentsName || "Orang tua belum diisi" }}</p>
+                <p class="mt-1 text-sm text-ink/55">{{ formatCoupleDescription(invitation.groom, "groom") || "Orang tua belum diisi" }}</p>
               </div>
               <div class="rounded-md bg-linen p-4">
                 <p class="text-xs font-bold uppercase tracking-widest text-ink/45">Pengantin wanita</p>
                 <p class="mt-2 text-lg font-bold text-ink">{{ invitation.bride?.fullName || "-" }}</p>
-                <p class="mt-1 text-sm text-ink/55">{{ invitation.bride?.parentsName || "Orang tua belum diisi" }}</p>
+                <p class="mt-1 text-sm text-ink/55">{{ formatCoupleDescription(invitation.bride, "bride") || "Orang tua belum diisi" }}</p>
               </div>
             </div>
           </article>

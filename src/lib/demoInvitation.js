@@ -39,12 +39,14 @@ export const demoInvitation = {
   galleryPhotoUrls: demoInvitationImages.gallery,
   groom: {
     fullName: "Raka Pradipta",
-    parentsName: "Putra pertama dari Bapak Surya Pradipta dan Ibu Melati Pradipta",
+    childOrder: 1,
+    parentsName: "Ayah: Bapak Surya Pradipta\nIbu: Ibu Melati Pradipta",
     photoUrl: demoInvitationImages.groom
   },
   bride: {
     fullName: "Amara Kirana",
-    parentsName: "Putri kedua dari Bapak Bima Kirana dan Ibu Ratih Kirana",
+    childOrder: 2,
+    parentsName: "Ayah: Bapak Bima Kirana\nIbu: Ibu Ratih Kirana",
     photoUrl: demoInvitationImages.bride
   },
   events: [

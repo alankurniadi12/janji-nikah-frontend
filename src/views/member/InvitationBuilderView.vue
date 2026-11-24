@@ -60,12 +60,14 @@ const form = reactive({
   groom: {
     fullName: "",
     nickname: "",
+    childOrder: "",
     fatherName: "",
     motherName: ""
   },
   bride: {
     fullName: "",
     nickname: "",
+    childOrder: "",
     fatherName: "",
     motherName: ""
   },
@@ -192,9 +194,11 @@ function syncForm(source) {
   form.servicePrice = source.servicePrice || "";
   form.groom.fullName = source.groom?.fullName || "";
   form.groom.nickname = source.groom?.nickname || "";
+  form.groom.childOrder = source.groom?.childOrder ?? "";
   Object.assign(form.groom, splitParentsName(source.groom?.parentsName));
   form.bride.fullName = source.bride?.fullName || "";
   form.bride.nickname = source.bride?.nickname || "";
+  form.bride.childOrder = source.bride?.childOrder ?? "";
   Object.assign(form.bride, splitParentsName(source.bride?.parentsName));
   form.events = (source.events || []).map((event) => ({
     type: event.type || "akad",
@@ -461,11 +465,13 @@ function buildPayload() {
     groom: {
       fullName: form.groom.fullName,
       nickname: form.groom.nickname,
+      childOrder: form.groom.childOrder === "" ? null : Number(form.groom.childOrder),
       parentsName: joinParentsName(form.groom.fatherName, form.groom.motherName)
     },
     bride: {
       fullName: form.bride.fullName,
       nickname: form.bride.nickname,
+      childOrder: form.bride.childOrder === "" ? null : Number(form.bride.childOrder),
       parentsName: joinParentsName(form.bride.fatherName, form.bride.motherName)
     },
     events: form.events.map((event) => ({ ...event })),
@@ -887,11 +893,22 @@ function collectValidationErrors({ onlyStep = "" } = {}) {
     missing.push(label);
     addValidationError(key, "Wajib diisi.", step);
   };
+  const addInvalidOrder = (key, label) => {
+    if (onlyStep && onlyStep !== "couple") return;
+    missing.push(label);
+    addValidationError(key, "Isi angka bulat minimal 1.", "couple");
+  };
 
   if (!form.groom.fullName?.trim()) add("groom.fullName", "Nama lengkap pengantin pria", "couple");
+  if (form.groom.childOrder !== "" && (!Number.isSafeInteger(Number(form.groom.childOrder)) || Number(form.groom.childOrder) < 1)) {
+    addInvalidOrder("groom.childOrder", "Urutan anak pengantin pria");
+  }
   if (!form.groom.fatherName?.trim()) add("groom.fatherName", "Nama ayah pengantin pria", "couple");
   if (!form.groom.motherName?.trim()) add("groom.motherName", "Nama ibu pengantin pria", "couple");
   if (!form.bride.fullName?.trim()) add("bride.fullName", "Nama lengkap pengantin wanita", "couple");
+  if (form.bride.childOrder !== "" && (!Number.isSafeInteger(Number(form.bride.childOrder)) || Number(form.bride.childOrder) < 1)) {
+    addInvalidOrder("bride.childOrder", "Urutan anak pengantin wanita");
+  }
   if (!form.bride.fatherName?.trim()) add("bride.fatherName", "Nama ayah pengantin wanita", "couple");
   if (!form.bride.motherName?.trim()) add("bride.motherName", "Nama ibu pengantin wanita", "couple");
 
@@ -1085,6 +1102,21 @@ function fieldError(key) {
                 :disabled="!isMainDataEditable"
               />
               <p id="groomNicknameHint" class="mt-1 text-xs text-ink/55">Tampil di bagian atas undangan.</p>
+              <label class="mt-4 block text-sm font-semibold text-ink" for="groomChildOrder">Anak ke- (opsional)</label>
+              <input
+                id="groomChildOrder"
+                v-model.number="form.groom.childOrder"
+                class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                :class="fieldClass('groom.childOrder')"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="numeric"
+                placeholder="Contoh: 1"
+                :disabled="!isMainDataEditable"
+              />
+              <p v-if="fieldError('groom.childOrder')" class="mt-1 text-xs font-semibold text-rose">{{ fieldError("groom.childOrder") }}</p>
+              <p class="mt-1 text-xs text-ink/55">Isi 1 untuk “Putra pertama”, 2 untuk “Putra kedua”, dan seterusnya.</p>
               <label class="mt-4 block text-sm font-semibold text-ink" for="groomFather">Nama ayah</label>
               <input
                 id="groomFather"
@@ -1127,6 +1159,21 @@ function fieldError(key) {
                 :disabled="!isMainDataEditable"
               />
               <p id="brideNicknameHint" class="mt-1 text-xs text-ink/55">Tampil di bagian atas undangan.</p>
+              <label class="mt-4 block text-sm font-semibold text-ink" for="brideChildOrder">Anak ke- (opsional)</label>
+              <input
+                id="brideChildOrder"
+                v-model.number="form.bride.childOrder"
+                class="focus-ring mt-2 h-11 w-full rounded-md border px-3 text-sm"
+                :class="fieldClass('bride.childOrder')"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="numeric"
+                placeholder="Contoh: 1"
+                :disabled="!isMainDataEditable"
+              />
+              <p v-if="fieldError('bride.childOrder')" class="mt-1 text-xs font-semibold text-rose">{{ fieldError("bride.childOrder") }}</p>
+              <p class="mt-1 text-xs text-ink/55">Isi 1 untuk “Putri pertama”, 2 untuk “Putri kedua”, dan seterusnya.</p>
               <label class="mt-4 block text-sm font-semibold text-ink" for="brideFather">Nama ayah</label>
               <input
                 id="brideFather"

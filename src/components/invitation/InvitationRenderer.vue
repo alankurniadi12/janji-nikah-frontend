@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { CalendarDays, CalendarPlus, Copy, Gift, Heart, Image, Loader2, MapPin, MessageCircle, Music2 } from "@lucide/vue";
 
 import { getThemeClass } from "@/lib/invitationThemes";
+import { formatCoupleDescription } from "@/utils/coupleDescription";
 import { assetUrl } from "@/utils/assets";
 import { eventTypeLabel, formatEventDate } from "@/utils/formatters";
 
@@ -504,7 +505,7 @@ watch(showContent, () => {
             />
             <p class="text-sm font-bold uppercase tracking-widest text-gold">Pengantin pria</p>
             <h2 class="mt-3 text-3xl font-bold text-ink">{{ invitation.groom.fullName }}</h2>
-            <p class="mt-3 whitespace-pre-line text-sm leading-6 text-ink/60">{{ invitation.groom.parentsName }}</p>
+            <p class="mt-3 whitespace-pre-line text-sm leading-6 text-ink/60">{{ formatCoupleDescription(invitation.groom, "groom") }}</p>
           </article>
           <article class="theme-section-panel theme-couple-card rounded-lg border border-ink/10 bg-white p-6 text-center shadow-soft">
             <img
@@ -515,7 +516,7 @@ watch(showContent, () => {
             />
             <p class="text-sm font-bold uppercase tracking-widest text-gold">Pengantin wanita</p>
             <h2 class="mt-3 text-3xl font-bold text-ink">{{ invitation.bride.fullName }}</h2>
-            <p class="mt-3 whitespace-pre-line text-sm leading-6 text-ink/60">{{ invitation.bride.parentsName }}</p>
+            <p class="mt-3 whitespace-pre-line text-sm leading-6 text-ink/60">{{ formatCoupleDescription(invitation.bride, "bride") }}</p>
           </article>
         </div>
       </section>
